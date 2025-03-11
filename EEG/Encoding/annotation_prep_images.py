@@ -71,7 +71,7 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
     Returns
     ----------
     image_features.pkl: Canny edges, World normals, Lighting, Scene Depth, 
-    Reflectance, Character Identity, Action Identity, Skeleton Position after
+    Reflectance, Action Identity, Skeleton Position after
     PCA (if necessary), saved in a dictionary "image_features"
         - Dictionary contains matrix for each feature with the dimension 
         num_images x num_components 
