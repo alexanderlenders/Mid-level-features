@@ -92,7 +92,7 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, input_typ
     region : str
         The region for which the EEG data should be analyzed. 
     workdir : str
-        Type of directory storing the data ('scratch', 'trove' or 'scratch-trove')
+        Type of directory storing the data ('scratch', 'trove', 'scratch-trove' or 'OSF-download')
     input_type: str
         Performing analysis on images (default) or miniclips 
     it: int 
