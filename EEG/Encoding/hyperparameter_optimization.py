@@ -30,7 +30,7 @@ if __name__ == "__main__":
     parser.add_argument('-r', "--region", default="posterior",type=str, 
                         metavar='',
                         help="Electrodes to be included, posterior (19) or wholebrain (64)")
-    parser.add_argument('-i', "--input_type", default = 'miniclips', type = str, 
+    parser.add_argument('-i', "--input_type", default = 'images', type = str, 
                         metavar='', help="Font")
 
     args = parser.parse_args() # to get values for the arguments
