@@ -195,7 +195,7 @@ def hyperparameter_tuning(sub, freq, region, input_type):
         return y, timepoints
     
     # -------------------------------------------------------------------------
-    # STEP 2.2 Define load features function
+    # STEP 2.3 Define load features function
     # -------------------------------------------------------------------------
     def load_features(feature, featuresDir):  
         
@@ -209,10 +209,8 @@ def hyperparameter_tuning(sub, freq, region, input_type):
         
         return X_train, X_val, X_test
     
-
-
     # -------------------------------------------------------------------------
-    # STEP 2.3 Define model class
+    # STEP 2.4 Define model class
     # -------------------------------------------------------------------------
     class OLS_pytorch(object):
         def __init__(self, use_gpu=False, intercept = True, ridge = True, alpha = 0):
@@ -360,7 +358,7 @@ def hyperparameter_tuning(sub, freq, region, input_type):
             return X.reshape(-1, 1)
         
     # -------------------------------------------------------------------------
-    # STEP 2.4 Define Correlation Function 
+    # STEP 2.5 Define Correlation Function 
     # -------------------------------------------------------------------------
 
     def vectorized_correlation(x,y):
@@ -382,11 +380,10 @@ def hyperparameter_tuning(sub, freq, region, input_type):
 
         corr = bessel_corrected_covariance / (x_std * y_std)
 
-        return corr.ravel()
-    
+        return corr.ravel()  
     
     # -------------------------------------------------------------------------
-    # STEP 2.5 Loop over all features and save best alpha hyperparameter
+    # STEP 2.6 Loop over all features and save best alpha hyperparameter
     # -------------------------------------------------------------------------
     if input_type == 'miniclips':
         y_train, timepoints = load_eeg(sub, 'training', region, freq, input_type)       
@@ -461,7 +458,7 @@ def hyperparameter_tuning(sub, freq, region, input_type):
         regression_features[feature] = output
         
     # -------------------------------------------------------------------------
-    # STEP 2.6 Save hyperparameters and scores
+    # STEP 2.7 Save hyperparameters and scores
     # -------------------------------------------------------------------------    
     # Save the dictionary
     saveDir = f'/home/agnek95/Encoding-midlevel-features/Results/Encoding/{input_type}/7_features/'           
