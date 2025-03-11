@@ -35,14 +35,15 @@ parser.add_argument('-r', "--region", default="posterior",type=str,
                     help="Electrodes to be included, posterior (19) or wholebrain (64)")
 parser.add_argument('-d', "--workdir", 
                     default = 'scratch',
-                    type = str, metavar='', help="Working directory type: scratch or trove")
+                    type = str, metavar='', 
+                    help="Working directory type: scratch, trove, scratch-trove, or OSF-download")
 parser.add_argument("--ica",default=True, type= bool, metavar='', 
                     help="included artifact rejection using ica or not")
 parser.add_argument("--it",default=1, type=int, metavar='', 
                     help="Iteration")
 parser.add_argument('-t',"--time_gen_bool",default=False, type=bool, metavar='',
                     help='Time generalization yes or no')
-parser.add_argument('-inp',"--input_type", default='miniclips', metavar='',
+parser.add_argument('-inp',"--input_type", default='images', metavar='',
                     type=str,help='miniclips or images')
 
 args = parser.parse_args() # to get values for the arguments
@@ -118,7 +119,7 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
     time_gen_bool: bool
         Perforiming time-generalization or not (default is False)
     input_type: str
-        Performing analysis on miniclips (default) or images
+        Performing analysis on images (default) or miniclips 
     -------
  
     """
@@ -203,40 +204,50 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
         workDirFull = 'Z:/Unreal/'
     elif workDir=='scratch-trove':
         workDirFull = '/scratch/agnek95/Unreal/'
+    elif workDir == 'OSF-download':
+        workDirFull = '~/Downloads/EEG/' #update based on your own setup
 
-    #will need modifications for images
-    if input_type=='miniclips':
-        if sub < 10:  
-            if ica:
-                folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-0{}'.format(sub) + 
-                                        '/eeg/preprocessing/ica' + '/' + img_type + '/' +
-                                        region + '/')
+    #load data 
+    if workDir == 'OSF-download':
+        if input_type == 'images':
+            folderDir = os.path.join(workDirFull,'Images/Preprocessed/')
+        elif input_type == 'miniclips':
+            folderDir = os.path.join(workDirFull,'Videos/Preprocessed/')
+        fileDir = os.path.join(folderDir,'sub-{}_seq_{}_{}hz_{}.npy'.format(sub,img_type,freq,region))
+
+    else:
+        if input_type=='miniclips':
+            if sub < 10:  
+                if ica:
+                    folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-0{}'.format(sub) + 
+                                            '/eeg/preprocessing/ica' + '/' + img_type + '/' +
+                                            region + '/')
+                else: 
+                    folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-0{}'.format(sub) + 
+                                            '/eeg/preprocessing/no_ica' + '/' + img_type + '/'
+                                            + region + '/')
+                fileDir = (('sub-0{}'.format(sub)) + '_seq_' + img_type + '_' + 
+                            str(freq) + 'hz_' + region + '.npy')
             else: 
-                folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-0{}'.format(sub) + 
-                                        '/eeg/preprocessing/no_ica' + '/' + img_type + '/'
-                                        + region + '/')
-            fileDir = (('sub-0{}'.format(sub)) + '_seq_' + img_type + '_' + 
-                        str(freq) + 'hz_' + region + '.npy')
-        else: 
-            if ica:
-                folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-{}'.format(sub) + 
-                                        '/eeg/preprocessing/ica' + '/' + img_type + '/' +
-                                        region + '/')
-            else: 
-                folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-{}'.format(sub) + 
-                                        '/eeg/preprocessing/no_ica' + '/' + img_type + '/'
-                                        + region + '/')
-            fileDir = (('sub-{}'.format(sub)) + '_seq_' + img_type + '_' + 
-                        str(freq) + 'hz_' + region + '.npy')
-    elif input_type=='images':
-        if sub < 10: 
-            folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/prepared' + '/sub-0{}'.format(sub) + 
-                                     '/{}/{}/{}hz/'.format(img_type,region,freq))
-            fileDir = (('{}_img_data_{}hz_sub_00{}.npy'.format(img_type,freq,sub)))
-        else:
-            folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/prepared' + '/sub-{}'.format(sub) + 
-                                     '/{}/{}/{}hz/'.format(img_type,region,freq))         
-            fileDir = (('{}_img_data_{}hz_sub_0{}.npy'.format(img_type,freq,sub)))
+                if ica:
+                    folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-{}'.format(sub) + 
+                                            '/eeg/preprocessing/ica' + '/' + img_type + '/' +
+                                            region + '/')
+                else: 
+                    folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-{}'.format(sub) + 
+                                            '/eeg/preprocessing/no_ica' + '/' + img_type + '/'
+                                            + region + '/')
+                fileDir = (('sub-{}'.format(sub)) + '_seq_' + img_type + '_' + 
+                            str(freq) + 'hz_' + region + '.npy')
+        elif input_type=='images':
+            if sub < 10: 
+                folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/prepared' + '/sub-0{}'.format(sub) + 
+                                        '/{}/{}/{}hz/'.format(img_type,region,freq))
+                fileDir = (('{}_img_data_{}hz_sub_00{}.npy'.format(img_type,freq,sub)))
+            else:
+                folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/prepared' + '/sub-{}'.format(sub) + 
+                                        '/{}/{}/{}hz/'.format(img_type,region,freq))         
+                fileDir = (('{}_img_data_{}hz_sub_0{}.npy'.format(img_type,freq,sub)))
     
     
     total_dir = os.path.join(folderDir, fileDir)
@@ -566,6 +577,9 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
         saveDir = 'Z:/Unreal/Results/Decoding/{}/Redone/'.format(input_type)
     elif workDir=='scratch-trove':
         saveDir = '/home/agnek95/Encoding-midlevel-features/Results/Decoding/{}/'.format(input_type)
+    elif workDir=='OSF-download':
+        saveDir = '~/Downloads/Results/' #update based on your own setup
+
     if sub < 10: 
         fileDir = 'decoding_{}_'.format(input_type) + 'sub-0{}_redone'.format(sub)
     else: 
