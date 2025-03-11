@@ -45,12 +45,12 @@ parser.add_argument('-f', "--frame",
 args = parser.parse_args() # to get values for the arguments
 
 n_components = args.n_components
+pca_method = args.pca_method
 images_dir = args.imgdir
 annotations_dir = args.annodir
-character_dir = args.charactdir
 action_dir = args.actiondir
+character_dir = args.charactdir
 save_dir = args.savedir
-pca_method = args.pca_method
 frame = args.frame
 
 # -----------------------------------------------------------------------------
