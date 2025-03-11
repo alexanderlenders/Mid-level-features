@@ -24,7 +24,7 @@ if __name__ == "__main__":
     
     # add arguments / inputs
     parser.add_argument('-s', "--sub", default=6, type=int, metavar='', 
-                        help="subject from (1 to 24)")
+                        help="subject ID (see range below)")
     parser.add_argument('-f', "--freq", default=50,type=int, metavar='', 
                         help="downsampling frequency")
     parser.add_argument('-r', "--region", default="posterior",type=str, 
@@ -50,11 +50,11 @@ def hyperparameter_tuning(sub, freq, region, input_type):
     ----------
     I. Test, Training and Validation EEG data sets, which are already 
     preprocessed + MVNN. The input are dictionaries, which include: 
-        a. EEG-Data (eeg_data, 5400 Videos x 19 Channels x 54 Timepoints)
-        b. Image/Video Categories (img_cat, 5400 x 1) - Each video has one specific ID
+        a. EEG-Data (eeg_data, 5400 Images/Videos x 19 Channels x 54 Timepoints)
+        b. Image/Video Categories (img_cat, 5400 x 1) - Each image/video has one specific ID
         c. Channel names (channels, 64 x 1 OR 19 x 1)
-        d. Time (time, 54 x 1) - Downsampled timepoints of a video
-        In case of the validation data set there are 900 videos instead of 5400.
+        d. Time (time, 54 x 1) - Downsampled timepoints of an image/ video
+        In case of the validation data set there are 900 images/videos instead of 5400.
     II. Image/Video features 
         a. image_features.pkl or video_features.pkl: Canny edges, World normals, Lighting, Scene Depth, 
         Reflectance, Action Identity, Skeleton Position after
