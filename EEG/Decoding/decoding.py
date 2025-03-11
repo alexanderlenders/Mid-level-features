@@ -3,7 +3,6 @@
 """
 DECODING
 This script conducts a decoding analysis for a single subject on the videos. 
-It includes a time generalization analysis (estimated runtime for 19 channels - 40h)
 This version does the decoding only on the test data of the encoding analysis.
 The MVNN transformer is based on the MVNN preprocessing script. No standard 
 scaler is used. The removal of the mean pattern (cocktail-blank removal) is not 
@@ -24,8 +23,6 @@ parser = argparse.ArgumentParser()
 # add arguments / inputs
 parser.add_argument('-s', "--sub", default=17, type=int, metavar='', 
                     help="subject from (1 to XX)")
-parser.add_argument('-se', "--sess", default=1,type=int, metavar='', 
-                    help="subject session")
 parser.add_argument('--mvnn_dim', default="epochs", type=str, \
                  help="time vs. epochs")
 parser.add_argument('-f', "--freq", default=50,type=int, metavar='', 
@@ -36,33 +33,26 @@ parser.add_argument('-r', "--region", default="posterior",type=str,
 parser.add_argument('-d', "--workdir", 
                     default = 'scratch',
                     type = str, metavar='', 
-                    help="Working directory type: scratch, trove, scratch-trove, or OSF-download")
-parser.add_argument("--ica",default=True, type= bool, metavar='', 
-                    help="included artifact rejection using ica or not")
-parser.add_argument("--it",default=1, type=int, metavar='', 
-                    help="Iteration")
-parser.add_argument('-t',"--time_gen_bool",default=False, type=bool, metavar='',
-                    help='Time generalization yes or no')
+                    help="Working directory type: scratch, trove, scratch-trove, or OSF-download (based on own setup)")
 parser.add_argument('-inp',"--input_type", default='images', metavar='',
                     type=str,help='miniclips or images')
+parser.add_argument("--it",default=1, type=int, metavar='', 
+                    help="Iteration")
 
 args = parser.parse_args() # to get values for the arguments
 
 sub = args.sub
-sess = args.sess
 freq = args.freq
 mvnn_dim = args.mvnn_dim
 region = args.region        
 workDir = args.workdir
-ica = args.ica
-it = args.it
-time_gen_bool = args.time_gen_bool
 input_type = args.input_type
+it = args.it
 
 # -----------------------------------------------------------------------------
 # STEP 2: Define Decoding Function
 # -----------------------------------------------------------------------------
-def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, time_gen_bool, input_type): 
+def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, input_type, it): 
     """
     Preprocessing (MVNN, standardization) is fitted on the training data, as
     recommended.
@@ -80,28 +70,18 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
 
     Returns:
     ----------
-    If no time-generalization analysis: 
-        Decoding results, saved in a dictionary which contains: 
-        1. final_results_mean (70 Timepoints x 16110 Pairwise Decoding between Videos/Images): 
-            - Contains the pairwise decoding results (RDM) for each timepoint 
-        2. mean_accuracies_over_conditions (70 Timepoints x 1)
-            - Contains the pairwise decoding results for each timepoint averaged over
-            conditions
 
-    If time-generalization analysis: 
-
-        1. time_gen_matrix (70 Timepoints x 70 Timepoints)
-            - Contains the time gen matrix averaged over conditions: First dimension 
-            refers to training time point, second to test timepoint
-        2. triangle_matrix (180 x 180 x 70 Timepoints x 70 Timepoints)
-            - RDM / Contains for each pairwise comparison the time gen matrix
+    Decoding results, saved in a dictionary which contains: 
+    1. final_results_mean (70 Timepoints x 16110 Pairwise Decoding between Videos/Images): 
+        - Contains the pairwise decoding results (RDM) for each timepoint 
+    2. mean_accuracies_over_conditions (70 Timepoints x 1)
+        - Contains the pairwise decoding results for each timepoint averaged over
+        conditions
 
     Parameters
     ----------
     sub : int
           Subject number 
-    sess : int
-          Subject's session of the paradigm (default is 1).
     mvnn_dim : str
           Whether to compute the mvnn covariace matrices
           for each time point["time"] or for each epoch["epochs"]
@@ -112,14 +92,10 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
         The region for which the EEG data should be analyzed. 
     workdir : str
         Type of directory storing the data ('scratch', 'trove' or 'scratch-trove')
-    ica: bool 
-        Whether ICA was used for preprocessing of the EEG data.
-    it: int 
-        Iteration (for parallelizing the computations on CURTA)
-    time_gen_bool: bool
-        Perforiming time-generalization or not (default is False)
     input_type: str
         Performing analysis on images (default) or miniclips 
+    it: int 
+        Iteration (for parallelizing the computations on remote server and setting the random seed)
     -------
  
     """
@@ -218,27 +194,20 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
     else:
         if input_type=='miniclips':
             if sub < 10:  
-                if ica:
-                    folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-0{}'.format(sub) + 
-                                            '/eeg/preprocessing/ica' + '/' + img_type + '/' +
-                                            region + '/')
-                else: 
-                    folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-0{}'.format(sub) + 
-                                            '/eeg/preprocessing/no_ica' + '/' + img_type + '/'
-                                            + region + '/')
+                folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-0{}'.format(sub) + 
+                                        '/eeg/preprocessing/ica' + '/' + img_type + '/' +
+                                        region + '/')
+
                 fileDir = (('sub-0{}'.format(sub)) + '_seq_' + img_type + '_' + 
                             str(freq) + 'hz_' + region + '.npy')
             else: 
-                if ica:
-                    folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-{}'.format(sub) + 
-                                            '/eeg/preprocessing/ica' + '/' + img_type + '/' +
-                                            region + '/')
-                else: 
-                    folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-{}'.format(sub) + 
-                                            '/eeg/preprocessing/no_ica' + '/' + img_type + '/'
-                                            + region + '/')
+                folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-{}'.format(sub) + 
+                                        '/eeg/preprocessing/ica' + '/' + img_type + '/' +
+                                        region + '/')
+
                 fileDir = (('sub-{}'.format(sub)) + '_seq_' + img_type + '_' + 
                             str(freq) + 'hz_' + region + '.npy')
+                
         elif input_type=='images':
             if sub < 10: 
                 folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/prepared' + '/sub-0{}'.format(sub) + 
@@ -249,27 +218,11 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
                                         '/{}/{}/{}hz/'.format(img_type,region,freq))         
                 fileDir = (('{}_img_data_{}hz_sub_0{}.npy'.format(img_type,freq,sub)))
     
-    
     total_dir = os.path.join(folderDir, fileDir)
     
     # number of cross validation iterations
-    num_iterations = 1 # 100 recommended (as in Cichy et al. (2014))
-    
-    # Number of repetitions for the test data: 
-    max_rep = 30
-    
-    # Number of pseudo-trials
-    n_pseudo = 6
-    
-    # k (number of folds)
-    k = 6
-
-    # Number of original trials (repetitions) per pseudo-trial:
-    n_original_trial_pseudo = int(max_rep/n_pseudo)
-    
-    # List 
-    pseudo_trials = [(i+1)*5 for i in range(n_pseudo)]
-    
+    # num_iterations = 1 # when less image pairs: 100 recommended (as in Cichy et al. (2014)); here 1 is enough
+       
     # Print directory of the EEG data: 
     print(total_dir)
         
@@ -291,6 +244,21 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
     # Check if there are NA's within the EEG data
     num_nan = np.isnan(eeg_data).sum()
     print(f"There are {num_nan} NAN values in the input data")
+    
+    # Number of repetitions for the test data: 
+    max_rep = 30
+    
+    # Number of pseudo-trials
+    n_pseudo = 6
+    
+    # k (number of folds)
+    k = 6
+
+    # Number of original trials (repetitions) per pseudo-trial:
+    n_original_trial_pseudo = int(max_rep/n_pseudo)
+    
+    # List 
+    pseudo_trials = [(i+1)*5 for i in range(n_pseudo)]
     
     # timepoints 
     timepoints = len(time)
@@ -314,7 +282,6 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
     if not np.all(img_rep == max_rep):
         print("Not all stimuli have the same number of presentations")
     
-
     # -------------------------------------------------------------------------
     # STEP 2.4 Decoding Analysis
     # -------------------------------------------------------------------------
@@ -327,10 +294,7 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
     pseudo_eeg_con_B = np.zeros((n_pseudo, n_chan, timepoints), dtype = float)
     
     # triangle matrix 
-    if time_gen_bool:
-        triangle_mean = np.zeros((n_conditions, n_conditions, timepoints, timepoints), dtype = float)
-    else:
-        triangle_mean = np.zeros((n_conditions, n_conditions, timepoints), dtype = float)
+    triangle_mean = np.zeros((n_conditions, n_conditions, timepoints), dtype = float)
 
     # count variable 
     count_total = 0 
@@ -353,10 +317,7 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
             eeg_con_A = eeg_data[conA,:,:,:]
 
         for conB in range(num_of_comparisons):
-            if time_gen_bool:
-                scores = np.zeros((k, timepoints, timepoints), dtype = float)
-            else:
-                scores = np.zeros((k, timepoints), dtype = float)
+            scores = np.zeros((k, timepoints), dtype = float)
             if conA == conB: 
                 continue 
             
@@ -373,10 +334,7 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
                 
             # Create an array which contains the scores for each time-point 
             # averaged over k 
-            if time_gen_bool:
-                scores_mean = np.zeros((timepoints, timepoints), dtype = float)
-            else:
-                scores_mean = np.zeros((timepoints), dtype = float)
+            scores_mean = np.zeros((timepoints), dtype = float)
         
             # -------------------------------------------------------------
             # STEP 2.4.1 Shuffle the Data
@@ -463,36 +421,17 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
                     pipe = Pipeline(estimators)
                     
                     # Fit 
-                    results = pipe.fit(X_train_mvnn, y_train)
+                    data_time_gen = data_tp
+                    X_test = data_time_gen[test_index, :]
+                    y_test = full_data_label[test_index]
+                    # Apply MVNN to the test data
+                    X_test_mvnn = mvnn_transformer.transform(X = X_test)
                     
-                    if time_gen_bool:
-                        # Time generalization procedure
-                        for time_gen in range(timepoints): 
-                            # Choose data for timepoints
-                            data_time_gen = full_data[time_gen, :, :]
-                            
-                            X_test = data_time_gen[test_index, :]
-                            y_test = full_data_label[test_index]
-                            # Apply MVNN to the test data
-                            X_test_mvnn = mvnn_transformer.transform(X = X_test)
-                            
-                            # Score
-                            score_pipe = pipe.score(X_test_mvnn, y_test)
-                        
-                            # save score
-                            scores[count, time_eeg, time_gen] = score_pipe
-                    else:
-                        data_time_gen = data_tp
-                        X_test = data_time_gen[test_index, :]
-                        y_test = full_data_label[test_index]
-                        # Apply MVNN to the test data
-                        X_test_mvnn = mvnn_transformer.transform(X = X_test)
-                        
-                        # Score
-                        score_pipe = pipe.score(X_test_mvnn, y_test)
-                    
-                        # save score
-                        scores[count, time_eeg] = score_pipe
+                    # Score
+                    score_pipe = pipe.score(X_test_mvnn, y_test)
+                
+                    # save score
+                    scores[count, time_eeg] = score_pipe
 
                 # count variable 
                 count +=1
@@ -506,69 +445,43 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
             scores_mean = np.mean(scores, axis = 0)
                    
             # store it in the upper triangle (RDM)
-            if time_gen_bool:
-                triangle_mean[conA, conB, :, :] = scores_mean
-            else:
-                triangle_mean[conA, conB, :] = scores_mean 
+            triangle_mean[conA, conB, :] = scores_mean 
+
     # -------------------------------------------------------------------------
     # STEP 2.5 Vectorize Results and Prepare Outputs
     # -------------------------------------------------------------------------
-    # Output 1: Time generalization matrix over conditions (if time gen)
-    if time_gen_bool:
-        triangle_matrix = np.transpose(triangle_mean, (2, 3, 0, 1))
-        
-        time_gen_mean = np.zeros((timepoints, timepoints, 16110), dtype = float)
-        
-        for tp in range(timepoints): 
-            for tp2 in range(timepoints): 
-            # only save the lower triangle and vectorize it (excluding main diagonal)
-            # get the indices of the lower triangle, excluding main diagonal 
-                tp_matrix_mean = triangle_matrix[tp, tp2, :, :]
-                i, j = np.tril_indices_from(tp_matrix_mean, k = -1)
-                lower_triangle_mean = tp_matrix_mean[i, j]
-                vectorized_mean = lower_triangle_mean.flatten()
-                time_gen_mean[tp, tp2, :] = vectorized_mean
-        
-        time_gen_matrix = time_gen_mean.mean(axis = 2)
+
+    # Vectorized results (no time generalization)
+    triangle_mean_3 = np.zeros((180, 180, timepoints))
+    for i in range(n_conditions): 
+        for j in range(n_conditions): 
+            for k in range(timepoints): 
+                value = triangle_mean[i, j, k]
+                triangle_mean_3[i, j, k] = value         
+    triangle_mean_3 = np.transpose(triangle_mean_3, (2, 0, 1))
     
-    else:
-        # Output 2: Vectorized results (no time generalization)
-        triangle_mean_3 = np.zeros((180, 180, timepoints))
-        for i in range(n_conditions): 
-            for j in range(n_conditions): 
-                for k in range(timepoints): 
-                    value = triangle_mean[i, j, k]
-                    triangle_mean_3[i, j, k] = value         
-        triangle_mean_3 = np.transpose(triangle_mean_3, (2, 0, 1))
+    final_results_mean = np.zeros((timepoints, num_entries), dtype = float)
+    for tp in range(timepoints): 
+        # only save the lower triangle and vectorize it (excluding main diagonal)
+        # get the indices of the lower triangle, excluding main diagonal 
+        tp_matrix_mean = triangle_mean_3[tp, :, :]
+        i, j = np.tril_indices_from(tp_matrix_mean, k = -1)
+        lower_triangle_mean = tp_matrix_mean[i, j]
+        vectorized_mean = lower_triangle_mean.flatten()
         
-        final_results_mean = np.zeros((timepoints, num_entries), dtype = float)
-        for tp in range(timepoints): 
-            # only save the lower triangle and vectorize it (excluding main diagonal)
-            # get the indices of the lower triangle, excluding main diagonal 
-            tp_matrix_mean = triangle_mean_3[tp, :, :]
-            i, j = np.tril_indices_from(tp_matrix_mean, k = -1)
-            lower_triangle_mean = tp_matrix_mean[i, j]
-            vectorized_mean = lower_triangle_mean.flatten()
-            
-            final_results_mean[tp, :] = vectorized_mean
-            
-        # calculate mean decoding accuracy for each timepoint 
-        mean_accuracy = final_results_mean.mean(axis=1)
+        final_results_mean[tp, :] = vectorized_mean
+        
+    # calculate mean decoding accuracy for each timepoint 
+    mean_accuracy = final_results_mean.mean(axis=1)
 
     # -------------------------------------------------------------------------
-    # STEP 2.5 Save Results 
+    # STEP 2.6 Save Results 
     # -------------------------------------------------------------------------
     # Putting the results into a dictionary 
-    if time_gen_bool:
-        decoding_single_subject = {
-            "triangle_mean": triangle_mean,
-            "time_gen_matrix": time_gen_matrix
-        }
-    else:
-        decoding_single_subject = {
-            "mean_accuracies_over_conditions": mean_accuracy,
-            "final_results_mean": final_results_mean
-        }
+    decoding_single_subject = {
+        "mean_accuracies_over_conditions": mean_accuracy,
+        "final_results_mean": final_results_mean
+    }
 
     # Save the results
     if workDir=='scratch':
@@ -585,9 +498,6 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
     else: 
         fileDir = 'decoding_{}_'.format(input_type) + 'sub-{}_redone'.format(sub)
 
-    if time_gen_bool:
-        fileDir = 'time_gen_' + fileDir
-    
     # Creating the directory if not existing
     if not os.path.isdir(saveDir):
         os.makedirs(saveDir)
@@ -597,7 +507,7 @@ def decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, 
 # -----------------------------------------------------------------------------
 # STEP 3: Run Decoding Function
 # -----------------------------------------------------------------------------
-decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, ica, it, time_gen_bool, input_type)
+decoding_single_subject_func(sub, mvnn_dim, freq, region, workDir, input_type, it)
         
         
                         
