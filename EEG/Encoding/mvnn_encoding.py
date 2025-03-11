@@ -23,9 +23,7 @@ if __name__ == "__main__":
     
     # add arguments / inputs
     parser.add_argument('-s', "--sub", default=5, type=int, metavar='', 
-                        help="subject from (1 to 24)")
-    parser.add_argument('-se', "--sess", default=1,type=int, metavar='', 
-                        help="subject session")
+                        help="subject number (see list of IDs below)")
     parser.add_argument('--mvnn_dim', default="epochs", type=str, \
                      help="time vs. epochs")
     parser.add_argument('-f', "--freq", default=50,type=int, metavar='', 
@@ -33,30 +31,26 @@ if __name__ == "__main__":
     parser.add_argument('-r', "--region", default="posterior",type=str, 
                         metavar='',
                         help="Electrodes to be included, posterior (19) or wholebrain (64)")
-    # parser.add_argument('-d', "--workdir", 
-    #                     default = '/Volumes/Elements/miniclip_data',
-                        # type = str, metavar='', help="Working directory")
-    parser.add_argument("--ica",default=True, type= bool, metavar='', 
-                        help="included artifact rejection using ica or not")
+    parser.add_argument('-d', "--workdir", 
+                        default = 'OSF-download',
+                        type = str, metavar='', help="Working directory type")
     parser.add_argument('-i', "--input_type", default = 'miniclips', type = str, 
                         metavar='', help="Font")
     
     args = parser.parse_args() # to get values for the arguments
 
     sub = args.sub
-    sess = args.sess
     freq = args.freq
     mvnn_dim = args.mvnn_dim
     region = args.region        
-    # workDir = args.workdir
-    ica=args.ica
+    workDir = args.workdir
     input_type = args.input_type
 
 # -----------------------------------------------------------------------------
 # STEP 2: Define MVNN Fit Function
 # -----------------------------------------------------------------------------
 
-def mvnn_fit(sub, sess, mvnn_dim, freq, region, ica, input_type):
+def mvnn_fit(sub, mvnn_dim, freq, region, workDir, input_type):
     """
     MVNN is fitted only on the training data, but applied to the training, 
     test and validation data. 
@@ -83,8 +77,6 @@ def mvnn_fit(sub, sess, mvnn_dim, freq, region, ica, input_type):
     ----------
     sub : int
           Subject number 
-    sess : int
-          Subject's session of the paradigm (default is 1).
     mvnn_dim : str
           Whether to compute the mvnn covariace matrices
           for each time point["time"] or for each epoch["epochs"]
@@ -93,8 +85,8 @@ def mvnn_fit(sub, sess, mvnn_dim, freq, region, ica, input_type):
           Downsampling frequency (default is 50)
     region : str
         The region for which the EEG data should be analyzed. 
-    workdir : str
-        Main preprocessing directory
+    workDir : str
+        Type of directory where preprocessed data are saved
     input_type : str
         Miniclips or images
     """
@@ -108,41 +100,42 @@ def mvnn_fit(sub, sess, mvnn_dim, freq, region, ica, input_type):
 
     print("\n\n\n>>> Mvnn %s, %dhz, sub %s, brain region: %s <<<" % (mvnn_dim, freq, sub, region))
     
-    workDirFull = 'Z:/Unreal/'
-    if input_type=='miniclips':
-        if sub < 10:  
-            if ica:
+    #load training data
+    if workDir == 'OSF-download':
+        workDirFull = '~/Downloads/EEG/' #update based on your own setup
+        if input_type == 'images':
+            folderDir = os.path.join(workDirFull,'Images/Preprocessed/')
+            train_str = 'train'
+        elif input_type == 'miniclips':
+            folderDir = os.path.join(workDirFull,'Videos/Preprocessed/')
+            train_str = 'training'
+        fileDir = os.path.join(folderDir,'sub-{}_seq_{}_{}hz_{}.npy'.format(sub,train_str,freq,region))
+
+    else:    
+        workDirFull = 'Z:/Unreal/'
+        if input_type=='miniclips':
+            if sub < 10:  
                 folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-0{}'.format(sub) + 
                                         '/eeg/preprocessing/ica' + '/' + '/training' + '/' +
                                         region + '/')
+                fileDir = (('sub-0{}'.format(sub)) + '_seq_' + 'training' + '_' + 
+                            str(freq) + 'hz_' + region + '.npy')
             else: 
-                folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-0{}'.format(sub) + 
-                                        '/eeg/preprocessing/no_ica' + '/' + '/training' + '/'
-                                        + region + '/')
-            fileDir = (('sub-0{}'.format(sub)) + '_seq_' + 'training' + '_' + 
-                        str(freq) + 'hz_' + region + '.npy')
-        else: 
-            if ica:
                 folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-{}'.format(sub) + 
                                         '/eeg/preprocessing/ica' + '/' + '/training' + '/' +
                                         region + '/')
-            else: 
-                folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-{}'.format(sub) + 
-                                        '/eeg/preprocessing/no_ica' + '/' + '/training' + '/'
-                                        + region + '/')
-            fileDir = (('sub-{}'.format(sub)) + '_seq_' + 'training' + '_' + 
-                        str(freq) + 'hz_' + region + '.npy')
-    elif input_type=='images':
-        if sub < 10: 
-            folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/prepared' + '/sub-0{}'.format(sub) + 
-                                     '/train/{}/{}hz/'.format(region,freq))
-            fileDir = (('train_img_data_{}hz_sub_00{}.npy'.format(freq,sub)))
-        else:
-            folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/prepared' + '/sub-{}'.format(sub) + 
-                                     '/train/{}/{}hz/'.format(region,freq))         
-            fileDir = (('train_img_data_{}hz_sub_0{}.npy'.format(freq,sub)))
-    
-    
+                fileDir = (('sub-{}'.format(sub)) + '_seq_' + 'training' + '_' + 
+                            str(freq) + 'hz_' + region + '.npy')
+        elif input_type=='images':
+            if sub < 10: 
+                folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/prepared' + '/sub-0{}'.format(sub) + 
+                                        '/train/{}/{}hz/'.format(region,freq))
+                fileDir = (('train_img_data_{}hz_sub_00{}.npy'.format(freq,sub)))
+            else:
+                folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/prepared' + '/sub-{}'.format(sub) + 
+                                        '/train/{}/{}hz/'.format(region,freq))         
+                fileDir = (('train_img_data_{}hz_sub_0{}.npy'.format(freq,sub)))
+        
     total_dir = os.path.join(folderDir, fileDir)
     data = np.load(total_dir, allow_pickle=True).item()
 
@@ -171,7 +164,7 @@ def mvnn_fit(sub, sess, mvnn_dim, freq, region, ica, input_type):
             idx = (img_cat == np.unique(img_cat)[c])
             cond_data = eeg_data[idx,:,:]
         elif input_type=='images':
-            cond_data = eeg_data[c,:,:,:]
+            cond_data = eeg_data[c,:,:,:] #due to slight differences in preprocessing 
 
     # Computing the covariance matrices
     # count_2 refers to the condition (since sigma_ has the dimensions 
@@ -209,7 +202,7 @@ def mvnn_fit(sub, sess, mvnn_dim, freq, region, ica, input_type):
 # STEP 2: Define MVNN Transform Function
 # -----------------------------------------------------------------------------
 
-def mvnn_transform(img_type, sub, sess, mvnn_dim, freq, region, ica, sigma_inv, input_type):
+def mvnn_transform(img_type, sub, mvnn_dim, freq, region, sigma_inv, workDir, input_type):
     """
     MVNN is fitted only on the training data, but applied to the training, 
     test and validation data. 
@@ -240,8 +233,6 @@ def mvnn_transform(img_type, sub, sess, mvnn_dim, freq, region, ica, sigma_inv, 
         data set (training, validation or test)
     sub : int
           Subject number 
-    sess : int
-          Subject's session of the paradigm (default is 1).
     mvnn_dim : str
           Whether to compute the mvnn covariace matrices
           for each time point["time"] or for each epoch["epochs"]
@@ -273,38 +264,39 @@ def mvnn_transform(img_type, sub, sess, mvnn_dim, freq, region, ica, sigma_inv, 
         max_rep = 5
 
     # Define the directory
-    workDirFull = 'Z:/Unreal/'
-    if input_type=='miniclips':
-        if sub < 10:  
-            if ica:
+    if workDir == 'OSF-download':
+        workDirFull = '~/Downloads/EEG/' #update based on your own setup
+        if input_type == 'images':
+            folderDir = os.path.join(workDirFull,'Images/Preprocessed/')
+        elif input_type == 'miniclips':
+            folderDir = os.path.join(workDirFull,'Videos/Preprocessed/')
+        fileDir = os.path.join(folderDir,'sub-{}_seq_{}_{}hz_{}.npy'.format(sub,img_type,freq,region))
+
+    else: 
+        workDirFull = 'Z:/Unreal/'
+        if input_type=='miniclips':
+            if sub < 10:  
                 main_folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-0{}'.format(sub) + 
-                                        '/eeg/preprocessing/ica')            
+                                        '/eeg/preprocessing/ica')           
+                    
+                folderDir = os.path.join(main_folderDir,img_type + '/' + region + '/')
+                fileDir = (('sub-0{}'.format(sub)) + '_seq_' + img_type + '_' + 
+                            str(freq) + 'hz_' + region + '.npy')
             else: 
-                main_folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-0{}'.format(sub) + 
-                                        '/eeg/preprocessing/no_ica')
-                
-            folderDir = os.path.join(main_folderDir,img_type + '/' + region + '/')
-            fileDir = (('sub-0{}'.format(sub)) + '_seq_' + img_type + '_' + 
-                        str(freq) + 'hz_' + region + '.npy')
-        else: 
-            if ica:
                 main_folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-{}'.format(sub) + 
                                         '/eeg/preprocessing/ica')
-            else: 
-                main_folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-{}'.format(sub) + 
-                                        '/eeg/preprocessing/no_ica')
-            folderDir = os.path.join(main_folderDir, img_type + '/' + region + '/')
-            fileDir = (('sub-{}'.format(sub)) + '_seq_' + img_type + '_' + 
-                        str(freq) + 'hz_' + region + '.npy')
-    elif input_type=='images':
-        if sub < 10: 
-            main_folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/prepared' + '/sub-0{}'.format(sub))
-            fileDir = (('{}_img_data_{}hz_sub_00{}.npy'.format(img_type,freq,sub)))
-        else:
-            main_folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/prepared' + '/sub-{}'.format(sub))         
-            fileDir = (('{}_img_data_{}hz_sub_0{}.npy'.format(img_type,freq,sub)))
-        folderDir = os.path.join(main_folderDir+'/{}/{}/{}hz/'.format(img_type,region,freq))
-    
+                folderDir = os.path.join(main_folderDir, img_type + '/' + region + '/')
+                fileDir = (('sub-{}'.format(sub)) + '_seq_' + img_type + '_' + 
+                            str(freq) + 'hz_' + region + '.npy')
+        elif input_type=='images':
+            if sub < 10: 
+                main_folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/prepared' + '/sub-0{}'.format(sub))
+                fileDir = (('{}_img_data_{}hz_sub_00{}.npy'.format(img_type,freq,sub)))
+            else:
+                main_folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/prepared' + '/sub-{}'.format(sub))         
+                fileDir = (('{}_img_data_{}hz_sub_0{}.npy'.format(img_type,freq,sub)))
+            folderDir = os.path.join(main_folderDir+'/{}/{}/{}hz/'.format(img_type,region,freq))
+        
     total_dir = os.path.join(folderDir, fileDir)
 
     # Loading the data 
@@ -338,7 +330,6 @@ def mvnn_transform(img_type, sub, sess, mvnn_dim, freq, region, ica, sigma_inv, 
         "time": time,
         "channels": channels
     }
-
  
     if sub < 10:
         fileDir = (('sub-0{}'.format(sub)) + '_seq_' + img_type + '_' + 
@@ -358,13 +349,13 @@ elif input_type=='images':
     subjects = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
 
 for sub in subjects:
-    sigma_inv = mvnn_fit(sub, sess, mvnn_dim, freq, region, ica, input_type)
+    sigma_inv = mvnn_fit(sub, mvnn_dim, freq, region, workDir, input_type)
     if input_type=='miniclips':
         image_types = ['training', 'test', 'validation']
     elif input_type=='images':
         image_types = ['train','test','val']
     for type in image_types: 
-        mvnn_transform(type, sub, sess, mvnn_dim, freq, region, ica, sigma_inv,input_type)
+        mvnn_transform(type, sub, mvnn_dim, freq, region, sigma_inv, workDir, input_type)
     
 
 
