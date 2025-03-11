@@ -383,12 +383,12 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
             
         pca_image.fit(scaled_train)
         
-        if pca_method == 'linear':
+        # if pca_method == 'linear':
             # Get explained variance
-            per_var = np.round(pca_image.explained_variance_ratio_* 100, decimals=1)
-            labels = ['PC' + str(x) for x in range(1, len(per_var)+1)]
+            # per_var = np.round(pca_image.explained_variance_ratio_* 100, decimals=1)
+            # labels = ['PC' + str(x) for x in range(1, len(per_var)+1)]
         
-            explained_variance = np.sum(per_var)
+            # explained_variance = np.sum(per_var)
               
         # Transform data 
         pca_train = pca_image.transform(scaled_train)
