@@ -18,7 +18,7 @@ Anaconda-Environment on local machine: MNE
 # STEP 1: Initialize variables
 # -----------------------------------------------------------------------------
 if __name__ == '__main__': 
-    import argparse # if script is run in terminal $ python XXX.py -h
+    import argparse # if script is run in terminal $ python preprocessing_eeg.py -h
 
     # parser
     parser = argparse.ArgumentParser()
@@ -34,15 +34,16 @@ if __name__ == '__main__':
                         metavar='',
                         help="Electrodes to be included, posterior (19) or wholebrain (64)")
     parser.add_argument('-d', "--workdir", 
-                        default = '/Users/AlexanderLenders/Desktop/miniclip_data',
-                        type = str, metavar='', help="Working directory")
-    parser.add_argument('-p', "--plots", default = True,
+                        default = '/Users/AlexanderLenders/Desktop/',
+                        type = str, metavar='', help="Working directory: where EEG and behavioral data is stored")
+    parser.add_argument('-p', "--plots", default=True,
                         type = bool, metavar='', help="Show diagnostic plots?")
-    parser.add_argument('-sf', "--sfigures", default = True, type = bool,
-                        metavar = '', help = "Save figures? Recommended only for ICA.\
+    parser.add_argument('-sf', "--sfigures", default=True, type = bool,
+                        metavar='', help="Save figures? Recommended only for ICA.\
                             Does only work, if sfigures = TRUE.")
-    parser.add_argument("--ica", default = True, type=bool, help = "Do an ICA?")
-
+    parser.add_argument('-i','--ica', default=True, type=bool, help = "Do an ICA?")
+    parser.add_argument('-it', '--input_type', default='images', type=str, metavar='', 
+                        help='images or miniclips')
 
     args = parser.parse_args() # to get the values for the arguments
     
@@ -55,13 +56,14 @@ if __name__ == '__main__':
     do_ica = args.ica
     show_plots = args.plots
     save_figures = args.sfigures
+    input_type = args.input_type
 
 # -----------------------------------------------------------------------------
 # STEP 2: Preprocessing (Define function preprEeg)
 # -----------------------------------------------------------------------------
 
 def preprEeg(sub, sess, freq, select_channels, do_ica, workDir, 
-             show_plots, save_figures):
+             show_plots, save_figures, input_type):
     """Preprocessing of the EEG data
 
     Input: 
@@ -74,11 +76,11 @@ def preprEeg(sub, sess, freq, select_channels, do_ica, workDir,
     data set for the encoding analysis. Note that the decoding analysis is only
     done with the test dataset. 
     The output is therefore 3 dictionaries which contain: 
-    a. EEG-Data (eeg_data, 5400 Videos x 64 Channels x 70 Timepoints)
-    b. Video Categories (img_cat, 5400 x 1) - Each video has one specific ID
+    a. EEG-Data (eeg_data, 5400 Stimuli x 64 Channels x 70 Timepoints)
+    b. Stimulus Categories (img_cat, 5400 x 1) - Each stimulus has one specific ID
     c. Channel names (channels, 64 x 1 OR 19 x 1)
-    d. Time (time, 70 x 1) - Downsampled timepoints of a video
-    In case of the validation data set there are 900 videos instead of 5400.
+    d. Time (time, 70 x 1) - Downsampled timepoints of a stimulus
+    In case of the validation data set there are 900 stimuli instead of 5400.
 
     Arguments: 
     ----------
@@ -99,6 +101,8 @@ def preprEeg(sub, sess, freq, select_channels, do_ica, workDir,
         Show diagnostic plots
     save_figures: bool 
         Save diagnostic figures
+    input_type: str
+        Images or Miniclips
 
     """
     # -------------------------------------------------------------------------
@@ -124,21 +128,29 @@ def preprEeg(sub, sess, freq, select_channels, do_ica, workDir,
     else: 
         selected_channels = select_channels
 
-    # Videos per sequence 
+    # Stimuli per sequence 
     img_per_seq = 10 
     
-    # data directories (works only on mac/linux)
+    # data directories (works only on mac/linux - change format on Windows)
+    if input_type == 'images':
+        workDir_input = os.path.join(workDir, 'images_data')
+        file_identifier = 'unreal_subject_0' if sub < 10 else 'unreal_subject'
+    elif input_type == 'miniclips':
+        workDir_input = os.path.join(workDir, 'miniclip_data')
+        file_identifier = 'miniclip_vis_features_00' if sub < 10 else 'miniclip_vis_features_0'
+
+
     if sub < 10: 
-        behavDir = workDir + ('/sub-0{}'.format(sub) + 
+        behavDir = workDir_input + ('/sub-0{}'.format(sub) + 
                               '/beh/temporal_decoder_data')
-        eegDir = workDir + ('/sub-0{}'.format(sub) + 
-                              '/eeg/miniclip_vis_features_00{}'.format(sub) +
+        eegDir = workDir_input + ('/sub-0{}'.format(sub) + 
+                              '/eeg/{}{}'.format(file_identifier,sub) +
                               '.vhdr')
     else:
-        behavDir = workDir + ('/sub-{}'.format(sub) + 
+        behavDir = workDir_input + ('/sub-{}'.format(sub) + 
                               '/beh/temporal_decoder_data')
-        eegDir = workDir + ('/sub-{}'.format(sub) + 
-                              '/eeg/miniclip_vis_features_0{}'.format(sub) +
+        eegDir = workDir_input + ('/sub-{}'.format(sub) + 
+                              '/eeg/{}{}'.format(file_identifier,sub) +
                               '.vhdr')
     
     # -------------------------------------------------------------------------
@@ -148,7 +160,7 @@ def preprEeg(sub, sess, freq, select_channels, do_ica, workDir,
     behav = io.loadmat(behavDir) # imports .mat str as a dict 
     data_key = behav['data'] 
     behav_img = data_key[0][0]["images"] 
-    # data.images contains table with information about videos shown, img_type etc.
+    # data.images contains table with information about stimuli shown, img_type etc.
     
     def behav_to_df(behav_img):
         # create pandas dataFrame from behavioral dataset
@@ -282,14 +294,14 @@ def preprEeg(sub, sess, freq, select_channels, do_ica, workDir,
     con_identifiers = np.array(identifiers)
     con_timestamps = np.array(timestamps)
     
-    # seq_idx contains only the first video of a sequence: 
+    # seq_idx contains only the first stimulus of a sequence: 
     seq_idx = behavior_df["img"] == 1
     
-    # this array contains only the first video of the sequences: 
+    # this array contains only the first stimulus of the sequences: 
     seq_identifiers = con_identifiers[seq_idx]
     seq_timestamps = con_timestamps[seq_idx]
     
-    # this array contains only the first video of the sequences:
+    # this array contains only the first stimulus of the sequences:
     seq_img_cat = img_cat[seq_idx]
     
     # do the same for the different img_types (test, val, training)
@@ -467,11 +479,11 @@ def preprEeg(sub, sess, freq, select_channels, do_ica, workDir,
         n_img_epochs = seq_data.shape[0] * img_per_seq
         
         # -------------------------------------------------------------------------
-        # STEP 2.12: Define single videos as events (not sequences as above)
+        # STEP 2.12: Define single stimuli as events (not sequences as above)
         # -------------------------------------------------------------------------
 
         # Redefining the length of the epochs
-        time_idx = np.where(seq_time == 0)[0] # first video
+        time_idx = np.where(seq_time == 0)[0] # first stimulus
         tmin = int(time_idx - 400 / (original_frequency / freq)) # epoch_start(ms) / 1000 / resampling_freq(hz))
         tmax = int(time_idx + 1000 / (original_frequency / freq)) # epoch_end(ms) / 1000 / resampling_freq(hz))
         img_time = seq_time[tmin:tmax]
@@ -485,7 +497,7 @@ def preprEeg(sub, sess, freq, select_channels, do_ica, workDir,
         for s in range(seq_data.shape[0]): # for every sequence (out of 540)
             time_idx = np.where(seq_time == 0)[0] 
             
-            for i in range(img_per_seq): # for every video in the sequence (out of 10)
+            for i in range(img_per_seq): # for every stimulus in the sequence (out of 10)
             
                 tmin = int(time_idx - 400 / (1000 / freq)) # epoch_start(ms) / 1000 / resampling_freq(hz))
                 tmax = int(time_idx + 1000 / (1000 / freq)) # epoch_end(ms) / 1000 / resampling_freq(hz))
@@ -593,29 +605,40 @@ def preprEeg(sub, sess, freq, select_channels, do_ica, workDir,
         # STEP 2.14: Save sequences + behavior_df
         # -------------------------------------------------------------------------
         # Putting the data into a dictionary 
-        video_data = {
-                "eeg_data": eeg_data,
-                "img_cat": img_type_cat[img_type],
-                "channels": channel_names,
-                "time": img_time
-        }
+        if input_type == 'images':
+            image_data = {
+                    "eeg_data": eeg_data,
+                    "img_cat": img_type_cat[img_type],
+                    "channels": channel_names,
+                    "time": img_time
+            }
+        elif input_type == 'miniclips':
+            video_data = {
+                    "eeg_data": eeg_data,
+                    "img_cat": img_type_cat[img_type],
+                    "channels": channel_names,
+                    "time": img_time
+            }
         
         if sub < 10: 
             # Saving the eeg data (works only on Mac OS/Linux)
             if do_ica:
-                saveDir =  workDir + ('/sub-0{}'.format(sub) + '/eeg/preprocessing/ica/'
+                saveDir =  workDir_input + ('/sub-0{}'.format(sub) + '/eeg/preprocessing/ica/'
                                       + img_type + '/' + selected_channels)
             else:
-                 saveDir =  workDir + ('/sub-0{}'.format(sub) + '/eeg/preprocessing/no_ica/' +
+                 saveDir =  workDir_input + ('/sub-0{}'.format(sub) + '/eeg/preprocessing/no_ica/' +
                                        img_type + '/' + selected_channels)
             fileDir = ('sub-0{}'.format(sub) + '_seq_' + img_type + '_' + str(freq) + 'hz_' 
                        + selected_channels)
             
             # Creating the directory if not existing
-            if not os.path.isdir(os.path.normpath(os.path.join(workDir, saveDir))):
-                os.makedirs(os.path.normpath(os.path.join(workDir, saveDir)))
+            if not os.path.isdir(os.path.normpath(os.path.join(workDir_input, saveDir))):
+                os.makedirs(os.path.normpath(os.path.join(workDir_input, saveDir)))
         
-            np.save(os.path.join(saveDir, fileDir), video_data)
+            if input_type == 'images':
+                np.save(os.path.join(saveDir, fileDir), image_data)
+            elif input_type == 'miniclips':
+                np.save(os.path.join(saveDir, fileDir), video_data)
             
             if do_ica:
                 cfileDir = ('sub-0{}'.format(sub) + 'explained_variance_ICA')
@@ -623,19 +646,22 @@ def preprEeg(sub, sess, freq, select_channels, do_ica, workDir,
         else: 
             # Saving the eeg data (works only on Mac OS/Linux)
             if do_ica:
-                saveDir =  workDir + ('/sub-{}'.format(sub) + '/eeg/preprocessing/ica/'
+                saveDir =  workDir_input + ('/sub-{}'.format(sub) + '/eeg/preprocessing/ica/'
                                       + img_type + '/' + selected_channels)
             else:
-                 saveDir =  workDir + ('/sub-{}'.format(sub) + '/eeg/preprocessing/no_ica/' +
+                 saveDir =  workDir_input + ('/sub-{}'.format(sub) + '/eeg/preprocessing/no_ica/' +
                                        img_type + '/' + selected_channels)
             fileDir = ('sub-{}'.format(sub) + '_seq_' + img_type + '_' + str(freq) + 'hz_' 
                        + selected_channels)
             
             # Creating the directory if not existing
-            if not os.path.isdir(os.path.normpath(os.path.join(workDir, saveDir))):
-                os.makedirs(os.path.normpath(os.path.join(workDir, saveDir)))
+            if not os.path.isdir(os.path.normpath(os.path.join(workDir_input, saveDir))):
+                os.makedirs(os.path.normpath(os.path.join(workDir_input, saveDir)))
         
-            np.save(os.path.join(saveDir, fileDir), video_data)
+            if input_type == 'images':
+                np.save(os.path.join(saveDir, fileDir), image_data)
+            elif input_type == 'miniclips':
+                np.save(os.path.join(saveDir, fileDir), video_data)
             
             if do_ica:
                 cfileDir = ('sub-{}'.format(sub) + 'explained_variance_ICA')
@@ -643,17 +669,17 @@ def preprEeg(sub, sess, freq, select_channels, do_ica, workDir,
     
         if sub < 10: 
             # Saving the behavior df
-            behav_dir = workDir + ('/sub-0{}'.format(sub) + '/beh/' + 'behavior_df.csv')
+            behav_dir = workDir_input + ('/sub-0{}'.format(sub) + '/beh/' + 'behavior_df.csv')
             behavior_df.to_csv(behav_dir)
         else: 
-            behav_dir = workDir + ('/sub-{}'.format(sub) + '/beh/' + 'behavior_df.csv')
+            behav_dir = workDir_input + ('/sub-{}'.format(sub) + '/beh/' + 'behavior_df.csv')
             behavior_df.to_csv(behav_dir)
         
     
 # -----------------------------------------------------------------------------
 # STEP 3: Run function
 # -----------------------------------------------------------------------------
-# preprEeg(sub, sess, freq, select_channels, do_ica, workDir, show_plots, 
-#         save_figures)
+preprEeg(sub, sess, freq, select_channels, do_ica, workDir, show_plots, 
+        save_figures)
 
 
