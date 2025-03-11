@@ -40,8 +40,7 @@ parser.add_argument('-sd', "--savedir",
                     default = 'Z:/Unreal/images_results/encoding',
                     type = str, metavar='', help="Save results directory; update as needed")
 parser.add_argument('-f', "--frame", 
-                    default = 20,
-                    type = int, metavar='', help="frame number")
+                    default = 20, type = int, metavar='', help="frame number")
 args = parser.parse_args() # to get values for the arguments
 
 n_components = args.n_components
@@ -65,17 +64,17 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
     
     Input: 
     ----------
-    a. Single frames of the videos (frame 14, the frame in the middle)
+    a. Single frame (frame 20)
     b. Single frame annotations from Unreal Engine 
     c. Metadata containing information about data split and character/action
     
     Returns
     ----------
-    video_features.pkl: Canny edges, World normals, Lighting, Scene Depth, 
+    image_features.pkl: Canny edges, World normals, Lighting, Scene Depth, 
     Reflectance, Character Identity, Action Identity, Skeleton Position after
-    PCA (if necessary), saved in a dictionary "video_features"
+    PCA (if necessary), saved in a dictionary "image_features"
         - Dictionary contains matrix for each feature with the dimension 
-        num_videos x num_components 
+        num_images x num_components 
     
     Parameters
     ----------    
@@ -115,7 +114,7 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
     # Feature names 
     feature_names = ('edges','skeleton', 'world_normal','lightning','scene_depth', 'reflectance','action') #CHANGE LIGHTNING TO LIGHTING
     
-    # Number of videos 
+    # Number of images 
     num_images = 1440 
     
     # Load meta data for character identity - for the train/test/val split
@@ -152,7 +151,7 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
     # -------------------------------------------------------------------------
     """
     There are different possibilities to extract edges from the image frames. 
-    First, note that we will use only a single frames instead of the videos. 
+    First, note that we will use only a single frames. 
     Second, there is a variety of gradient operators for detecting edges.
     For more information, see: 
         https://cave.cs.columbia.edu/Statics/monographs/Edge%20Detection%20FPCV-2-1.pdf
@@ -169,7 +168,7 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
         Parameters
         ----------
         image: int 
-            Number of image/video 
+            Number of images 
         images_dir: str 
             Directory of images
         frame: int 
@@ -231,7 +230,7 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
         Parameters
         ----------
         image: int 
-            Number of image/video 
+            Number of image
         """
         action_id = action_data.iloc[image, 1]
         one_hot_vector = np.zeros([len(actions),])
@@ -247,7 +246,7 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
         Parameters
         ----------
         image: int 
-            Number of image/video 
+            Number of image 
         annotations_dir: str
             Directory with single frame annotations as .pkl
         frame: int 
@@ -271,7 +270,7 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
         Parameters
         ----------
         image: int 
-            Number of image/video 
+            Number of image
         annotations_dir: str
             Directory with single frame annotations as .jpg
         frame: 
@@ -291,7 +290,7 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
         Parameters
         ----------
         image: int 
-            Number of image/video 
+            Number of image 
         annotations_dir: str
             Directory with single frame annotations as .jpg
         frame: int 
@@ -311,7 +310,7 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
         Parameters
         ----------
         image: int 
-            Number of image/video 
+            Number of image 
         annotations_dir: str
             Directory with single frame annotations as .jpg
         frame: int 
@@ -331,7 +330,7 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
         Parameters
         ----------
         image: int 
-            Number of image/video 
+            Number of image
         annotations_dir: str
             Directory with single frame annotations as .jpg
         frame: int 
@@ -355,13 +354,13 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
         Parameters
         ----------
         features_train: numpy array 
-            Matrix with dimensions num_videos x num_components 
+            Matrix with dimensions num_images x num_components 
             In the case of RGB channels one first has to flatten the matrix
         features_test: numpy array 
-            Matrix with dimensions num_videos x num_components 
+            Matrix with dimensions num_images x num_components 
             In the case of RGB channels one first has to flatten the matrix
         features_val: numpy array 
-            Matrix with dimensions num_videos x num_components 
+            Matrix with dimensions num_images x num_components 
             In the case of RGB channels one first has to flatten the matrix
         pca_method: str 
             Whether to apply a "linear" or "nonlinear" Kernel PCA
@@ -399,7 +398,7 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
         return pca_train, pca_val, pca_test
         
     # -------------------------------------------------------------------------
-    # STEP 2.10 Get features for all videos and apply PCA
+    # STEP 2.10 Get features for all images and apply PCA
     # -------------------------------------------------------------------------
     pca_features = dict.fromkeys(feature_names)
     
