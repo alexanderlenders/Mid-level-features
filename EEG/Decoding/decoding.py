@@ -21,10 +21,11 @@ import argparse
 parser = argparse.ArgumentParser()
 
 # add arguments / inputs
-parser.add_argument('-s', "--sub", default=17, type=int, metavar='', 
-                    help="subject from (1 to XX)")
-parser.add_argument('--mvnn_dim', default="epochs", type=str, \
-                 help="time vs. epochs")
+parser.add_argument('-s', "--sub", default=9, type=int, metavar='', 
+                    help="subject number. images: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],"
+                    "videos: [6, 7, 8, 9, 10, 11, 17, 18, 20, 21, 23, 25, 27, 28, 29, 30, 31, 32, 34, 36]")
+parser.add_argument('--mvnn_dim', default="epochs", type=str, 
+                    help="time vs. epochs")
 parser.add_argument('-f', "--freq", default=50,type=int, metavar='', 
                     help="downsampling frequency")
 parser.add_argument('-r', "--region", default="posterior",type=str, 
