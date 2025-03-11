@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     
     # add arguments / inputs
-    parser.add_argument('-s', "--sub", default=6, type=int, metavar='', 
+    parser.add_argument('-s', "--sub", default=9, type=int, metavar='', 
                         help="subject ID (see range below)")
     parser.add_argument('-f', "--freq", default=50,type=int, metavar='', 
                         help="downsampling frequency")
