@@ -82,8 +82,6 @@ def hyperparameter_tuning(sub, freq, region, input_type):
           Downsampling frequency (default is 50)
     region : str
         The region for which the EEG data should be analyzed. 
-    workdir : str
-        Trove or scratch
     input_type: str
         Miniclips or images
     """
@@ -128,11 +126,9 @@ def hyperparameter_tuning(sub, freq, region, input_type):
     
     def load_eeg(sub, img_type, region, freq, input_type):
         # Define the directory
-
         workDirFull = '/scratch/agnek95/Unreal/'
 
-        if input_type=='miniclips':
-            
+        if input_type=='miniclips':            
             # load mvnn file
             if sub < 10:  
                 folderDir = os.path.join(workDirFull, '{}_data'.format(input_type) + '/sub-0{}'.format(sub) + 
@@ -148,6 +144,7 @@ def hyperparameter_tuning(sub, freq, region, input_type):
 
                 
         elif input_type=='images':
+            # load mvnn file
             if sub < 10: 
                 folderDir = os.path.join(workDirFull, '{}_data_prepared'.format(input_type) + '/prepared' + '/sub-0{}'.format(sub) + 
                                         '/{}/{}/{}hz/'.format(img_type,region,freq))
