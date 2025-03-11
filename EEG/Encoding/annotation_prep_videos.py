@@ -70,7 +70,7 @@ def feature_extraction(videos_dir, annotations_dir, character_dir,
     Returns
     ----------
     video_features.pkl: Canny edges, World normals, Lighting, Scene Depth, 
-    Reflectance, Character Identity, Action Identity, Skeleton Position after
+    Reflectance, Action Identity, Skeleton Position after
     PCA (if necessary), saved in a dictionary "video_features"
         - Dictionary contains matrix for each feature with the dimension 
         num_videos x num_components 
