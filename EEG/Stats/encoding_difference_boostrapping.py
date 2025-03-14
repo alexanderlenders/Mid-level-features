@@ -10,18 +10,7 @@ they are more informative than empirical standard errors.
 In addition, this script calculates Bootstrap 95%-CIs for the timepoint (in ms)
 of the largest encoding peak for each feature. 
 
-At the moment the directories as well as using correlation instead of RMSE to
-determine how well multivariate regression can predict (encode) EEG activity
-per channel is hardcoded.
-
-This script implements an empirical bootstrap CI, not a bootstrap with the 
-percentile method, see https://math.mit.edu/~dav/05.dir/class24-prep-a.pdf. 
-
-In addition, it implements BCa (bias-corrected and accelerated bootstrap CIs.)
-
-https://stats.stackexchange.com/questions/355781/is-it-true-that-the-percentile-bootstrap-should-never-be-used
-
-@author: AlexanderLenders
+@author: AlexanderLenders, AgnessaKarapetian
 """
 if __name__ == "__main__":
     import argparse
@@ -33,8 +22,6 @@ if __name__ == "__main__":
                         metavar='', help="list of subjects for videos (see below)")
     parser.add_argument('-ls_i', "--list_sub_img", default=0, type=int, 
                         metavar='', help="list of subjects for images (see below)")
-    parser.add_argument('-ty', "--type", default = 'unreal_before_pca', type = str, 
-                        metavar='', help="type of encoding")
     parser.add_argument('-np', "--num_perm", default = 10000, type = int, 
                         metavar='', help="Number of permutations")
     parser.add_argument('-tp', "--num_tp", default = 70, type = int, 
@@ -46,14 +33,11 @@ if __name__ == "__main__":
     list_sub_img = args.list_sub_img 
     n_perm = args.num_perm
     timepoints = args.num_tp
-    type_analysis = args.type
 
-
-def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, type_analysis): 
+def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints): 
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and 
     each feature. 
-    Calculates empirical CI. 
 
     Input: 
     ----------
@@ -75,8 +59,6 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, type_analys
           Number of permutations for bootstrapping
     timepoints : int
           Number of timepoints 
-    plot_hist : bool
-        Whether to plot the bootstrapping histograms
     input_type : str
         Images or miniclips
     """
@@ -93,16 +75,15 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, type_analys
     from statsmodels.stats.multitest import multipletests
     
 
-    if type_analysis == 'unreal_before_pca':
-        workDir_img = 'Z:/Unreal/images_results/encoding/'
-        workDir_vid = 'Z:/Unreal/Results/Encoding/'
-        saveDir = 'Z:/Unreal/images_results/encoding/redone/stats'
-            
-        feature_names = ('edges','world_normal', 'scene_depth',
-                        'lightning', 'reflectance', 'skeleton','action')
+    workDir_img = 'Z:/Unreal/images_results/encoding/'
+    workDir_vid = 'Z:/Unreal/Results/Encoding/'
+    saveDir = 'Z:/Unreal/images_results/encoding/redone/stats'
+        
+    feature_names = ('edges','world_normal', 'scene_depth',
+                    'lighting', 'reflectance', 'skeleton','action')
         
 
-        identifierDir = 'seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_7features_onehot.pkl'
+    identifierDir = 'seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_7features_onehot.pkl'
 
 
     #set some vars
@@ -274,7 +255,7 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, type_analys
     # -------------------------------------------------------------------------  
     # Save the dictionary
     
-    fileDir = 'encoding_{}_difference_CI95_accuracy.pkl'.format(type_analysis)  
+    fileDir = 'encoding_difference_CI95_accuracy.pkl'
     
     savefileDir = os.path.join(saveDir, fileDir) 
      
@@ -288,7 +269,7 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, type_analys
     # -------------------------------------------------------------------------  
     # Save the dictionary
 
-    fileDir = 'encoding_{}_difference_CI95_peak.pkl'.format(type_analysis)  
+    fileDir = 'encoding_difference_CI95_peak.pkl'
 
     savefileDir = os.path.join(saveDir, fileDir) 
         
@@ -300,7 +281,7 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, type_analys
     # -------------------------------------------------------------------------  
     # Save the dictionary
 
-    fileDir = 'encoding_{}_diff_in_peak.pkl'.format(type_analysis)  
+    fileDir = 'encoding_diff_in_peak.pkl'
 
     savefileDir = os.path.join(saveDir, fileDir) 
         
@@ -308,12 +289,10 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, type_analys
         pickle.dump(ci_diff_peaks_all, f)
 
     
-    
     # -------------------------------------------------------------------------
     # STEP 2.10 Bootstrapping - peak latency differences
     # -------------------------------------------------------------------------
 
-    
     pairwise_p = {}
         
     for feature1 in range(len(feature_names)): 
@@ -370,9 +349,6 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, type_analys
                 perm_peak_data_img_A = np.squeeze(results_img_feature_A[perm_peak_data_idx_img]) #double check dimensions
                 perm_peak_data_img_B = np.squeeze(results_img_feature_B[perm_peak_data_idx_img])
 
-                
-                # perm_peak_data_img = np.squeeze(results_f_img[perm_peak_data_idx_img])
-
                 #avg over subjects
                 perm_mean_vid_A = np.mean(perm_peak_data_vid_A, axis = 0)    
                 perm_mean_vid_B = np.mean(perm_peak_data_vid_B, axis = 0) 
@@ -419,7 +395,7 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, type_analys
     # -------------------------------------------------------------------------  
     # Save the dictionary
     
-    fileDir = 'encoding_{}_difference_stats_peak_latency_CI.pkl'.format(type_analysis)  
+    fileDir = 'encoding_difference_stats_peak_latency_CI.pkl'
     
     # Benjamini-Hochberg Correction 
     p_values_vector = [pairwise_p[key]['p_value'] for key in pairwise_p]
@@ -430,7 +406,6 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, type_analys
     for i, key in enumerate(pairwise_p):
         pairwise_p[key]['p_value'] = p_values_corr[i]
 
-    
     savefileDir = os.path.join(saveDir, fileDir) 
      
     with open(savefileDir, 'wb') as f:
@@ -444,7 +419,7 @@ list_sub_vid = [6, 7, 8, 9, 10, 11, 17, 18, 20, 21, 23, 25, 27, 28, 29, 30, 31, 
 list_sub_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
 
 
-bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, type_analysis) 
+bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints) 
 
     
     
