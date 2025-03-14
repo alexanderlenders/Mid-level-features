@@ -8,16 +8,8 @@ To do this, permutation tests are done with a Benjamini-Hochberg-corected
 alpha-level of .05. The statistical tests are two-sided per default.
 Chance-level of encoding is 0. 
 
-@author: AlexanderLenders
+@author: AlexanderLenders, AgnessaKarapetian
 
-Acknowledgments: This script is based on a script in MATLAB by Agnessa 
-Karapetian and other members of the Cichy lab.
-
-Anaconda Environment on local machine: mne
-
-TO-DO:
-    Change function description
-    Add feature names for taskonomy and resnet
 """
 
 # -----------------------------------------------------------------------------
@@ -28,9 +20,7 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser()
-    
-    # type of encoding - unreal, taskonomy, resnet
-    
+       
     # add arguments / inputs
     parser.add_argument('-ls', "--list_sub", default=0, type=int, 
                         metavar='', help="list of subjects")
