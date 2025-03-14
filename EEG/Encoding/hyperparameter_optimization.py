@@ -98,7 +98,7 @@ def hyperparameter_tuning(sub, freq, region, input_type):
     import tqdm
 
       
-    feature_names = ('edges','world_normal','lightning','scene_depth','reflectance','skeleton','action')
+    feature_names = ('edges','world_normal','lighting','scene_depth','reflectance','skeleton','action')
 
     if input_type == 'images':
         featuresDir = '/home/agnek95/Encoding-midlevel-features/Results/Encoding/images/7_features/img_features_frame_20_redone_7features_onehot.pkl'
