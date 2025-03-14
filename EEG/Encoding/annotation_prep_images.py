@@ -112,7 +112,7 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
     from sklearn.preprocessing import StandardScaler
     
     # Feature names 
-    feature_names = ('edges','skeleton', 'world_normal','lightning','scene_depth', 'reflectance','action') #CHANGE LIGHTNING TO LIGHTING
+    feature_names = ('edges','skeleton', 'world_normal','lighting','scene_depth', 'reflectance','action') #CHANGE LIGHTNING TO LIGHTING
     
     # Number of images 
     num_images = 1440 
@@ -296,11 +296,11 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
         frame: int 
             Image frame
         """
-        image_file = str(image).zfill(4) + '_lightning' + '_frame_{}'.format(frame) + '.jpg'
+        image_file = str(image).zfill(4) + '_lighting' + '_frame_{}'.format(frame) + '.jpg'
         image_dir = annotations_dir + '/' + image_file 
         image = Image.open(image_dir)
-        lightning_np = np.array(image.convert('L')).astype(np.float32)
-        return lightning_np
+        lighting_np = np.array(image.convert('L')).astype(np.float32)
+        return lighting_np
             
     # -------------------------------------------------------------------------
     # STEP 2.7 Scene depth
@@ -484,7 +484,7 @@ def feature_extraction(n_components, annotations_dir, character_dir, action_dir,
             datasets.append(pca_features_test)
             
         
-        elif feature == 'lightning':
+        elif feature == 'lighting':
             
             # for GRAY 390*520, where 390*520 dimension of image
             features_flattened = np.zeros((num_images, 202800), dtype = float)
