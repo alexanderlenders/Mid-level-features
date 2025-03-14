@@ -18,9 +18,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     
     # add arguments / inputs
-    parser.add_argument('-ls_v', "--list_sub_vid", default=0, type=int, 
+    parser.add_argument('-ls_v', "--list_sub_vid", default=[6], type=int, 
                         metavar='', help="list of subjects for videos (see below)")
-    parser.add_argument('-ls_i', "--list_sub_img", default=0, type=int, 
+    parser.add_argument('-ls_i', "--list_sub_img", default=[9], type=int, 
                         metavar='', help="list of subjects for images (see below)")
     parser.add_argument('-np', "--num_perm", default = 10000, type = int, 
                         metavar='', help="Number of permutations")
