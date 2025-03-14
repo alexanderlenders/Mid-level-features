@@ -38,8 +38,7 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and 
     each feature. 
-    Calculates empirical CI. 
-
+    
     Input: 
     ----------
     Output from the encoding analysis, i.e.: 
