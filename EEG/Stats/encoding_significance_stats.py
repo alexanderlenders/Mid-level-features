@@ -8,10 +8,6 @@ To do this, permutation tests are done with a Benjamini-Hochberg-corected
 alpha-level of .05. The statistical tests are two-sided per default.
 Chance-level of encoding is 0. 
 
-At the moment the directories as well as using correlation instead of RMSE to
-determine how well multivariate regression can predict (encode) EEG activity
-per channel is hardcoded.
-
 @author: AlexanderLenders
 
 Acknowledgments: This script is based on a script in MATLAB by Agnessa 
@@ -38,38 +34,33 @@ if __name__ == "__main__":
     # add arguments / inputs
     parser.add_argument('-ls', "--list_sub", default=0, type=int, 
                         metavar='', help="list of subjects")
-    parser.add_argument('-ty', "--type", default = 'unreal_before_pca', type = str, 
-                        metavar='', help="type of encoding")
     parser.add_argument('-np', "--num_perm", default = 10000, type = int, 
                         metavar='', help="Number of permutations")
     parser.add_argument('-tp', "--num_tp", default = 70, type = int, 
                         metavar='', help="Number of timepoints")
     parser.add_argument('-a', "--alpha", default = 0.05, type = int, 
-                        metavar='', help="Signifance level (alpha)")
+                        metavar='', help="Significance level (alpha)")
     parser.add_argument('-t', "--tail", 
                         default = 'both',
                         type = str, metavar='', 
                         help="One-sided: right, two-sided: both")
-    parser.add_argument('-i', "--input_type", default = 'miniclips', type = str, 
+    parser.add_argument('-i', "--input_type", default = 'images', type = str, 
                         metavar='', help="Font")
-    
     
     args = parser.parse_args() # to get values for the arguments
     
     list_sub = args.list_sub      
     n_perm = args.num_perm
     timepoints = args.num_tp
-    n_perm = args.num_perm
     alpha = args.alpha
     tail = args.tail
-    type_analysis = args.type
     input_type = args.input_type
     
 # -----------------------------------------------------------------------------
 # STEP 2: Define Permutation Test Function
 # -----------------------------------------------------------------------------
 
-def permutation_test(list_sub, type_analysis, n_perm, tail, alpha,
+def permutation_test(list_sub, n_perm, tail, alpha,
                      timepoints, input_type): 
     """
     Input: 
@@ -94,9 +85,6 @@ def permutation_test(list_sub, type_analysis, n_perm, tail, alpha,
     ----------
     list_sub : list 
         List with subjects which should be included in the statistical analysis
-    type_analysis : str 
-        To which encoding analysis the results belong to, i.e. 'unreal', 
-        'taskonomy' or 'resnet'
     n_perm : int 
         Number of permutations (Default: 10,000)
     tail : str
@@ -122,32 +110,17 @@ def permutation_test(list_sub, type_analysis, n_perm, tail, alpha,
     import csv
     
     # create workDir and saveDir
-    if type_analysis == 'unreal_before_pca':
-        identifierDir = 'seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_7features_onehot.pkl'
-        feature_names = ('edges','world_normal', 'lightning','scene_depth', 'reflectance', 'skeleton','action')
-        
-        if input_type == 'miniclips':
-            workDir = 'Z:/Unreal/Results/Encoding/'
-            saveDir = 'Z:/Unreal/Results/Encoding/redone/stats'
+    identifierDir = 'seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_7features_onehot.pkl'
+    feature_names = ('edges','world_normal', 'lighting','scene_depth', 'reflectance', 'skeleton','action')
     
-        elif input_type == 'images':     
-            workDir = 'Z:/Unreal/images_results/encoding/'
-            saveDir = 'Z:/Unreal/images_results/encoding/redone/stats'
+    if input_type == 'miniclips':
+        workDir = 'Z:/Unreal/Results/Encoding/'
+        saveDir = 'Z:/Unreal/Results/Encoding/redone/stats'
 
-    elif type_analysis == 'taskonomy_before_pca': 
-        workDir = '/Volumes/Elements/miniclip_data/results/encoding/taskonomy/video/encoding/100'
-        saveDir = '/Volumes/Elements/miniclip_data/results/encoding/taskonomy/video/stats'
-        
-        identifierDir = 'seq_50hz_posterior_encoding_results_frame_avg.pkl'       
-        feature_names = ('normal', 'edge_texture', 'depth_euclidean', 'reshading', 'curvature')
-    
-    elif type_analysis == 'resnet_3d_before_pca': 
-        workDir = '/Volumes/Elements/miniclip_data/results/encoding/resnet/video/encoding/100'
-        saveDir = '/Volumes/Elements/miniclip_data/results/encoding/resnet/video/stats'
-        
-        identifierDir = 'seq_50hz_posterior_encoding_results.pkl'
-        feature_names = ('layer1', 'layer2', 'layer3', 'layer4', 'fc')
-        
+    elif input_type == 'images':     
+        workDir = 'Z:/Unreal/images_results/encoding/'
+        saveDir = 'Z:/Unreal/images_results/encoding/redone/stats'
+   
     n_sub = len(list_sub)
     
     # set random seed (for reproduction)
@@ -164,13 +137,12 @@ def permutation_test(list_sub, type_analysis, n_perm, tail, alpha,
         
 
     feature_results = {}
-    for feature in feature_names: 
-        
+    for feature in feature_names:        
         results = np.zeros((n_sub, timepoints)) 
 
-        for index, subject in enumerate(list_sub): 
-    
+        for index, subject in enumerate(list_sub):     
             subject_result = results_unfiltered[str(subject)][feature]['correlation']
+            
             # averaged over all channels 
             subject_result_averaged = np.mean(subject_result, axis = 1)
             results[index, :] = subject_result_averaged
@@ -237,9 +209,9 @@ def permutation_test(list_sub, type_analysis, n_perm, tail, alpha,
     # -------------------------------------------------------------------------
     # Save the dictionary
     if input_type == 'miniclips':
-        fileDir = ('encoding_{}_miniclips_stats_{}_nonstd.pkl'.format(type_analysis, tail))  
+        fileDir = ('encoding_miniclips_stats_{}_nonstd.pkl'.format(tail))  
     elif input_type == 'images':
-        fileDir = ('encoding_{}_images_stats_{}_nonstd.pkl'.format(type_analysis, tail))  
+        fileDir = ('encoding_images_stats_{}_nonstd.pkl'.format(tail))  
     
     savefileDir = os.path.join(saveDir, fileDir) 
      
@@ -258,7 +230,7 @@ if input_type == 'miniclips':
 elif input_type == 'images':
     list_sub = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
     
-permutation_test(list_sub, type_analysis, n_perm, tail, alpha, timepoints, input_type) 
+permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type) 
     
 
     
