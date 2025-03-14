@@ -38,7 +38,7 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and 
     each feature. 
-    
+
     Input: 
     ----------
     Output from the encoding analysis, i.e.: 
@@ -83,7 +83,7 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type):
         saveDir = 'Z:/Unreal/images_results/encoding/redone/stats'
         
     feature_names = ('edges','world_normal', 'scene_depth',
-                    'lightning', 'reflectance', 'skeleton','action')
+                    'lighting', 'reflectance', 'skeleton','action')
     
     identifierDir = 'seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_7features_onehot.pkl'
 
