@@ -67,7 +67,7 @@ if __name__ == "__main__":
         
     saveDir = 'Z:/Unreal/Results/Encoding/plots_redone/'
     feature_names = ('edges','world_normal', 'scene_depth',
-                    'lightning', 'reflectance', 'skeleton','action')
+                    'lighting', 'reflectance', 'skeleton','action')
     
     # Names in the plot
     feature_names_graph = ('Edges','Normals', 'Depth',
