@@ -60,15 +60,17 @@ def encoding(sub, freq, region, input_type):
         with n_components.
     III. Hyperparameter
     regression_features, dictionary with the following outputs for each feature: 
-        a. Root mean square error (RMSE) matrix (Timepoints x Alpha] - rmse_score
+        a. Root mean square error (RMSE) matrix (Timepoints x Alpha) - rmse_score
         b. Pearson correlation between true EEG data and predicted EEG data - correlation
         c. Best alpha for each timepoint based on RMSE - best_alpha_rmse
         d. Best alpha for each timepoint based on correlation - best_alpha_corr
         e. Best alpha averaged over timepoints based on RMSE - best_alpha_a_rmse 
         f. Best alpha averaged over timepoints based on correlation - best_alpha_a_corr
     
-    Returns - ADAPT ...
-    ----------
+    Returns:
+    regression_features, dictionary with the following outputs for each feature:
+    a. Root mean square error (RMSE) matrix (Timepoints x Channels) - rmse_score
+    b. Pearson correlation between true EEG data and predicted EEG data (Timepoints x channels) - correlation
     ...
     
     Parameters
