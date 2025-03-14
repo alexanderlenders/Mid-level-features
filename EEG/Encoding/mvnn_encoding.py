@@ -34,8 +34,8 @@ if __name__ == "__main__":
     parser.add_argument('-d', "--workdir", 
                         default = 'OSF-download',
                         type = str, metavar='', help="Working directory type")
-    parser.add_argument('-i', "--input_type", default = 'miniclips', type = str, 
-                        metavar='', help="Font")
+    parser.add_argument('-i', "--input_type", default = 'images', type = str, 
+                        metavar='', help="Images or miniclips")
     
     args = parser.parse_args() # to get values for the arguments
 
