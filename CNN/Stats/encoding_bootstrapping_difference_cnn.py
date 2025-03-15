@@ -10,17 +10,6 @@ they are more informative than empirical standard errors.
 In addition, this script calculates Bootstrap 95%-CIs for the timepoint (in ms)
 of the largest encoding peak for each feature. 
 
-At the moment the directories as well as using correlation instead of RMSE to
-determine how well multivariate regression can predict (encode) EEG activity
-per channel is hardcoded.
-
-This script implements an empirical bootstrap CI, not a bootstrap with the 
-percentile method, see https://math.mit.edu/~dav/05.dir/class24-prep-a.pdf. 
-
-In addition, it implements BCa (bias-corrected and accelerated bootstrap CIs.)
-
-https://stats.stackexchange.com/questions/355781/is-it-true-that-the-percentile-bootstrap-should-never-be-used
-
 @author: AlexanderLenders, AgnessaKarapetian
 """
 if __name__ == "__main__":
@@ -63,21 +52,20 @@ def bootstrapping_CI(n_perm, encoding_dir, total_var):
     
     Parameters
     ----------
-    list_sub : list
-          List of subjects for which encoding results exist
+    ----------
     n_perm : int
-          Number of permutations for bootstrapping
-    timepoints : int
-          Number of timepoints 
-    plot_hist : bool
-        Whether to plot the bootstrapping histograms
+        Number of permutations for bootstrapping
+    encoding_dir : str
+        Where encoding results are saved
+    total_var : int
+        Total variance explained by all PCA components
+
     """
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
     # -------------------------------------------------------------------------
     # Import modules
     import numpy as np
-    from scipy.stats import rankdata
     import matplotlib.pyplot as plt
     import os
     import pickle
@@ -98,10 +86,9 @@ def bootstrapping_CI(n_perm, encoding_dir, total_var):
         "layer4.1.relu_1",
     )    
     n_layers = len(layers_names)
-    feature_names = ('edges', 'world_normal', 'lightning',
+    feature_names = ('edges', 'world_normal', 'lighting',
                  'scene_depth', 'reflectance', 'action', 'skeleton')
         
-   
     # set random seed (for reproduction)
     np.random.seed(42)
     
@@ -122,14 +109,10 @@ def bootstrapping_CI(n_perm, encoding_dir, total_var):
         regression_features_vid[feature] = encoding_results_vid[feature]['weighted_correlations']
 
     features_results = {}
-    # results_diff_dict = {}
     
-    for i, feature in enumerate(feature_names):
+    for feature in feature_names:
         results_img = regression_features_img[feature]
         results_vid = regression_features_vid[feature]
-
-        # results_diff = np.mean(results_img,axis=0) - np.mean(results_vid,axis=0)
-        # results_diff_dict[feature] = results_diff
 
         # ---------------------------------------------------------------------
         # STEP 2.3 Bootstrapping
@@ -153,8 +136,7 @@ def bootstrapping_CI(n_perm, encoding_dir, total_var):
                 mean_p_layer_vid = np.sum(perm_l_data_vid)/total_var
                 
                 bt_data[l, perm] = mean_p_layer_img - mean_p_layer_vid
-            
-        
+              
         # ---------------------------------------------------------------------
         # STEP 2.4 Calculate 95%-CI
         # ---------------------------------------------------------------------
@@ -165,20 +147,13 @@ def bootstrapping_CI(n_perm, encoding_dir, total_var):
         
         for l,layer in enumerate(layers_names): 
             l_data = bt_data[l, :]
-            ranks = rankdata(l_data)
-            # l_data = np.vstack((ranks, l_data))
-            # ascending_ranks_idx = np.argsort(ranks, axis = 0)
-            # ascending_ranks = l_data[:, ascending_ranks_idx]
-
-            # lower_CI = ascending_ranks[1, lower]
-            # upper_CI = ascending_ranks[1, upper]
             l_data.sort()
             ci_dict['{}'.format(layer)] = [l_data[lower], l_data[upper]]
         
         features_results[feature] = ci_dict
         
     # -------------------------------------------------------------------------
-    # STEP 2.6 Save CI
+    # STEP 2.5 Save CI
     # -------------------------------------------------------------------------  
     # Save the dictionary
     
@@ -211,14 +186,18 @@ def bootstrapping_CI_peak_layer(n_perm, encoding_dir, total_var):
     Parameters
     ----------
     n_perm : int
-          Number of permutations for bootstrapping
+        Number of permutations for bootstrapping
+    encoding_dir : str
+        Where encoding results are saved
+    total_var : int
+        Total variance explained by all PCA components
     """
+    
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
     # -------------------------------------------------------------------------
     # Import modules
     import numpy as np
-    from scipy.stats import rankdata
     import matplotlib.pyplot as plt
     import os
     import pickle
@@ -240,7 +219,7 @@ def bootstrapping_CI_peak_layer(n_perm, encoding_dir, total_var):
     )    
     n_layers = len(layers_names)
 
-    feature_names = ('edges', 'world_normal', 'lightning',
+    feature_names = ('edges', 'world_normal', 'lighting',
                  'scene_depth', 'reflectance', 'action', 'skeleton')
         
     # set random seed (for reproduction)
@@ -255,7 +234,6 @@ def bootstrapping_CI_peak_layer(n_perm, encoding_dir, total_var):
     encoding_results_img = np.load(fileDir_img, allow_pickle= True)
     encoding_results_vid = np.load(fileDir_vid, allow_pickle= True)
     
-
     corr_img = {}
     corr_vid = {}
 
@@ -313,20 +291,13 @@ def bootstrapping_CI_peak_layer(n_perm, encoding_dir, total_var):
             peak_lat_img = np.argmax(perm_mean_img)
             diff_in_peakl = np.abs(peak_lat_img - peak_lat_vid)
             bt_diff_peaks[perm] = diff_in_peakl
+        
         # ---------------------------------------------------------------------
-        # STEP 2.5 Calculate 95%-CI
+        # STEP 2.4 Calculate 95%-CI
         # ---------------------------------------------------------------------
         upper = round(n_perm * 0.975)
         lower = round(n_perm * 0.025)
 
-        #2) difference in the peaks
-
-        # ranks_diff = rankdata(peak_data_diff)
-        # t_data_diff = np.vstack((ranks_diff, peak_data_diff))
-        # ascending_ranks_idx_diff = np.argsort(ranks_diff, axis = 0)
-        # ascending_ranks_diff = t_data_diff[:, ascending_ranks_idx_diff]
-        # lower_CI_diff = ascending_ranks_diff[1, lower]
-        # upper_CI_diff = ascending_ranks_diff[1, upper]
         bt_diff_peaks.sort()
         lower_ci = bt_diff_peaks[lower]
         upper_ci = bt_diff_peaks[upper]
@@ -338,12 +309,10 @@ def bootstrapping_CI_peak_layer(n_perm, encoding_dir, total_var):
             upper_ci_final = upper_ci
             lower_ci_final = lower_ci
                 
-
         ci_diff_peaks_all['{}'.format(feature)] = [lower_ci_final, diff_in_peak_true, upper_ci_final]
-        
-    
+           
     # -------------------------------------------------------------------------
-    # STEP 2.6 Save CI
+    # STEP 2.5 Save CI
     # -------------------------------------------------------------------------  
     # Save the dictionary
     
@@ -354,7 +323,7 @@ def bootstrapping_CI_peak_layer(n_perm, encoding_dir, total_var):
     with open(savefileDir, 'wb') as f:
         pickle.dump(ci_diff_peaks_all, f)
 
-# bootstrapping_CI(n_perm, encoding_dir, total_var)
+bootstrapping_CI(n_perm, encoding_dir, total_var)
 bootstrapping_CI_peak_layer(n_perm,encoding_dir,total_var)        
 
     
