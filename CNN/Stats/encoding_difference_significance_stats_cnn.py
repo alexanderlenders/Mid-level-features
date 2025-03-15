@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-STATS ENCODING LAYERS FROM RESNET3D
+STATS ENCODING LAYERS CNN
 
 This script implements the statistical tests for the encoding analyis predicting
 the unit activity within the action DNN layers based on the single gaming-engine
 features. 
 
-It conducts permutation tests by permuting the 100 unit activity components per layer, 
+It conducts permutation tests by permuting the PCA components per layer, 
 alpha = .05, Benjamini-Hochberg correction.
+
 @author: AlexanderLenders, AgnessaKarapetian
 """
 # -----------------------------------------------------------------------------
@@ -16,7 +17,6 @@ alpha = .05, Benjamini-Hochberg correction.
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
     import argparse
-
     
     parser = argparse.ArgumentParser()
     
@@ -42,7 +42,6 @@ if __name__ == "__main__":
 
     n_perm = args.num_perm
     timepoints = args.num_tp
-    n_perm = args.num_perm
     alpha_value = args.alpha
     tail = args.tail
     saveDir = args.savedir
@@ -53,16 +52,37 @@ if __name__ == "__main__":
 # -----------------------------------------------------------------------------
 
 def encoding_stats(n_perm, alpha_value, tail, saveDir, total_var): 
+        
     """
-    TO ADD
     Input: 
     ----------
+    Output from the encoding analysis (multivariate linear regression), i.e.: 
+    Encoding results (multivariate linear regression), saved in a dictionary 
+    which contains for every feature correlation measure, i.e.: 
+        encoding_results[feature]['correlation']
     
     Returns:
     ----------
+    regression_features, dictionary with the following keys for each feature: 
+    a. Uncorrected_p_values_map 
+        - Contains uncorrected p-values
+    b. Corrected_p_values_map
+        - Contains corrected p-values
+    c. Boolean_statistical_map
+        - Contains boolean values, if True -> corrected p-value is lower than .05
     
-    Parameters:
+    Parameters
     ----------
+    n_perm : int
+        Number of permutations for bootstrapping
+    saveDir : str
+        Where to save the results 
+    total_var : int
+        Total variance explained by all PCA components
+    alpha_value : int
+        Significance level
+    tail : str
+        One-sided or two-sided test
 
     """
     # -------------------------------------------------------------------------
@@ -71,11 +91,9 @@ def encoding_stats(n_perm, alpha_value, tail, saveDir, total_var):
     # Import modules
     import os
     import numpy as np
-    import torch 
     import pickle
     from scipy.stats import rankdata
     import statsmodels
-    from statsmodels.stats.multitest import multipletests
     
     layers_names = (
         "layer1.0.relu_1",
@@ -87,15 +105,13 @@ def encoding_stats(n_perm, alpha_value, tail, saveDir, total_var):
         "layer4.0.relu_1",
         "layer4.1.relu_1",
     )    
-    
         
-    feature_names = ('edges', 'world_normal', 'lightning',
+    feature_names = ('edges', 'world_normal', 'lighting',
                  'scene_depth', 'reflectance', 'action', 'skeleton')
     
     features_dict = dict.fromkeys(feature_names)
     
     num_layers = len(layers_names)
-    
     
     workDir_img = 'Z:/Unreal/Results/Encoding/CNN_redone/2D_ResNet18/'
     workDir_vid = 'Z:/Unreal/Results/Encoding/CNN_redone/3D_ResNet18/'
