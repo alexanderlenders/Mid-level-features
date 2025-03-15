@@ -4,10 +4,10 @@
 BOOTSTRAPPING ENCODING LAYERS CLUSTER
 
 This script calculates Bootstrap 95%-CIs for the encoding accuracy for each
-timepoint (in ms) and each feature. These can be used for the encoding plot as 
+layer and each feature. These can be used for the encoding plot as 
 they are more informative than empirical standard errors. 
 
-In addition, this script calculates Bootstrap 95%-CIs for the timepoint (in ms)
+In addition, this script calculates Bootstrap 95%-CIs for the layer
 of the largest encoding peak for each feature. 
 
 @author: AlexanderLenders, AgnessaKarapetian
