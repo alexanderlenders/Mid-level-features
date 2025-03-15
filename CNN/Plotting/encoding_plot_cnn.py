@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PLOT FOR ENCODING OF DNN LAYERS (SINGLE FEATURES)
+PLOT FOR ENCODING OF DNN LAYERS 
 
 @author: AlexanderLenders, AgnessaKarapetian
 """
@@ -18,9 +18,8 @@ if __name__ == "__main__":
                         metavar='', help="Save plots in SaveDir?")
     parser.add_argument('-f', "--font", default = 'Arial', type = str, 
                         metavar='', help="Font")
-    parser.add_argument('-i', "--input_type", default = 'miniclips', type = str, 
+    parser.add_argument('-i', "--input_type", default = 'images', type = str, 
                         metavar='', help="images, miniclips or difference")
-
     
     args = parser.parse_args() # to get values for the arguments
       
@@ -59,10 +58,8 @@ else:
     peakDir = os.path.join(workDir,'stats/','encoding_layers_CI95_peak.pkl')
     ci_stats_peaks = os.path.join(workDir,'stats/', 'encoding_layers_stats_peak_latency_diff.pkl')
 
-
 feature_names = ('edges','world_normal', 'scene_depth',
-                     'lightning', 'reflectance', 'skeleton','action')
-    
+                     'lighting', 'reflectance', 'skeleton','action')
     
 layers_names = (
         "layer1.0.relu_1",
@@ -189,7 +186,7 @@ for i, feature in enumerate(sorted_features_mean):
    
     ax[0].plot(layers, plot_accuracies, '*', color=sorted_color_dict[i], markersize=4)
 
-
+#Plot parameters
 ax[0].set_xlabel('ResNet-18 layer', fontdict={'family': font, 'size': 11})
 ax[0].set_ylabel("Pearson's r", fontdict={'family': font, 'size': 11})
 
@@ -205,7 +202,6 @@ if input_type == 'images':
     legend_font_props = {'family': font, 'size': 9}
     ax[0].legend(prop=legend_font_props, frameon=False,bbox_to_anchor=[0.6,0.6])
 
-
 ax[0].spines['top'].set_visible(False)
 ax[0].spines['right'].set_visible(False)
 ax[0].spines['bottom'].set_linewidth(2)  # Set x-axis spine linewidth
@@ -216,7 +212,7 @@ ax[0].tick_params(axis='x', which='both', length=6, width=3)  # Adjust the lengt
 ax[0].tick_params(axis='y', which='both', length=6, width=3)  # Adjust the length and width as needed
 
 # Displaying the plot
-# plt.show()
+# plt.show() #sometimes lags
 
 # -----------------------------------------------------------------------------
 # STEP 5: Peak latencies for single features
@@ -238,8 +234,6 @@ if input_type != 'difference':
         if ci_lower != 0 and ci_upper != 0: 
             significant_combinations.append((feature, ci))
 
-
-
     sig_combi_numbers = []
     for s in significant_combinations:
         split_name = s[0].split(" vs. ")
@@ -259,7 +253,6 @@ if input_type != 'difference':
         bar_height = level * line_height + line_offset
         ax[1].plot([x1, x2], [bar_height, bar_height], lw=1, c='black', ls='solid')
 
-
 # Rearrange the accuracies, lower CIs, and upper CIs based on the sorted indices
 accuracies = [accuracies[i] for i in sorted_indices]
 lower_ci = [lower_ci[i] for i in sorted_indices]
@@ -270,7 +263,6 @@ if input_type != 'difference':
     accuracies = [acc+1 for acc in accuracies] 
     lower_ci = [lci + 1 for lci in lower_ci]
     upper_ci = [uci +1 for uci in upper_ci]
-
     
 x_pos = np.arange(len(feature_names))
 bars = ax[1].bar(x_pos, accuracies, align='center', alpha=1, color = sorted_color_dict)
@@ -297,7 +289,6 @@ if input_type != 'difference':
 else:
     ax[1].set_ylabel('# layers', fontdict={'family': font, 'size': 11})
 
-
 if input_type == 'difference':
     y_ticks_bar = range(9)
     ylabel_bar = range(9)
@@ -309,8 +300,6 @@ ax[1].set_yticks(ticks = y_ticks_bar,
            labels = ylabel_bar, 
            fontname=font, fontsize = 9)
 
-# if input_type != 'difference':
-#     ax[1].set_ylim(0,10)
 ax[1].spines['top'].set_visible(False)
 ax[1].spines['right'].set_visible(False)
 ax[1].spines['bottom'].set_linewidth(2)  # Set x-axis spine linewidth
@@ -321,7 +310,7 @@ ax[1].tick_params(axis='x', which='both', length=6, width=3)  # Adjust the lengt
 ax[1].tick_params(axis='y', which='both', length=6, width=3)  # Adjust the length and width as needed
 
 # Displaying the plot
-# plt.show()
+plt.show()
 plt.subplots_adjust(bottom=0.2)
 
 #save as svg and png
