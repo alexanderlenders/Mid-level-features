@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-BOOTSTRAPPING ENCODING LAYERS CLUSTER
+BOOTSTRAPPING ENCODING LAYERS CNN
 
 This script calculates Bootstrap 95%-CIs for the encoding accuracy for each
-timepoint (in ms) and each feature. These can be used for the encoding plot as 
+layer and each feature. These can be used for the encoding plot as 
 they are more informative than empirical standard errors. 
 
 @author: AlexanderLenders, AgnessaKarapetian
