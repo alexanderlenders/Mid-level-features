@@ -77,7 +77,13 @@ if __name__ == "__main__":
             Where encoding results are saved
         total_var : int
             Total variance explained by all PCA components
-
+        alpha_value : int
+            Significance level
+        tail : str
+            One-sided or two-sided test
+        input_type : str
+            Images or miniclips
+        
         """
         # -------------------------------------------------------------------------
         # STEP 2.1 Import Modules & Define Variables
