@@ -221,14 +221,9 @@ def hyperparameter_tuning(input_type):
 
     Parameters
     ----------
-    layer_dir : str
-        Directory where the activations for each layer are stored.
-    explained_var_dir : str
-        Directory where the explained variance for each layer is stored.
-    featuresDir : str
-        Directory where the features are stored.
-    saveDir : str
-        Directory where the hyperparameters are stored.
+    input_type : str
+        Images or miniclips
+        
     """
     # set up some variables and paths
     layers_names = (
