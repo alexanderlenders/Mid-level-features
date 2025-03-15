@@ -71,12 +71,11 @@ def permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type):
     ----------
     Results of the statistical analysis, dictionary with the following keys: 
         a. Uncorrected_p_values_map 
-            - Contains uncorrected p-value for each element in time gen matrix
+            - Contains uncorrected p-values
         b. Corrected_p_values_map
-            - Contains corrected p-value for each element in time gen matrix 
+            - Contains corrected p-values 
         c. Boolean_statistical_map
-            - Contains boolean values for each element in time gen matrix, if 
-            True -> corrected p-value is lower than .05
+            - Contains boolean values, if True -> corrected p-value is lower than .05
     
     Parameters
     ----------
