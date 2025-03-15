@@ -63,12 +63,11 @@ if __name__ == "__main__":
         ----------
         regression_features, dictionary with the following keys for each feature: 
         a. Uncorrected_p_values_map 
-            - Contains uncorrected p-value for each element in time gen matrix
+            - Contains uncorrected p-values
         b. Corrected_p_values_map
-            - Contains corrected p-value for each element in time gen matrix 
+            - Contains corrected p-values
         c. Boolean_statistical_map
-            - Contains boolean values for each element in time gen matrix, if 
-            True -> corrected p-value is lower than .05
+            - Contains boolean values, if True -> corrected p-value is lower than .05
         
         Parameters
         ----------
@@ -79,7 +78,7 @@ if __name__ == "__main__":
         total_var : int
             Total variance explained by all PCA components
 
-            """
+        """
         # -------------------------------------------------------------------------
         # STEP 2.1 Import Modules & Define Variables
         # -------------------------------------------------------------------------
