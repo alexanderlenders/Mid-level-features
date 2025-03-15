@@ -15,9 +15,9 @@ import argparse
 
 def load_activation(input_type, img_type, layer_id):
     if input_type == 'images':
-        layer_dir = "/scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/pca_90_percept/prepared/"
+        layer_dir = "/scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/pca_90_percent/prepared/"
     elif input_type == 'miniclips':
-        layer_dir = "/scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/pca_90_percept/prepared/"
+        layer_dir = "/scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/pca_90_percent/prepared/"
 
     fileDir = f"{layer_id}_layer_activations_" + img_type + ".npy"
     total_dir = os.path.join(layer_dir, fileDir)
