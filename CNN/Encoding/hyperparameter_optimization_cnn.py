@@ -12,27 +12,211 @@ import numpy as np
 import torch
 import pickle
 import argparse
-import sys
-from encoding_deepnet_utils import no_pca_load_activation
+import typing
 
-# Add the project root (two levels up from this script) to `sys.path`
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
-)
+def load_activation(input_type, img_type, layer_id,):
+    if input_type == 'images':
+        layer_dir = "/scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/pca_90_percept/prepared/"
+    elif input_type == 'miniclips':
+        layer_dir = "/scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/pca_90_percept/prepared/"
 
-from src.eeg_encoding.analysis_extraction.analysis.encoding_utils import (
-    load_features,
-    OLS_pytorch,
-    vectorized_correlation,
-)
+    fileDir = f"{layer_id}_layer_activations_" + img_type + ".npy"
+    total_dir = os.path.join(layer_dir, fileDir)
+
+    # Load EEG data
+    y = np.load(total_dir, allow_pickle=True)
+
+    return y
+
+def load_features(feature, featuresDir):
+    """
+    Load low/mid/high-level feature annotations.
+    """
+
+    features = np.load(featuresDir, allow_pickle=True)
+    X_prep = features[feature]
+
+    X_train = X_prep[0]
+    X_val = X_prep[1]
+    X_test = X_prep[2]
+
+    return X_train, X_val, X_test
+
+class OLS_pytorch(object):
+    """
+    Class for solving the ridge regression with OLS.
+    """
+
+    def __init__(
+        self, use_gpu: bool = False, intercept: bool = True, alpha: float = 0
+    ):
+        self.coefficients = []
+        self.use_gpu = use_gpu
+        self.intercept = intercept
+        self.alpha = alpha  # ridge penalty
+
+    def fit(self, X: np.array, y: np.array, solver: str = "cholesky"):
+        """
+        Fit function for solving the ridge regression with OLS.
+        Details (Statistical approach):
+            https://www.inf.fu-berlin.de/inst/ag-ki/rojas_home/documents/tutorials/LinearRegression.pdf
+        For skeleton position, we have to use the cholesky solver since the
+        Hermetian matrix is not positive definit for the skeleton position.
+        There are different solvers for ridge regression, each of them
+        have their advantages.
+        - Choleksy decomposition
+        - LU decomposition
+        - Fore more details, refer to:
+            https://pytorch.org/docs/stable/generated/torch.linalg.qr.html#torch.linalg.qr
+        """
+        if len(X.shape) == 1:
+            X = self.reshape_x(X)
+        if len(y.shape) == 1:
+            y = self.reshape_x(y)
+
+        # Add intercept by adding a column of ones
+        if (self.intercept) is True:
+            X = self.concatenate_ones(X)
+
+        # convert numpy array into torch
+        X = torch.from_numpy(X).float()
+        y = torch.from_numpy(y).float()
+
+        # if we use a gpu, we have to transfer the torch to it
+        if (self.use_gpu) is True:
+            X = X.cuda()
+            y = y.cuda()
+
+        _, columns = X.shape
+        _, columns_y = y.shape
+
+        # Use data augmentation trick to solve the ridge regression
+        # As described in Hastie (2020)
+        penalty_matrix = np.eye((columns))
+
+        # Since we don't want to penalize the intercept
+        penalty_matrix[0, 0] = 0
+
+        penalty_matrix = torch.from_numpy(
+            penalty_matrix * np.sqrt(self.alpha)
+        ).float()
+
+        zero_matrix = torch.from_numpy(np.zeros((columns, columns_y))).float()
+
+        if (self.use_gpu) is True:
+            penalty_matrix = penalty_matrix.cuda()
+            zero_matrix = zero_matrix.cuda()
+
+        X = torch.vstack((X, penalty_matrix))
+        y = torch.vstack((y, zero_matrix))
+
+        # Creates Hermitian positive-definite matrix
+        XtX = torch.matmul(X.t(), X)
+        Xty = torch.matmul(X.t(), y)
+
+        # Solve it
+        if solver == "cholesky":
+            # Cholesky decomposition, creates the lower triangle matrix
+            L = torch.linalg.cholesky(XtX)
+            self.coefficients = torch.cholesky_solve(Xty, L)
+
+        elif solver == "lstsq":
+            lstsq_coefficients, _, _, _ = torch.linalg.lstsq(
+                Xty, XtX, rcond=None
+            )
+            self.coefficients = lstsq_coefficients.t()
+
+        elif solver == "solve":
+            # Assumes that the matrix is invertible
+            self.coefficients = torch.linalg.solve(XtX, Xty)
+
+    def predict(self, entry):
+        # entry refers to the features of the test data
+        entry = self.concatenate_ones(entry)
+        entry = torch.from_numpy(entry).float()
+
+        if (self.use_gpu) is True:
+            entry = entry.cuda()
+
+        prediction = torch.matmul(entry, self.coefficients)
+        prediction = prediction.cpu().numpy()
+        prediction = np.squeeze(prediction)
+
+        return prediction
+
+    def score(self, entry, y, channelwise=True):
+        """
+        Computes RMSE for ridge regression.
+        """
+
+        entry = self.concatenate_ones(entry)
+
+        entry = torch.from_numpy(entry).float()
+        y = torch.from_numpy(y).float()
+
+        if (self.use_gpu) is True:
+            entry = entry.cuda()
+            y = y.cuda()
+
+        yhat = torch.matmul(entry, self.coefficients)
+
+        # y - yhat for each element in tensor
+        difference = y - yhat
+
+        # square differences
+        difference_squared = torch.square(difference)
+
+        if channelwise is True:
+            sum_difference = torch.sum(difference_squared, axis=0)
+        else:
+            sum_difference = torch.sum(difference_squared)
+
+        # number of elements in matrix
+        rows, columns = y.shape
+        if channelwise is True:
+            n_elements = columns
+        else:
+            n_elements = rows * columns
+
+        # mean square error
+        mean_sq_error = sum_difference / n_elements
+
+        # root mean square error
+        rmse = torch.sqrt(mean_sq_error)
+
+        return rmse.cpu().numpy()
+
+    def concatenate_ones(self, X):
+        # add an intercept to the multivariate regression in first column
+        ones = np.ones(shape=X.shape[0]).reshape(-1, 1)
+        return np.concatenate((ones, X), 1)
+
+    def reshape_x(self, X):
+        return X.reshape(-1, 1)
 
 
-def hyperparameter_tuning(
-    layer_dir: str,
-    featuresDir: str,
-    saveDir: str,
-    explained_var_dir: str = None,
-):
+def vectorized_correlation(x, y):
+    dim = 0  # calculate the correlation for each channel
+
+    # mean over all videos
+    centered_x = x - x.mean(axis=dim, keepdims=True)
+    centered_y = y - y.mean(axis=dim, keepdims=True)
+
+    covariance = (centered_x * centered_y).sum(axis=dim, keepdims=True)
+
+    bessel_corrected_covariance = covariance / (x.shape[dim] - 1)
+
+    # The addition of 1e-8 to x_std and y_std is commonly done
+    # to avoid division by zero or extremely small values.
+    x_std = x.std(axis=dim, keepdims=True) + 1e-8
+    y_std = y.std(axis=dim, keepdims=True) + 1e-8
+
+    corr = bessel_corrected_covariance / (x_std * y_std)
+
+    return corr.ravel()
+
+def hyperparameter_tuning(input_type): 
+
     """
     Hyperparameter tuning for ridge regression for the DNN encoding.
 
@@ -61,12 +245,23 @@ def hyperparameter_tuning(
     feature_names = (
         "edges",
         "world_normal",
-        "lightning",
+        "lighting",
         "scene_depth",
         "reflectance",
         "action",
         "skeleton",
     )
+
+    if input_type == 'images':
+        featuresDir = '/home/agnek95/Encoding-midlevel-features/Results/Encoding/images/7_features/img_features_frame_20_redone_7features_onehot.pkl'
+        explained_var_dir = f'/scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/pca_90_percent/pca/'
+        saveDir = '/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/2D_ResNet18/pca_90_percent/hyperparameters/'
+        
+    elif input_type == 'miniclips':
+        featuresDir = '/home/agnek95/Encoding-midlevel-features/Results/Encoding/miniclips/7_features/video_features_avg_frame_redone.pkl'
+        explained_var_dir = f'/scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/pca_90_percent/pca/'
+        saveDir = '/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/3D_ResNet18/pca_90_percent/hyperparameters/'
+
     features_dict = dict.fromkeys(feature_names)
     num_layers = len(layers_names)
 
@@ -100,8 +295,8 @@ def hyperparameter_tuning(
         for tp, l in enumerate(layers_names):
             print(l)
 
-            y_train_tp = no_pca_load_activation("training", layer_dir, l)
-            y_val_tp = no_pca_load_activation("validation", layer_dir, l)
+            y_train_tp = load_activation(input_type, "training", l)
+            y_val_tp = load_activation(input_type, "validation", l)
 
             print(y_train_tp.shape)
             print(y_val_tp.shape)
@@ -209,39 +404,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--layer_dir",
+        "--input_type",
+        default='images',
         type=str,
-        help="Directory where the activations for each layer are stored.",
-        required=True,
+        help='Images or miniclips',
+        required=True
     )
-    parser.add_argument(
-        "--featuresDir",
-        type=str,
-        help="Directory where the features are stored.",
-        required=True,
-    )
-    parser.add_argument(
-        "--saveDir",
-        type=str,
-        help="Directory where the hyperparameters are stored.",
-        required=True,
-    )
-    parser.add_argument(
-        "--explained_var_dir",
-        type=str,
-        help="Directory where the explained variance for each layer is stored.",
-        required=False,
-    )
-
+  
     args = parser.parse_args()
-    layer_dir = args.layer_dir
-    featuresDir = args.featuresDir
-    saveDir = args.saveDir
-    explained_var_dir = args.explained_var_dir
 
-    hyperparameter_tuning(
-        layer_dir=layer_dir,
-        featuresDir=featuresDir,
-        saveDir=saveDir,
-        explained_var_dir=explained_var_dir,
-    )
+    input_type = args.input_type
+
+    hyperparameter_tuning(input_type)
