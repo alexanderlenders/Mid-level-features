@@ -95,7 +95,11 @@ def encoding(sub, freq, region, input_type):
     import pickle
       
     feature_names = ('edges','world_normal','lighting','scene_depth','reflectance','skeleton','action')
-    featuresDir = f'/home/agnek95/Encoding-midlevel-features/Results/Encoding/{input_type}/7_features/img_features_frame_20_redone_7features_onehot.pkl'
+    if input_type == 'images':
+        featuresDir = '/home/agnek95/Encoding-midlevel-features/Results/Encoding/images/7_features/img_features_frame_20_redone_7features_onehot.pkl'
+
+    elif input_type == 'miniclips':
+        featuresDir = '/home/agnek95/Encoding-midlevel-features/Results/Encoding/miniclips/7_features/video_features_avg_frame_redone.pkl'
     
     features_dict = dict.fromkeys(feature_names)
     
