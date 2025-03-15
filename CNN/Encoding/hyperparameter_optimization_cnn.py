@@ -12,9 +12,8 @@ import numpy as np
 import torch
 import pickle
 import argparse
-import typing
 
-def load_activation(input_type, img_type, layer_id,):
+def load_activation(input_type, img_type, layer_id):
     if input_type == 'images':
         layer_dir = "/scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/pca_90_percept/prepared/"
     elif input_type == 'miniclips':
