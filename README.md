@@ -2,7 +2,11 @@
 
 This repository contains code for the paper "Investigating the temporal dynamics and modelling of mid-level feature representations in humans" (Karapetian et al., 2025). 
 
+Data for the paper can be found at [https://osf.io/7c9bz/](https://osf.io/7c9bz/).
+
 For questions about the code or the paper, please email agnessakarapetian@gmail.com. 
+
+Please cite the paper if you use any of the code or data. 
 
 ## **EEG** 
 
