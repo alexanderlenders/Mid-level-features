@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PREPARE LAYERS FOR ENCODING WITH DNN 
+PREPARE LAYERS FOR ENCODING WITH DNN
 
-This script prepares the unit activations within the layers from the deep nets, 
+This script prepares the unit activations within the layers from the deep nets,
 by splitting them into training, validation and test set. It works for all kind of
 different architectures.
 
-@author: AlexanderLenders
+@author: Alexander Lenders, Agnessa Karapetian
 """
 import os
 import numpy as np
@@ -87,8 +87,7 @@ if __name__ == "__main__":
         type=str,
         metavar="",
         help="Directory with extracted activations; images: /scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/extracted/"
-        "videos: /scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/extracted/"
-        
+        "videos: /scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/extracted/",
     )
     parser.add_argument(
         "-rd",
@@ -96,8 +95,8 @@ if __name__ == "__main__":
         default="",
         type=str,
         metavar="",
-        help= "Where to save prepared activations; images: /scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/pca_90_percent/prepared/"
-        "videos: /scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/pca_90_percent/prepared/"
+        help="Where to save prepared activations; images: /scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/pca_90_percent/prepared/"
+        "videos: /scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/pca_90_percent/prepared/",
     )
 
     args = parser.parse_args()  # to get values for the arguments

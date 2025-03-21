@@ -1,29 +1,40 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-DOWNSAMPLE EXTRACTED CNN ACTIVATIONS USING PCA
+REDUCE DIM OF EXTRACTED CNN ACTIVATIONS USING PCA
 
-@author: Alexander Lenders
+@author: Alexander Lenders, Agnessa Karapetian
 """
 if __name__ == "__main__":
 
-    import argparse 
+    import argparse
+
     # parser
     parser = argparse.ArgumentParser()
 
     # add arguments / inputs
-    parser.add_argument('-inp',"--input_type", default='images', metavar='',
-                        type=str,help='miniclips or images')
-    parser.add_argument('-cd',"--character_dir", 
-                        default='/scratch/alexandel91/Results/features/meta_data_anim.mat', metavar='',
-                        type=str,help='character meta data directory (for train/test/val split)')
+    parser.add_argument(
+        "-inp",
+        "--input_type",
+        default="images",
+        metavar="",
+        type=str,
+        help="miniclips or images",
+    )
+    parser.add_argument(
+        "-cd",
+        "--character_dir",
+        default="/scratch/alexandel91/Results/features/meta_data_anim.mat",
+        metavar="",
+        type=str,
+        help="character meta data directory (for train/test/val split)",
+    )
 
-
-    args = parser.parse_args() # to get values for the arguments
+    args = parser.parse_args()  # to get values for the arguments
 
     input_type = args.input_type
     character_dir = args.character_dir
-        
+
     # Import modules
     import os
     import numpy as np
@@ -33,10 +44,6 @@ if __name__ == "__main__":
     from sklearn.decomposition import PCA
     from sklearn.decomposition import KernelPCA
     from sklearn.preprocessing import StandardScaler
-    import numpy as np
-    import pickle
-    import os
-    import matplotlib.pyplot as plt
 
     def pca(
         features_train,
@@ -49,8 +56,8 @@ if __name__ == "__main__":
         min_var: float = None,
     ):
         """
-        NOTE: This implements a (simple) PCA using SVD. One could also implement
-        a multilinear PCA for the images with RGB channels.
+        NOTE: This implements a (simple) PCA using SVD. One could also
+        implement a multilinear PCA for the images with RGB channels.
 
         Parameters
         ----------
@@ -98,7 +105,10 @@ if __name__ == "__main__":
                 pca_image = PCA(n_components=n_comp, random_state=42)
             elif pca_method == "nonlinear":
                 pca_image = KernelPCA(
-                    n_components=n_comp, kernel="poly", degree=4, random_state=42
+                    n_components=n_comp,
+                    kernel="poly",
+                    degree=4,
+                    random_state=42,
                 )
 
             pca_image.fit(scaled_train)
@@ -127,9 +137,9 @@ if __name__ == "__main__":
                 cumulative_variance = np.cumsum(per_var)
 
                 # Check where cumulative variance exceeds min_var
-                min_var_index = np.where(cumulative_variance >= min_var * 100)[0][
+                min_var_index = np.where(cumulative_variance >= min_var * 100)[
                     0
-                ]
+                ][0]
 
                 print("=====================================================")
                 print("Min Var Index: ", min_var_index)
@@ -183,14 +193,14 @@ if __name__ == "__main__":
         num_videos = 1440
 
         print(num_comp)
-        
-        if input_type == 'images':
+
+        if input_type == "images":
             feature_dir = "/scratch/alexandel91/Results/features/resnet/resnet_18/test_eval_no_pca_pretrained_pretrained"  # 2DResNet
             save_dir = "/scratch/alexandel91/Results/features/resnet_18/more_layers/"  # 2DResNet
-        elif input_type == 'miniclips':
-            feature_dir = "/scratch/alexandel91/Results/features/resnet/3D_resnet_18/no_pca" # 3DResNet
-            save_dir = "/scratch/alexandel91/Results/features/resnet/3D_resnet_18/pca" # 3DResNet
-        
+        elif input_type == "miniclips":
+            feature_dir = "/scratch/alexandel91/Results/features/resnet/3D_resnet_18/no_pca"  # 3DResNet
+            save_dir = "/scratch/alexandel91/Results/features/resnet/3D_resnet_18/pca"  # 3DResNet
+
         MIN_VAR = 0.9
         (print("Applying PCA with minimum variance of: ", MIN_VAR))
 
@@ -237,7 +247,9 @@ if __name__ == "__main__":
         for layer in features:
             datasets = []
             pca_save_dir_layer = os.path.join(save_dir, layer)
-            layer_dir = feature_dir + "/" + "new_features_resnet_" + layer + ".pkl"
+            layer_dir = (
+                feature_dir + "/" + "new_features_resnet_" + layer + ".pkl"
+            )
 
             if layer == "layer1.0.relu_1":
 
@@ -452,7 +464,7 @@ if __name__ == "__main__":
         with open(features_dir, "wb") as f:
             pickle.dump(pca_features, f)
 
-    #run 
+    # run
     apply_pca(
         input_type=input_type,
         character_dir=character_dir,
