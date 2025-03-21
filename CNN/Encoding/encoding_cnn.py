@@ -4,7 +4,7 @@
 ENCODING - DEEP NETS
 
 This script implements the multivariate linear ridge regression for the EEG
-data. 
+data.
 
 @author: Alexander Lenders, Agnessa Karapetian
 """
@@ -14,10 +14,11 @@ import torch
 import pickle
 import argparse
 
+
 def load_activation(input_type, img_type, layer_id):
-    if input_type == 'images':
+    if input_type == "images":
         layer_dir = "/scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/pca_90_percent/prepared/"
-    elif input_type == 'miniclips':
+    elif input_type == "miniclips":
         layer_dir = "/scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/pca_90_percent/prepared/"
 
     fileDir = f"{layer_id}_layer_activations_" + img_type + ".npy"
@@ -27,6 +28,7 @@ def load_activation(input_type, img_type, layer_id):
     y = np.load(total_dir, allow_pickle=True)
 
     return y
+
 
 def load_features(feature, featuresDir):
     """
@@ -41,6 +43,7 @@ def load_features(feature, featuresDir):
     X_test = X_prep[2]
 
     return X_train, X_val, X_test
+
 
 class OLS_pytorch(object):
     """
@@ -194,21 +197,23 @@ class OLS_pytorch(object):
     def reshape_x(self, X):
         return X.reshape(-1, 1)
 
-def load_alpha(input_type,feature):
+
+def load_alpha(input_type, feature):
     """
     Load optimal alpha hyperparameter for ridge regression.
     """
-    if input_type == 'images':
-        file_part = '2D'
-    elif input_type == 'miniclips':
-        file_part = '3D'
-    alphaDir = f'/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/{file_part}_ResNet18/pca_90_percent/hyperparameters/'
+    if input_type == "images":
+        file_part = "2D"
+    elif input_type == "miniclips":
+        file_part = "3D"
+    alphaDir = f"/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/{file_part}_ResNet18/pca_90_percent/hyperparameters/"
 
     alpha_values = np.load(alphaDir, allow_pickle=True)
 
     alpha = alpha_values[feature]["best_alpha_a_corr"]
 
     return alpha
+
 
 def vectorized_correlation(x, y):
     dim = 0  # calculate the correlation for each channel
@@ -265,18 +270,17 @@ def encoding(input_type):
         "skeleton",
     )
 
+    if input_type == "images":
+        featuresDir = "/home/agnek95/Encoding-midlevel-features/Results/Encoding/images/7_features/img_features_frame_20_redone_7features_onehot.pkl"
+        explained_var_dir = f"/scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/pca_90_percent/pca/"
+        saveDir = "/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/2D_ResNet18/pca_90_percent/encoding/"
+        alpha_dir = "/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/2D_ResNet18/pca_90_percent/hyperparameters/"
 
-    if input_type == 'images':
-        featuresDir = '/home/agnek95/Encoding-midlevel-features/Results/Encoding/images/7_features/img_features_frame_20_redone_7features_onehot.pkl'
-        explained_var_dir = f'/scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/pca_90_percent/pca/'
-        saveDir = '/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/2D_ResNet18/pca_90_percent/encoding/'
-        alpha_dir = '/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/2D_ResNet18/pca_90_percent/hyperparameters/'
-
-    elif input_type == 'miniclips':
-        featuresDir = '/home/agnek95/Encoding-midlevel-features/Results/Encoding/miniclips/7_features/video_features_avg_frame_redone.pkl'
-        explained_var_dir = f'/scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/pca_90_percent/pca/'
-        saveDir = '/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/3D_ResNet18/pca_90_percent/encoding/'
-        alpha_dir = '/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/3D_ResNet18/pca_90_percent/hyperparameters/'
+    elif input_type == "miniclips":
+        featuresDir = "/home/agnek95/Encoding-midlevel-features/Results/Encoding/miniclips/7_features/video_features_avg_frame_redone.pkl"
+        explained_var_dir = f"/scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/pca_90_percent/pca/"
+        saveDir = "/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/3D_ResNet18/pca_90_percent/encoding/"
+        alpha_dir = "/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/3D_ResNet18/pca_90_percent/hyperparameters/"
 
     features_dict = dict.fromkeys(feature_names)
 
@@ -320,7 +324,7 @@ def encoding(input_type):
         for tp, l in enumerate(layers_names):
             print(l)
 
-            y_train_tp = load_activation(input_type,"training", l)
+            y_train_tp = load_activation(input_type, "training", l)
             y_test_tp = load_activation(input_type, "test", l)
 
             regression = OLS_pytorch(alpha=alpha)
@@ -397,12 +401,12 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--input_type",
-        default='images',
+        default="images",
         type=str,
-        help='Images or miniclips',
-        required=True
+        help="Images or miniclips",
+        required=True,
     )
-  
+
     args = parser.parse_args()
 
     input_type = args.input_type

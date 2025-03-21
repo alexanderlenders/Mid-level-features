@@ -13,10 +13,11 @@ import torch
 import pickle
 import argparse
 
+
 def load_activation(input_type, img_type, layer_id):
-    if input_type == 'images':
+    if input_type == "images":
         layer_dir = "/scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/pca_90_percent/prepared/"
-    elif input_type == 'miniclips':
+    elif input_type == "miniclips":
         layer_dir = "/scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/pca_90_percent/prepared/"
 
     fileDir = f"{layer_id}_layer_activations_" + img_type + ".npy"
@@ -26,6 +27,7 @@ def load_activation(input_type, img_type, layer_id):
     y = np.load(total_dir, allow_pickle=True)
 
     return y
+
 
 def load_features(feature, featuresDir):
     """
@@ -40,6 +42,7 @@ def load_features(feature, featuresDir):
     X_test = X_prep[2]
 
     return X_train, X_val, X_test
+
 
 class OLS_pytorch(object):
     """
@@ -214,8 +217,8 @@ def vectorized_correlation(x, y):
 
     return corr.ravel()
 
-def hyperparameter_tuning(input_type): 
 
+def hyperparameter_tuning(input_type):
     """
     Hyperparameter tuning for ridge regression for the DNN encoding.
 
@@ -223,7 +226,7 @@ def hyperparameter_tuning(input_type):
     ----------
     input_type : str
         Images or miniclips
-        
+
     """
     # set up some variables and paths
     layers_names = (
@@ -246,15 +249,15 @@ def hyperparameter_tuning(input_type):
         "skeleton",
     )
 
-    if input_type == 'images':
-        featuresDir = '/home/agnek95/Encoding-midlevel-features/Results/Encoding/images/7_features/img_features_frame_20_redone_7features_onehot.pkl'
-        explained_var_dir = f'/scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/pca_90_percent/pca/'
-        saveDir = '/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/2D_ResNet18/pca_90_percent/hyperparameters/'
-        
-    elif input_type == 'miniclips':
-        featuresDir = '/home/agnek95/Encoding-midlevel-features/Results/Encoding/miniclips/7_features/video_features_avg_frame_redone.pkl'
-        explained_var_dir = f'/scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/pca_90_percent/pca/'
-        saveDir = '/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/3D_ResNet18/pca_90_percent/hyperparameters/'
+    if input_type == "images":
+        featuresDir = "/home/agnek95/Encoding-midlevel-features/Results/Encoding/images/7_features/img_features_frame_20_redone_7features_onehot.pkl"
+        explained_var_dir = f"/scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/pca_90_percent/pca/"
+        saveDir = "/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/2D_ResNet18/pca_90_percent/hyperparameters/"
+
+    elif input_type == "miniclips":
+        featuresDir = "/home/agnek95/Encoding-midlevel-features/Results/Encoding/miniclips/7_features/video_features_avg_frame_redone.pkl"
+        explained_var_dir = f"/scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/pca_90_percent/pca/"
+        saveDir = "/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/3D_ResNet18/pca_90_percent/hyperparameters/"
 
     features_dict = dict.fromkeys(feature_names)
     num_layers = len(layers_names)
@@ -399,12 +402,12 @@ if __name__ == "__main__":
 
     parser.add_argument(
         "--input_type",
-        default='images',
+        default="images",
         type=str,
-        help='Images or miniclips',
-        required=True
+        help="Images or miniclips",
+        required=True,
     )
-  
+
     args = parser.parse_args()
 
     input_type = args.input_type
