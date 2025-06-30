@@ -1,0 +1,28 @@
+#!/bin/bash
+# Standard encoding analysis with all features for miniclips
+
+source /home/alexandel91/.bashrc
+conda activate encoding
+
+# First step: MVNN
+python ../EEG/Encoding/mvnn_encoding.py \
+    --config_dir ./config.ini \
+    --config default \
+    --input_type "images"
+
+# Second step: Preprocess the features of the first frame in each video
+python ../EEG/Encoding/annotation_prep_images.py \
+    --config_dir ./config.ini \
+    --config default 
+    
+# Third step: Hyperparameter optimization
+python ../EEG/Encoding/hyperparameter_optimization.py \
+    --config_dir ./config.ini \
+    --config default \
+    --input_type "images"
+
+# # Fourth step: Encoding
+python ../EEG/Encoding/encoding.py \
+    --config_dir ./config.ini \
+    --config default \
+    --input_type "images"

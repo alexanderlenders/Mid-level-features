@@ -15,12 +15,22 @@ import argparse
 import pickle
 import numpy as np
 import scipy.io
+from tqdm import tqdm
 import pandas as pd
-from EEG.Encoding.utils import canny_edge, action, skeleton_pos, world_normals, lighting, depth, reflectance, pca
-from EEG.Encoding.utils import (
+from utils import (
+    canny_edge,
+    action,
+    skeleton_pos,
+    world_normals,
+    lighting,
+    depth,
+    reflectance,
+    pca,
     load_config,
-    parse_list)
+    parse_list,
+)
 import os
+
 
 def feature_extraction(
     images_dir,
@@ -31,7 +41,7 @@ def feature_extraction(
     save_dir,
     pca_method,
     frame,
-    feature_names: list = None
+    feature_names: list = None,
 ):
     """
     Standard Scaler and PCA are fitted only on the training data and applied
@@ -79,7 +89,7 @@ def feature_extraction(
             "scene_depth",
             "reflectance",
             "action",
-        ) 
+        )
 
     # Number of images
     num_images = 1440
@@ -112,7 +122,6 @@ def feature_extraction(
     train_data = split_data[:, 0][split_data[:, 1] == 0]
     val_data = split_data[:, 0][split_data[:, 1] == 1]
     test_data = split_data[:, 0][split_data[:, 1] == 2]
-    
 
     # -------------------------------------------------------------------------
     # STEP 2.10 Get features for all images and apply PCA
@@ -128,7 +137,7 @@ def feature_extraction(
             # for GRAY 390*520, where 390*520 dimension of image
             features_flattened = np.zeros((num_images, 202800), dtype=float)
 
-            for img in range(num_images):
+            for img in tqdm(range(num_images)):
                 # features_flattened_frame = np.zeros((1, 202800), dtype = float)
                 img_index = img + 1
 
@@ -145,7 +154,11 @@ def feature_extraction(
 
             # PCA
             pca_features_train, pca_features_val, pca_features_test = pca(
-                features_train, features_val, features_test, pca_method, n_components
+                features_train,
+                features_val,
+                features_test,
+                pca_method,
+                n_components,
             )
             del features_train, features_val, features_test
             datasets.append(pca_features_train)
@@ -156,7 +169,7 @@ def feature_extraction(
             # 14 skeleton positions * 2 coordinates
             features_flattened = np.zeros((num_images, 28), dtype=float)
 
-            for img in range(num_images):
+            for img in tqdm(range(num_images)):
                 img_index = img + 1
 
                 feature_np = skeleton_pos(img_index, annotations_dir, frame)
@@ -178,7 +191,7 @@ def feature_extraction(
             # for RGB 390*520*3, where 390*520 dimension of image
             features_flattened = np.zeros((num_images, 608400), dtype=float)
 
-            for img in range(num_images):
+            for img in tqdm(range(num_images)):
                 img_index = img + 1
 
                 feature_np = world_normals(img_index, annotations_dir, frame)
@@ -193,7 +206,11 @@ def feature_extraction(
 
             # PCA
             pca_features_train, pca_features_val, pca_features_test = pca(
-                features_train, features_val, features_test, pca_method, n_components
+                features_train,
+                features_val,
+                features_test,
+                pca_method,
+                n_components,
             )
             del features_train, features_val, features_test
             datasets.append(pca_features_train)
@@ -205,7 +222,7 @@ def feature_extraction(
             # for GRAY 390*520, where 390*520 dimension of image
             features_flattened = np.zeros((num_images, 202800), dtype=float)
 
-            for img in range(num_images):
+            for img in tqdm(range(num_images)):
 
                 img_index = img + 1
 
@@ -221,7 +238,11 @@ def feature_extraction(
 
             # PCA
             pca_features_train, pca_features_val, pca_features_test = pca(
-                features_train, features_val, features_test, pca_method, n_components
+                features_train,
+                features_val,
+                features_test,
+                pca_method,
+                n_components,
             )
             del features_train, features_val, features_test
             datasets.append(pca_features_train)
@@ -233,7 +254,7 @@ def feature_extraction(
             # for GRAY 390*520, where 390*520 dimension of image
             features_flattened = np.zeros((num_images, 202800), dtype=float)
 
-            for img in range(num_images):
+            for img in tqdm(range(num_images)):
 
                 img_index = img + 1
 
@@ -249,7 +270,11 @@ def feature_extraction(
 
             # PCA
             pca_features_train, pca_features_val, pca_features_test = pca(
-                features_train, features_val, features_test, pca_method, n_components
+                features_train,
+                features_val,
+                features_test,
+                pca_method,
+                n_components,
             )
             del features_train, features_val, features_test
             datasets.append(pca_features_train)
@@ -261,7 +286,7 @@ def feature_extraction(
             # for RGB 390*520*3, where 390*520 dimension of image
             features_flattened = np.zeros((num_images, 608400), dtype=float)
 
-            for img in range(num_images):
+            for img in tqdm(range(num_images)):
                 img_index = img + 1
 
                 feature_np = reflectance(img_index, annotations_dir, frame)
@@ -276,7 +301,11 @@ def feature_extraction(
 
             # PCA
             pca_features_train, pca_features_val, pca_features_test = pca(
-                features_train, features_val, features_test, pca_method, n_components
+                features_train,
+                features_val,
+                features_test,
+                pca_method,
+                n_components,
             )
             del features_train, features_val, features_test
             datasets.append(pca_features_train)
@@ -288,7 +317,7 @@ def feature_extraction(
                 (num_images, len(actions)), dtype=float
             )
 
-            for img in range(num_images):
+            for img in tqdm(range(num_images)):
                 feature_np = action(img, action_data, actions)
                 features_flattened[img, :] = feature_np
 
@@ -307,8 +336,9 @@ def feature_extraction(
     # -------------------------------------------------------------------------
     # STEP 2.11 Save Output
     # -------------------------------------------------------------------------
-    features_dir = (
-        save_dir + "/" + f"img_features_frame_{frame}_redone_{len(feature_names)}_features_onehot.pkl"
+    features_dir = os.path.join(
+        save_dir,
+        f"img_features_frame_{frame}_redone_{len(feature_names)}_features_onehot.pkl",
     )
 
     if not os.path.exists(save_dir):
@@ -335,20 +365,19 @@ if __name__ == "__main__":
         required=True,
     )
 
-
     args = parser.parse_args()  # to get values for the arguments
 
     config = load_config(args.config_dir, args.config)
 
-    n_components = config.getint("n_components")
-    pca_method = config.get("pca_method")
-    annotations_dir = config.get("img_annotations_dir")
-    action_dir = config.get("action_metadata_dir")
-    character_dir = config.get("character_metadata_dir")
-    save_dir = config.get("save_dir_feat_img")
-    feature_names = parse_list(config.get("feature_names"))
-    frame = config.getint("img_frame") 
-    images_dir = config.get("images_dir")
+    n_components = config.getint(args.config, "n_components")
+    pca_method = config.get(args.config, "pca_method")
+    annotations_dir = config.get(args.config, "img_annotations_dir")
+    action_dir = config.get(args.config, "action_metadata_dir")
+    character_dir = config.get(args.config, "character_metadata_dir")
+    save_dir = config.get(args.config, "save_dir_feat_img")
+    feature_names = parse_list(config.get(args.config, "feature_names"))
+    frame = config.getint(args.config, "img_frame")
+    images_dir = config.get(args.config, "images_dir")
 
     feature_extraction(
         images_dir,
@@ -359,5 +388,5 @@ if __name__ == "__main__":
         save_dir,
         pca_method,
         frame,
-        feature_names=feature_names
+        feature_names=feature_names,
     )

@@ -15,13 +15,21 @@ import argparse
 import pickle
 import numpy as np
 import scipy.io
+from tqdm import tqdm
 import pandas as pd
-from EEG.Encoding.utils import canny_edge, action, skeleton_pos, world_normals, lighting, depth, reflectance, pca
-import os
-from EEG.Encoding.utils import (
+from utils import (
+    canny_edge,
+    action,
+    skeleton_pos,
+    world_normals,
+    lighting,
+    depth,
+    reflectance,
+    pca,
     load_config,
-    parse_list
+    parse_list,
 )
+import os
 
 
 def feature_extraction(
@@ -34,7 +42,7 @@ def feature_extraction(
     pca_method,
     feature_names: list = None,
     start_frame: int = 10,
-    end_frame: int = 19
+    end_frame: int = 19,
 ):
     """
     Standard Scaler and PCA are fitted only on the training data and applied
@@ -128,7 +136,7 @@ def feature_extraction(
             # for GRAY 390*520, where 390*520 dimension of video
             features_flattened = np.zeros((num_videos, 202800), dtype=float)
 
-            for video in range(num_videos):
+            for video in tqdm(range(num_videos)):
                 features_flattened_frame = np.zeros((1, 202800), dtype=float)
                 video_index = video + 1
 
@@ -152,7 +160,11 @@ def feature_extraction(
 
             # PCA
             pca_features_train, pca_features_val, pca_features_test = pca(
-                features_train, features_val, features_test, pca_method, n_components
+                features_train,
+                features_val,
+                features_test,
+                pca_method,
+                n_components,
             )
             del features_train, features_val, features_test
             datasets.append(pca_features_train)
@@ -163,7 +175,7 @@ def feature_extraction(
             # 14 skeleton positions * 2 coordinates
             features_flattened = np.zeros((num_videos, 28), dtype=float)
 
-            for video in range(num_videos):
+            for video in tqdm(range(num_videos)):
                 features_flattened_frame = np.zeros((1, 28), dtype=float)
                 video_index = video + 1
 
@@ -196,7 +208,7 @@ def feature_extraction(
             # for RGB 390*520*3, where 390*520 dimension of video
             features_flattened = np.zeros((num_videos, 608400), dtype=float)
 
-            for video in range(num_videos):
+            for video in tqdm(range(num_videos)):
                 features_flattened_frame = np.zeros((1, 608400), dtype=float)
                 video_index = video + 1
 
@@ -222,7 +234,11 @@ def feature_extraction(
 
             # PCA
             pca_features_train, pca_features_val, pca_features_test = pca(
-                features_train, features_val, features_test, pca_method, n_components
+                features_train,
+                features_val,
+                features_test,
+                pca_method,
+                n_components,
             )
             del features_train, features_val, features_test
             datasets.append(pca_features_train)
@@ -234,7 +250,7 @@ def feature_extraction(
             # for GRAY 390*520, where 390*520 dimension of video
             features_flattened = np.zeros((num_videos, 202800), dtype=float)
 
-            for video in range(num_videos):
+            for video in tqdm(range(num_videos)):
 
                 video_index = video + 1
                 features_flattened_frame = np.zeros((1, 202800), dtype=float)
@@ -259,7 +275,11 @@ def feature_extraction(
 
             # PCA
             pca_features_train, pca_features_val, pca_features_test = pca(
-                features_train, features_val, features_test, pca_method, n_components
+                features_train,
+                features_val,
+                features_test,
+                pca_method,
+                n_components,
             )
             del features_train, features_val, features_test
             datasets.append(pca_features_train)
@@ -271,7 +291,7 @@ def feature_extraction(
             # for GRAY 390*520, where 390*520 dimension of video
             features_flattened = np.zeros((num_videos, 202800), dtype=float)
 
-            for video in range(num_videos):
+            for video in tqdm(range(num_videos)):
 
                 video_index = video + 1
                 features_flattened_frame = np.zeros((1, 202800), dtype=float)
@@ -296,7 +316,11 @@ def feature_extraction(
 
             # PCA
             pca_features_train, pca_features_val, pca_features_test = pca(
-                features_train, features_val, features_test, pca_method, n_components
+                features_train,
+                features_val,
+                features_test,
+                pca_method,
+                n_components,
             )
             del features_train, features_val, features_test
             datasets.append(pca_features_train)
@@ -308,7 +332,7 @@ def feature_extraction(
             # for RGB 390*520*3, where 390*520 dimension of video
             features_flattened = np.zeros((num_videos, 608400), dtype=float)
 
-            for video in range(num_videos):
+            for video in tqdm(range(num_videos)):
                 features_flattened_frame = np.zeros((1, 608400), dtype=float)
                 video_index = video + 1
 
@@ -334,7 +358,11 @@ def feature_extraction(
 
             # PCA
             pca_features_train, pca_features_val, pca_features_test = pca(
-                features_train, features_val, features_test, pca_method, n_components
+                features_train,
+                features_val,
+                features_test,
+                pca_method,
+                n_components,
             )
             del features_train, features_val, features_test
             datasets.append(pca_features_train)
@@ -346,7 +374,7 @@ def feature_extraction(
                 (num_videos, len(actions)), dtype=float
             )
 
-            for img in range(num_videos):
+            for img in tqdm(range(num_videos)):
                 feature_np = action(img, action_data, actions)
                 features_flattened[img, :] = feature_np
 
@@ -365,7 +393,9 @@ def feature_extraction(
     # -------------------------------------------------------------------------
     # STEP 2.11 Save Output
     # -------------------------------------------------------------------------
-    features_dir = os.path.join(save_dir, f"video_features_avg_frame_redone_{len(feature_names)}.pkl")
+    features_dir = os.path.join(
+        save_dir, f"video_features_avg_frame_redone_{len(feature_names)}.pkl"
+    )
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
@@ -395,16 +425,16 @@ if __name__ == "__main__":
 
     config = load_config(args.config_dir, args.config)
 
-    n_components = config.getint("n_components")
-    pca_method = config.get("pca_method")
-    videos_dir = config.get("videos_dir")
-    annotations_dir = config.get("video_annotations_dir")
-    action_dir = config.get("action_metadata_dir")
-    character_dir = config.get("character_metadata_dir")
-    save_dir = config.get("save_dir_feat_video")
-    feature_names = parse_list(config.get("feature_names"))
-    start_frame = config.getint("start_frame")
-    end_frame = config.getint("end_frame")
+    n_components = config.getint(args.config, "n_components")
+    pca_method = config.get(args.config, "pca_method")
+    videos_dir = config.get(args.config, "videos_dir")
+    annotations_dir = config.get(args.config, "video_annotations_dir")
+    action_dir = config.get(args.config, "action_metadata_dir")
+    character_dir = config.get(args.config, "character_metadata_dir")
+    save_dir = config.get(args.config, "save_dir_feat_video")
+    feature_names = parse_list(config.get(args.config, "feature_names"))
+    start_frame = config.getint(args.config, "start_frame")
+    end_frame = config.getint(args.config, "end_frame")
 
     # -----------------------------------------------------------------------------
     # STEP 3: Run Function
@@ -419,5 +449,5 @@ if __name__ == "__main__":
         pca_method,
         feature_names=feature_names,
         start_frame=start_frame,
-        end_frame=end_frame
+        end_frame=end_frame,
     )

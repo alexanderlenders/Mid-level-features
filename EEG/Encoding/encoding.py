@@ -8,15 +8,33 @@ scene features from the Unreal Engine for a single frame.
 
 @author: Alexander Lenders, Agnessa Karapetian
 """
-from EEG.Encoding.utils import load_eeg, load_features, load_alpha, OLS_pytorch, vectorized_correlation
+from utils import (
+    load_eeg,
+    load_features,
+    load_alpha,
+    OLS_pytorch,
+    vectorized_correlation,
+    load_config,
+    parse_list,
+)
 import os
 import numpy as np
 import torch
 import pickle
 import argparse
-from EEG.Encoding.utils import load_config, parse_list
 
-def encoding(sub, freq, region, input_type, feat_dir, save_dir, eeg_dir, frame, feature_names):
+
+def encoding(
+    sub,
+    freq,
+    region,
+    input_type,
+    feat_dir,
+    save_dir,
+    eeg_dir,
+    frame,
+    feature_names,
+):
     """
     Input:
     ----------
@@ -74,9 +92,15 @@ def encoding(sub, freq, region, input_type, feat_dir, save_dir, eeg_dir, frame, 
         )
 
     if input_type == "images":
-        featuresDir = os.path.join(feat_dir, input_type, f"img_features_frame_{frame}_redone_{len(feature_names)}_features_onehot.pkl")
+        featuresDir = os.path.join(
+            feat_dir,
+            f"img_features_frame_{frame}_redone_{len(feature_names)}_features_onehot.pkl",
+        )
     elif input_type == "miniclips":
-        featuresDir = os.path.join(feat_dir, input_type, f"video_features_avg_frame_redone_{len(feature_names)}.pkl")
+        featuresDir = os.path.join(
+            feat_dir,
+            f"video_features_avg_frame_redone_{len(feature_names)}.pkl",
+        )
 
     features_dict = dict.fromkeys(feature_names)
 
@@ -98,9 +122,13 @@ def encoding(sub, freq, region, input_type, feat_dir, save_dir, eeg_dir, frame, 
         )
 
     elif input_type == "images":
-        y_train, timepoints = load_eeg(sub, "train", region, freq, input_type, eeg_dir=eeg_dir)
+        y_train, timepoints = load_eeg(
+            sub, "train", region, freq, input_type, eeg_dir=eeg_dir
+        )
 
-    y_test, _ = load_eeg(sub, "test", region, freq, input_type, eeg_dir=eeg_dir)
+    y_test, _ = load_eeg(
+        sub, "test", region, freq, input_type, eeg_dir=eeg_dir
+    )
 
     output_names = ("rmse_score", "correlation")
 
@@ -111,7 +139,15 @@ def encoding(sub, freq, region, input_type, feat_dir, save_dir, eeg_dir, frame, 
         print(feature)
         X_train, _, X_test = load_features(feature, featuresDir)
         if alpha_tp is False:
-            alpha = load_alpha(sub, freq, region, feature, input_type, feat_dir=save_dir)
+            alpha = load_alpha(
+                sub,
+                freq,
+                region,
+                feature,
+                input_type,
+                feat_dir=save_dir,
+                feat_len=len(feature_names),
+            )
         output = dict.fromkeys(output_names)
 
         rmse = np.zeros((timepoints, n_channels))
@@ -119,7 +155,16 @@ def encoding(sub, freq, region, input_type, feat_dir, save_dir, eeg_dir, frame, 
 
         for tp in range(timepoints):
             if alpha_tp is True:
-                alpha = load_alpha(sub, freq, region, feature, input_type, feat_dir=save_dir, timepoint=tp)
+                alpha = load_alpha(
+                    sub,
+                    freq,
+                    region,
+                    feature,
+                    input_type,
+                    feat_dir=save_dir,
+                    timepoint=tp,
+                    feat_len=len(feature_names),
+                )
             y_train_tp = y_train[:, :, tp]
             y_test_tp = y_test[:, :, tp]
             regression = OLS_pytorch(alpha=alpha)
@@ -165,6 +210,7 @@ def encoding(sub, freq, region, input_type, feat_dir, save_dir, eeg_dir, frame, 
         pickle.dump(regression_features, f)
 
     return regression_features
+
 
 # -----------------------------------------------------------------------------
 # STEP 1: Initialize variables
@@ -219,9 +265,10 @@ if __name__ == "__main__":
     freq = args.freq
     region = args.region
     input_type = args.input_type
-    frame = config.getint("img_frame")
-    save_dir = config.get("save_dir")
-    feature_names = parse_list(config.get("feature_names"))
+    frame = config.getint(args.config, "img_frame")
+    save_dir = config.get(args.config, "save_dir")
+    feature_names = parse_list(config.get(args.config, "feature_names"))
+    eeg_dir = config.get(args.config, "eeg_dir")
 
     # -------------------------------------------------------------------------
     # STEP 3 Run function
@@ -249,12 +296,20 @@ if __name__ == "__main__":
             34,
             36,
         ]
-        feat_dir = config.get("save_dir_feat_video")
-        eeg_dir = config.get("eeg_videos_dir")
+        feat_dir = config.get(args.config, "save_dir_feat_video")
     elif input_type == "images":
         subjects = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
-        feat_dir = config.get("save_dir_feat_img")
-        eeg_dir = config.get("eeg_images_dir")
+        feat_dir = config.get(args.config, "save_dir_feat_img")
 
     for sub in subjects:
-        result = encoding(sub, freq, region, input_type, feat_dir=feat_dir, save_dir=save_dir, eeg_dir=eeg_dir)
+        result = encoding(
+            sub,
+            freq,
+            region,
+            input_type,
+            feat_dir=feat_dir,
+            save_dir=save_dir,
+            eeg_dir=eeg_dir,
+            frame=frame,
+            feature_names=feature_names,
+        )

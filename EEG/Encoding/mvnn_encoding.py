@@ -14,11 +14,12 @@ Bawa from the Cichy Lab.
 @author: Alexander Lenders, Agnessa Karapetian
 """
 import argparse
-from EEG.Encoding.utils import load_config
+from utils import load_config
 import os
 import numpy as np
 from sklearn.covariance import LedoitWolf
 import scipy
+
 
 # -----------------------------------------------------------------------------
 # STEP 2: Define MVNN Fit Function
@@ -61,12 +62,6 @@ def mvnn_fit(sub, mvnn_dim, freq, region, input_type, data_dir):
     input_type : str
         Miniclips or images
     """
-
-    import os
-    import numpy as np
-    from sklearn.covariance import LedoitWolf
-    import scipy
-
     _cov = lambda x: LedoitWolf().fit(x).covariance_
 
     print(
@@ -309,9 +304,7 @@ def mvnn_transform(
         if sub < 10:
             main_folderDir = os.path.join(
                 data_dir,
-                "{}".format(input_type)
-                + "/prepared"
-                + "/sub-0{}".format(sub),
+                "{}".format(input_type) + "/prepared" + "/sub-0{}".format(sub),
             )
             fileDir = "{}_img_data_{}hz_sub_00{}.npy".format(
                 img_type, freq, sub
@@ -319,9 +312,7 @@ def mvnn_transform(
         else:
             main_folderDir = os.path.join(
                 data_dir,
-                "{}".format(input_type)
-                + "/prepared"
-                + "/sub-{}".format(sub),
+                "{}".format(input_type) + "/prepared" + "/sub-{}".format(sub),
             )
             fileDir = "{}_img_data_{}hz_sub_0{}.npy".format(
                 img_type, freq, sub
@@ -401,7 +392,6 @@ def mvnn_transform(
     np.save(os.path.join(folderDir, fileDir), eeg_data)
 
 
-
 if __name__ == "__main__":
     # parser
     parser = argparse.ArgumentParser()
@@ -443,7 +433,6 @@ if __name__ == "__main__":
         default="miniclips",
     )
 
-
     args = parser.parse_args()  # to get values for the arguments
 
     config = load_config(args.config_dir, args.config)
@@ -452,11 +441,7 @@ if __name__ == "__main__":
     mvnn_dim = args.mvnn_dim
     region = args.region
     input_type = args.input_type
-
-    if input_type == "miniclips":
-        data_dir = config.get("eeg_videos_dir")
-    elif input_type == "images":
-        data_dir = config.get("eeg_images_dir")
+    data_dir = config.get(args.config, "eeg_dir")
 
     if input_type == "miniclips":
         subjects = [
@@ -485,12 +470,21 @@ if __name__ == "__main__":
         subjects = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
 
     for sub in subjects:
-        sigma_inv = mvnn_fit(sub, mvnn_dim, freq, region, input_type, data_dir=data_dir)
+        sigma_inv = mvnn_fit(
+            sub, mvnn_dim, freq, region, input_type, data_dir=data_dir
+        )
         if input_type == "miniclips":
             image_types = ["training", "test", "validation"]
         elif input_type == "images":
             image_types = ["train", "test", "val"]
         for type in image_types:
             mvnn_transform(
-                type, sub, mvnn_dim, freq, region, sigma_inv, input_type, data_dir=data_dir
+                type,
+                sub,
+                mvnn_dim,
+                freq,
+                region,
+                sigma_inv,
+                input_type,
+                data_dir=data_dir,
             )
