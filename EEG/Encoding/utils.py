@@ -174,9 +174,14 @@ def lighting(image, annotations_dir, frame):
     frame: int
         Image frame
     """
-    image_file = (
-        str(image).zfill(4) + "_lighting" + "_frame_{}".format(frame) + ".jpg"
-    )
+    if 'images' in annotations_dir:
+        image_file = (
+            str(image).zfill(4) + "_lightning" + "_frame_{}".format(frame) + ".jpg"
+        )
+    else:
+        image_file = (
+            str(image).zfill(4) + "_lighting" + "_frame_{}".format(frame) + ".jpg"
+        )
     image_dir = annotations_dir + "/" + image_file
     image = Image.open(image_dir)
     lighting_np = np.array(image.convert("L")).astype(np.float32)
