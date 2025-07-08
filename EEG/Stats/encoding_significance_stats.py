@@ -11,81 +11,18 @@ Chance-level of encoding is 0.
 @author: Alexander Lenders, Agnessa Karapetian
 
 """
+import os
+import numpy as np
+from scipy.stats import rankdata
+import statsmodels
+import pickle
+import argparse
+from EEG.utils import (
+    load_config,
+    parse_list,
+)
 
-# -----------------------------------------------------------------------------
-# STEP 1: Initialize variables
-# -----------------------------------------------------------------------------
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-
-    # add arguments / inputs
-    parser.add_argument(
-        "-ls",
-        "--list_sub",
-        default=0,
-        type=int,
-        metavar="",
-        help="list of subjects",
-    )
-    parser.add_argument(
-        "-np",
-        "--num_perm",
-        default=10000,
-        type=int,
-        metavar="",
-        help="Number of permutations",
-    )
-    parser.add_argument(
-        "-tp",
-        "--num_tp",
-        default=70,
-        type=int,
-        metavar="",
-        help="Number of timepoints",
-    )
-    parser.add_argument(
-        "-a",
-        "--alpha",
-        default=0.05,
-        type=int,
-        metavar="",
-        help="Significance level (alpha)",
-    )
-    parser.add_argument(
-        "-t",
-        "--tail",
-        default="both",
-        type=str,
-        metavar="",
-        help="One-sided: right, two-sided: both",
-    )
-    parser.add_argument(
-        "-i",
-        "--input_type",
-        default="images",
-        type=str,
-        metavar="",
-        help="Font",
-    )
-
-    args = parser.parse_args()  # to get values for the arguments
-
-    list_sub = args.list_sub
-    n_perm = args.num_perm
-    timepoints = args.num_tp
-    alpha = args.alpha
-    tail = args.tail
-    input_type = args.input_type
-
-# -----------------------------------------------------------------------------
-# STEP 2: Define Permutation Test Function
-# -----------------------------------------------------------------------------
-
-
-def permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type):
+def permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type, workDir, feature_names):
     """
     Input:
     ----------
@@ -123,32 +60,12 @@ def permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type):
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
     # -------------------------------------------------------------------------
-    # Import modules
-    import os
-    import numpy as np
-    from scipy.stats import rankdata
-    import statsmodels
-    import pickle
+    workDir = os.path.join(workDir, f"{input_type}")
+    saveDir = os.path.join(workDir, "stats")
+    if not os.path.exists(saveDir):
+        os.makedirs(saveDir)
 
-    # create workDir and saveDir
-    identifierDir = "seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_7features_onehot.pkl"
-    feature_names = (
-        "edges",
-        "world_normal",
-        "lighting",
-        "scene_depth",
-        "reflectance",
-        "skeleton",
-        "action",
-    )
-
-    if input_type == "miniclips":
-        workDir = "Z:/Unreal/Results/Encoding/"
-        saveDir = "Z:/Unreal/Results/Encoding/redone/stats"
-
-    elif input_type == "images":
-        workDir = "Z:/Unreal/images_results/encoding/"
-        saveDir = "Z:/Unreal/images_results/encoding/redone/stats"
+    identifierDir = f"seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
 
     n_sub = len(list_sub)
 
@@ -160,9 +77,7 @@ def permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type):
     # -------------------------------------------------------------------------
     results_unfiltered = {}
     for index, subject in enumerate(list_sub):
-        fileDir = (
-            workDir + "redone/7_features/{}_".format(subject) + identifierDir
-        )
+        fileDir = os.path.join(workDir, f"{subject}_{identifierDir}")
         encoding_results = np.load(fileDir, allow_pickle=True)
         results_unfiltered[str(subject)] = encoding_results
 
@@ -259,30 +174,99 @@ def permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type):
 # -----------------------------------------------------------------------------
 # STEP 3: Run function
 # -----------------------------------------------------------------------------
-if input_type == "miniclips":
-    list_sub = [
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        17,
-        18,
-        20,
-        21,
-        23,
-        25,
-        27,
-        28,
-        29,
-        30,
-        31,
-        32,
-        34,
-        36,
-    ]
-elif input_type == "images":
-    list_sub = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+if __name__ == "__main__":
 
-permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type)
+    parser = argparse.ArgumentParser()
+
+    # add arguments / inputs
+    parser.add_argument(
+        "--config_dir",
+        type=str,
+        help="Directory to the configuration file.",
+        required=True,
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Configuration.",
+        required=True,
+    )
+    parser.add_argument(
+        "-np",
+        "--num_perm",
+        default=10000,
+        type=int,
+        metavar="",
+        help="Number of permutations",
+    )
+    parser.add_argument(
+        "-tp",
+        "--num_tp",
+        default=70,
+        type=int,
+        metavar="",
+        help="Number of timepoints",
+    )
+    parser.add_argument(
+        "-a",
+        "--alpha",
+        default=0.05,
+        type=int,
+        metavar="",
+        help="Significance level (alpha)",
+    )
+    parser.add_argument(
+        "-t",
+        "--tail",
+        default="both",
+        type=str,
+        metavar="",
+        help="One-sided: right, two-sided: both",
+    )
+    parser.add_argument(
+        "-i",
+        "--input_type",
+        default="images",
+        type=str,
+        metavar="",
+        help="Font",
+    )
+
+    args = parser.parse_args()  # to get values for the arguments
+    config = load_config(args.config_dir, args.config)
+    workDir = config.get(args.config, "save_dir")
+    feature_names = parse_list(config.get(args.config, "feature_names"))
+
+    n_perm = args.num_perm
+    timepoints = args.num_tp
+    alpha = args.alpha
+    tail = args.tail
+    input_type = args.input_type
+
+    if input_type == "miniclips":
+        list_sub = [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            17,
+            18,
+            20,
+            21,
+            23,
+            25,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            34,
+            36,
+        ]
+    elif input_type == "images":
+        list_sub = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+
+    permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type, workDir, feature_names)

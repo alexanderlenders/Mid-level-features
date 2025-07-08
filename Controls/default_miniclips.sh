@@ -26,3 +26,21 @@ python ../EEG/Encoding/encoding.py \
     --config_dir ./config.ini \
     --config default \
     --input_type "miniclips"
+
+# Fifth step: Bootstrapping
+python ../EEG/Stats/encoding_bootstrapping.py \
+    --config_dir ./config.ini \
+    --config default \
+    --input_type "miniclips"
+
+# Sixth step: Stats
+python ../EEG/Stats/encoding_significance_stats.py \
+    --config_dir ./config.ini \
+    --config default \
+    --input_type "miniclips"
+
+# Seventh step: Plotting 
+python ../EEG/Plotting/plot_encoding.py \
+    --config_dir ./config.ini \
+    --config default \
+    --input_type "miniclips"

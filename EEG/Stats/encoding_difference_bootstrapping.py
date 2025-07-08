@@ -12,54 +12,18 @@ of the largest encoding peak for each feature.
 
 @author: Alexander Lenders, Agnessa Karapetian
 """
-if __name__ == "__main__":
-    import argparse
+import numpy as np
+from scipy.stats import rankdata
+import os
+import pickle
+import statsmodels
+from EEG.utils import (
+    load_config,
+    parse_list,
+)
+import argparse
 
-    parser = argparse.ArgumentParser()
-
-    # add arguments / inputs
-    parser.add_argument(
-        "-ls_v",
-        "--list_sub_vid",
-        default=[6],
-        type=int,
-        metavar="",
-        help="list of subjects for videos (see below)",
-    )
-    parser.add_argument(
-        "-ls_i",
-        "--list_sub_img",
-        default=[9],
-        type=int,
-        metavar="",
-        help="list of subjects for images (see below)",
-    )
-    parser.add_argument(
-        "-np",
-        "--num_perm",
-        default=10000,
-        type=int,
-        metavar="",
-        help="Number of permutations",
-    )
-    parser.add_argument(
-        "-tp",
-        "--num_tp",
-        default=70,
-        type=int,
-        metavar="",
-        help="Number of timepoints",
-    )
-
-    args = parser.parse_args()  # to get values for the arguments
-
-    list_sub_vid = args.list_sub_vid
-    list_sub_img = args.list_sub_img
-    n_perm = args.num_perm
-    timepoints = args.num_tp
-
-
-def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
+def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, workDir, feature_names):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and
     each feature.
@@ -88,30 +52,16 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
         Images or miniclips
     """
     # -------------------------------------------------------------------------
-    # STEP 2.1 Import Modules & Define Variables
+    # STEP 2.1 Define Variables
     # -------------------------------------------------------------------------
-    # Import modules
-    import numpy as np
-    from scipy.stats import rankdata
-    import os
-    import pickle
-    import statsmodels
+    workDir_img = os.path.join(workDir, "images")
+    workDir_vid = os.path.join(workDir, "miniclips")
+    saveDir = os.path.join(workDir, "difference", "stats")
 
-    workDir_img = "Z:/Unreal/images_results/encoding/"
-    workDir_vid = "Z:/Unreal/Results/Encoding/"
-    saveDir = "Z:/Unreal/images_results/encoding/redone/stats"
+    if os.path.exists(saveDir) == False:
+        os.makedirs(saveDir)
 
-    feature_names = (
-        "edges",
-        "world_normal",
-        "scene_depth",
-        "lighting",
-        "reflectance",
-        "skeleton",
-        "action",
-    )
-
-    identifierDir = "seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_7features_onehot.pkl"
+    identifierDir = f"seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
 
     # set some vars
     n_sub_vid = len(list_sub_vid)
@@ -127,20 +77,12 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
     results_vid = {}
     results_img = {}
     for subject in list_sub_vid:
-        fileDir_vid = (
-            workDir_vid
-            + "redone/7_features/{}_".format(subject)
-            + identifierDir
-        )
+        fileDir_vid = os.path.join(workDir_vid, f"{subject}_{identifierDir}")
         encoding_results_vid = np.load(fileDir_vid, allow_pickle=True)
         results_vid[str(subject)] = encoding_results_vid
 
     for subject in list_sub_img:
-        fileDir_img = (
-            workDir_img
-            + "redone/7_features/{}_".format(subject)
-            + identifierDir
-        )
+        fileDir_img = os.path.join(workDir_img, f"{subject}_{identifierDir}")
         encoding_results_img = np.load(fileDir_img, allow_pickle=True)
         results_img[str(subject)] = encoding_results_img
 
@@ -228,7 +170,6 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
         # -------------------------------------------------------------------------
         # STEP 2.5 Bootstrapping: peak latency -> 1) PEAK OF DIFFERENCE CURVE 2) DIFFERENCE IN PEAK LATENCIES (SIG/NON-SIG)
         # -------------------------------------------------------------------------
-
         # Find ground truth peak latency (ms) of the difference curve
         peak_true = time_ms[np.argmax(results_diff_avg)]
 
@@ -490,29 +431,71 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
 # -----------------------------------------------------------------------------
 # STEP 3: Run functions
 # -----------------------------------------------------------------------------
-list_sub_vid = [
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    17,
-    18,
-    20,
-    21,
-    23,
-    25,
-    27,
-    28,
-    29,
-    30,
-    31,
-    32,
-    34,
-    36,
-]
-list_sub_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+
+    # add arguments / inputs
+    parser.add_argument(
+        "--config_dir",
+        type=str,
+        help="Directory to the configuration file.",
+        required=True,
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Configuration.",
+        required=True,
+    )
+    parser.add_argument(
+        "-np",
+        "--num_perm",
+        default=10000,
+        type=int,
+        metavar="",
+        help="Number of permutations",
+    )
+    parser.add_argument(
+        "-tp",
+        "--num_tp",
+        default=70,
+        type=int,
+        metavar="",
+        help="Number of timepoints",
+    )
+
+    args = parser.parse_args()  # to get values for the arguments
+
+    config = load_config(args.config_dir, args.config)
+    workDir = config.get(args.config, "save_dir")
+    feature_names = parse_list(config.get(args.config, "feature_names"))
+    n_perm = args.num_perm
+    timepoints = args.num_tp
+
+    list_sub_vid = [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        17,
+        18,
+        20,
+        21,
+        23,
+        25,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        34,
+        36,
+    ]
+    list_sub_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
 
 
-bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints)
+    bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, workDir, feature_names)

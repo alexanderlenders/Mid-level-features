@@ -19,6 +19,6 @@ cd ./
 source /home/alexandel91/.bashrc
 conda activate encoding
 
-./default_images.sh > default_images.txt 2>&1
+./default_miniclips.sh > default_miniclips.txt 2>&1
 
 

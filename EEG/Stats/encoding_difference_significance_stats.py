@@ -14,117 +14,27 @@ Chance-level of pairwise decoding is 0.5.
 Anaconda Environment on local machine: mne
 
 """
-# -----------------------------------------------------------------------------
-# STEP 1: Initialize variables
-# -----------------------------------------------------------------------------
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-
-    # add arguments / inputs
-    parser.add_argument(
-        "-ls_v",
-        "--list_sub_vid",
-        default=0,
-        type=int,
-        metavar="",
-        help="list of subjects for videos (see below)",
-    )
-    parser.add_argument(
-        "-ls_i",
-        "--list_sub_img",
-        default=0,
-        type=int,
-        metavar="",
-        help="list of subjects for images (see below)",
-    )
-    parser.add_argument(
-        "-d",
-        "--workdirvid",
-        default="Z:/Unreal/Results/Encoding/",
-        type=str,
-        metavar="",
-        help="Results of the decoding analysis with videos",
-    )
-    parser.add_argument(
-        "-id",
-        "--workdirimg",
-        default="Z:/Unreal/images_results/encoding/",
-        type=str,
-        metavar="",
-        help="Results of the decoding analysis with images",
-    )
-    parser.add_argument(
-        "-sd",
-        "--savedir",
-        default="Z:/Unreal/images_results/encoding/redone/stats/",
-        type=str,
-        metavar="",
-        help="Where to save results",
-    )
-    parser.add_argument(
-        "-np",
-        "--num_perm",
-        default=10000,
-        type=int,
-        metavar="",
-        help="Number of permutations",
-    )
-    parser.add_argument(
-        "-tp",
-        "--num_tp",
-        default=70,
-        type=int,
-        metavar="",
-        help="Number of timepoints",
-    )
-    parser.add_argument(
-        "-a",
-        "--alpha",
-        default=0.05,
-        type=int,
-        metavar="",
-        help="Signifance level (alpha)",
-    )
-    parser.add_argument(
-        "-t",
-        "--tail",
-        default="both",
-        type=str,
-        metavar="",
-        help="One-sided: right, two-sided: both",
-    )
-
-    args = parser.parse_args()  # to get values for the arguments
-
-    list_sub_vid = args.list_sub_vid
-    list_sub_img = args.list_sub_img
-    workDir_img = args.workdirimg
-    workDir_vid = args.workdirvid
-    saveDir = args.savedir
-    n_perm = args.num_perm
-    timepoints = args.num_tp
-    n_perm = args.num_perm
-    alpha = args.alpha
-    tail = args.tail
-
-# -----------------------------------------------------------------------------
-# STEP 2: Define Permutation Test Function
-# -----------------------------------------------------------------------------
+import os
+import numpy as np
+from scipy.stats import rankdata
+import statsmodels
+import pickle
+from EEG.utils import (
+    load_config,
+    parse_list,
+)
+import argparse
 
 
 def permutation_test(
     list_sub_vid,
     list_sub_img,
-    workDir_vid,
-    workDir_img,
-    saveDir,
     n_perm,
     tail,
     alpha,
     timepoints,
+    workDir, 
+    feature_names
 ):
     """
     Inputs:
@@ -167,14 +77,14 @@ def permutation_test(
 
     """
     # -------------------------------------------------------------------------
-    # STEP 2.1 Import Modules & Define Variables
+    # STEP 2.1 Define Variables
     # -------------------------------------------------------------------------
-    # Import modules
-    import os
-    import numpy as np
-    from scipy.stats import rankdata
-    import statsmodels
-    import pickle
+    workDir_img = os.path.join(workDir, "images")
+    workDir_vid = os.path.join(workDir, "miniclips")
+    saveDir = os.path.join(workDir, "difference", "stats")
+
+    if os.path.exists(saveDir) == False:
+        os.makedirs(saveDir)
 
     n_sub_vid = len(list_sub_vid)
     n_sub_img = len(list_sub_img)
@@ -185,35 +95,17 @@ def permutation_test(
     # -------------------------------------------------------------------------
     # STEP 2.2 Load results
     # -------------------------------------------------------------------------
-
-    identifierDir = "seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_7features_onehot.pkl"
-    feature_names = (
-        "edges",
-        "world_normal",
-        "lighting",
-        "scene_depth",
-        "reflectance",
-        "skeleton",
-        "action",
-    )
+    identifierDir = f"seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
 
     results_vid = {}
     results_img = {}
     for subject in list_sub_vid:
-        fileDir_vid = (
-            workDir_vid
-            + "redone/7_features/{}_".format(subject)
-            + identifierDir
-        )
+        fileDir_vid = os.path.join(workDir_vid, f"{subject}_{identifierDir}")
         encoding_results_vid = np.load(fileDir_vid, allow_pickle=True)
         results_vid[str(subject)] = encoding_results_vid
 
     for subject in list_sub_img:
-        fileDir_img = (
-            workDir_img
-            + "redone/7_features/{}_".format(subject)
-            + identifierDir
-        )
+        fileDir_img = os.path.join(workDir_img, f"{subject}_{identifierDir}")
         encoding_results_img = np.load(fileDir_img, allow_pickle=True)
         results_img[str(subject)] = encoding_results_img
 
@@ -333,10 +225,6 @@ def permutation_test(
 
     savefileDir = os.path.join(saveDir, fileDir)
 
-    # Creating the directory if not existing
-    if os.path.isdir(os.path.join(saveDir)) == False:  # if not a directory
-        os.makedirs(os.path.join(saveDir))
-
     with open(savefileDir, "wb") as f:
         pickle.dump(feature_results, f)
 
@@ -344,39 +232,100 @@ def permutation_test(
 # -----------------------------------------------------------------------------
 # STEP 3: Run function
 # -----------------------------------------------------------------------------
-list_sub_vid = [
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    17,
-    18,
-    20,
-    21,
-    23,
-    25,
-    27,
-    28,
-    29,
-    30,
-    31,
-    32,
-    34,
-    36,
-]
+if __name__ == "__main__":
 
-list_sub_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+    parser = argparse.ArgumentParser()
 
-permutation_test(
-    list_sub_vid,
-    list_sub_img,
-    workDir_vid,
-    workDir_img,
-    saveDir,
-    n_perm,
-    tail,
-    alpha,
-    timepoints,
-)
+    # add arguments / inputs
+    parser.add_argument(
+        "--config_dir",
+        type=str,
+        help="Directory to the configuration file.",
+        required=True,
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Configuration.",
+        required=True,
+    )
+    parser.add_argument(
+        "-np",
+        "--num_perm",
+        default=10000,
+        type=int,
+        metavar="",
+        help="Number of permutations",
+    )
+    parser.add_argument(
+        "-tp",
+        "--num_tp",
+        default=70,
+        type=int,
+        metavar="",
+        help="Number of timepoints",
+    )
+    parser.add_argument(
+        "-a",
+        "--alpha",
+        default=0.05,
+        type=int,
+        metavar="",
+        help="Signifance level (alpha)",
+    )
+    parser.add_argument(
+        "-t",
+        "--tail",
+        default="both",
+        type=str,
+        metavar="",
+        help="One-sided: right, two-sided: both",
+    )
+
+    args = parser.parse_args()  # to get values for the arguments
+
+    config = load_config(args.config_dir, args.config)
+    workDir = config.get(args.config, "save_dir")
+    feature_names = parse_list(config.get(args.config, "feature_names"))
+
+    n_perm = args.num_perm
+    timepoints = args.num_tp
+    n_perm = args.num_perm
+    alpha = args.alpha
+    tail = args.tail
+
+    list_sub_vid = [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        17,
+        18,
+        20,
+        21,
+        23,
+        25,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        34,
+        36,
+    ]
+
+    list_sub_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+
+    permutation_test(
+        list_sub_vid,
+        list_sub_img,
+        n_perm,
+        tail,
+        alpha,
+        timepoints,
+        workDir,
+        feature_names
+    )

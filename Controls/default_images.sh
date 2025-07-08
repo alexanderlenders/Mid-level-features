@@ -21,8 +21,26 @@ python ../EEG/Encoding/hyperparameter_optimization.py \
     --config default \
     --input_type "images"
 
-# # Fourth step: Encoding
+# Fourth step: Encoding
 python ../EEG/Encoding/encoding.py \
+    --config_dir ./config.ini \
+    --config default \
+    --input_type "images"
+
+# Fifth step: Bootstrapping
+python ../EEG/Stats/encoding_bootstrapping.py \
+    --config_dir ./config.ini \
+    --config default \
+    --input_type "images"
+
+# Sixth step: Stats
+python ../EEG/Stats/encoding_significance_stats.py \
+    --config_dir ./config.ini \
+    --config default \
+    --input_type "images"
+
+# Seventh step: Plotting 
+python ../EEG/Plotting/plot_encoding.py \
     --config_dir ./config.ini \
     --config default \
     --input_type "images"
