@@ -40,22 +40,23 @@ noise_ceiling_dir = os.path.join(root_dir, "results", "noise_ceiling")
 # =============================================================================
 feature_names_default = [
     "edges",
-    "skeleton",
-    "world_normal",
-    "lighting",
-    "scene_depth",
     "reflectance",
-    "action",
+    "lighting",
+    "normals",
+    "depth",
+    "skeleton",
+    "action"
 ]
-feature_names_graph_default = (
+feature_names_graph_default = [
     "Edges",
+    "Reflectance",
+    "Lighting",
     "Normals",
     "Depth",
-    "Lighting",
-    "Reflectance",
     "Skeleton",
-    "Action",
-)
+    "Action"
+]
+
 save_dir_default = os.path.join(root_dir, "results", "EEG", "default")
 save_dir_feat_img = os.path.join(root_dir, "features", "images", "default")
 save_dir_feat_video = os.path.join(
