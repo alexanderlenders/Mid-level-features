@@ -16,7 +16,14 @@ import numpy as np
 from scipy.stats import rankdata
 import os
 import pickle
-from EEG.utils import (
+
+import sys
+from pathlib import Path
+project_root = Path(__file__).resolve().parents[2]
+print(project_root)
+sys.path.append(str(project_root))
+
+from EEG.Encoding.utils import (
     load_config,
     parse_list,
 )
@@ -109,13 +116,13 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type, workDir, feature_
                     tp_data, size=(n_sub, 1), replace=True
                 )
                 mean_p_tp = np.mean(perm_tp_data, axis=0)
-                bt_data[tp, perm] = mean_p_tp
+                bt_data[tp, perm] = mean_p_tp.item()
 
         # ---------------------------------------------------------------------
         # STEP 2.4 Calculate 95%-CI
         # ---------------------------------------------------------------------
-        upper = int(np.ceil(n_perm * 0.975))
-        lower = int(np.ceil(n_perm * 0.025))
+        upper = int(np.ceil(n_perm * 0.975)) - 1
+        lower = int(np.ceil(n_perm * 0.025)) - 1
 
         ci_dict = {}
 
@@ -153,8 +160,8 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type, workDir, feature_
         # ---------------------------------------------------------------------
         # STEP 2.6 Calculate 95%-CI
         # ---------------------------------------------------------------------
-        upper = round(n_perm * 0.975)
-        lower = round(n_perm * 0.025)
+        upper = round(n_perm * 0.975) - 1
+        lower = round(n_perm * 0.025) - 1
 
         ci_dict = {}
 
@@ -247,8 +254,8 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type, workDir, feature_
             # STEP 2.10 Compute p-Value and CI
             # -----------------------------------------------------------------
             # CI
-            upper = int(np.ceil(n_perm * 0.975))
-            lower = int(np.ceil(n_perm * 0.025))
+            upper = int(np.ceil(n_perm * 0.975)) - 1
+            lower = int(np.ceil(n_perm * 0.025)) - 1
 
             peak_data_sorted = bt_data_peaks[np.argsort(bt_data_peaks)]
             lower_CI = peak_data_sorted[lower]
@@ -349,6 +356,5 @@ if __name__ == "__main__":
         ]
     elif input_type == "images":
         list_sub = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
-
 
     bootstrapping_CI(list_sub, n_perm, timepoints, input_type, workDir, feature_names)

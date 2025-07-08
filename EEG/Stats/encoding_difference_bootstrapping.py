@@ -16,8 +16,14 @@ import numpy as np
 from scipy.stats import rankdata
 import os
 import pickle
-import statsmodels
-from EEG.utils import (
+from statsmodels.stats.multitest import fdrcorrection
+import sys
+from pathlib import Path
+project_root = Path(__file__).resolve().parents[2]
+print(project_root)
+sys.path.append(str(project_root))
+
+from EEG.Encoding.utils import (
     load_config,
     parse_list,
 )
@@ -144,13 +150,13 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, workDir, fe
                 )
                 mean_p_tp_vid = np.mean(perm_tp_data_vid, axis=0)
                 mean_p_tp_img = np.mean(perm_tp_data_img, axis=0)
-                bt_data[tp, perm] = mean_p_tp_img - mean_p_tp_vid
+                bt_data[tp, perm] = mean_p_tp_img.item() - mean_p_tp_vid.item()
 
         # ---------------------------------------------------------------------
         # STEP 2.4 Calculate 95%-CI
         # ---------------------------------------------------------------------
-        upper = int(np.ceil(n_perm * 0.975))
-        lower = int(np.ceil(n_perm * 0.025))
+        upper = int(np.ceil(n_perm * 0.975)) - 1
+        lower = int(np.ceil(n_perm * 0.025)) - 1
 
         ci_dict = {}
 
@@ -213,8 +219,8 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, workDir, fe
         # ---------------------------------------------------------------------
         # STEP 2.6 Calculate 95%-CI
         # ---------------------------------------------------------------------
-        upper = round(n_perm * 0.975)
-        lower = round(n_perm * 0.025)
+        upper = round(n_perm * 0.975) - 1
+        lower = round(n_perm * 0.025) - 1
 
         # 1) peak of the difference curve
         ci_dict = {}
@@ -249,7 +255,7 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, workDir, fe
     # -------------------------------------------------------------------------
     # Save the dictionary
 
-    fileDir = "encoding_difference_CI95_accuracy.pkl"
+    fileDir = "encoding_CI95_accuracy.pkl"
 
     savefileDir = os.path.join(saveDir, fileDir)
 
@@ -261,7 +267,7 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, workDir, fe
     # -------------------------------------------------------------------------
     # Save the dictionary
 
-    fileDir = "encoding_difference_CI95_peak.pkl"
+    fileDir = "encoding_CI95_peak.pkl"
 
     savefileDir = os.path.join(saveDir, fileDir)
 
@@ -384,8 +390,8 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, workDir, fe
             # STEP 2.11 Compute p-Value and CI
             # -----------------------------------------------------------------
             # CI
-            upper = int(np.ceil(n_perm * 0.975))
-            lower = int(np.ceil(n_perm * 0.025))
+            upper = int(np.ceil(n_perm * 0.975)) - 1
+            lower = int(np.ceil(n_perm * 0.025)) - 1
 
             peak_data = bt_data_peaks
             ranks = rankdata(peak_data)
@@ -415,7 +421,7 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, workDir, fe
     # Benjamini-Hochberg Correction
     p_values_vector = [pairwise_p[key]["p_value"] for key in pairwise_p]
 
-    _, p_values_corr = statsmodels.stats.multitest.fdrcorrection(
+    _, p_values_corr = fdrcorrection(
         p_values_vector, alpha=0.05, is_sorted=False
     )
 
@@ -496,6 +502,5 @@ if __name__ == "__main__":
         36,
     ]
     list_sub_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
-
 
     bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, workDir, feature_names)

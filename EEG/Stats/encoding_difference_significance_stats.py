@@ -17,9 +17,15 @@ Anaconda Environment on local machine: mne
 import os
 import numpy as np
 from scipy.stats import rankdata
-import statsmodels
+from statsmodels.stats.multitest import fdrcorrection
 import pickle
-from EEG.utils import (
+import sys
+from pathlib import Path
+project_root = Path(__file__).resolve().parents[2]
+print(project_root)
+sys.path.append(str(project_root))
+
+from EEG.Encoding.utils import (
     load_config,
     parse_list,
 )
@@ -202,7 +208,7 @@ def permutation_test(
         Please note, that we assume a positive dependence between the different 
         statistical tests. 
         """
-        rejected, p_values_corr = statsmodels.stats.multitest.fdrcorrection(
+        rejected, p_values_corr = fdrcorrection(
             p_values, alpha=alpha, is_sorted=False
         )
 
@@ -218,7 +224,7 @@ def permutation_test(
 
     # Save the dictionary
     fileDir = (
-        "encoding_unreal_before_pca_difference_stats_{}_nonstd.pkl".format(
+        "encoding_stats_{}_nonstd.pkl".format(
             tail
         )
     )

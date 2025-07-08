@@ -16,7 +16,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import os
-from EEG.utils import (
+import sys
+from pathlib import Path
+project_root = Path(__file__).resolve().parents[2]
+print(project_root)
+sys.path.append(str(project_root))
+
+from EEG.Encoding.utils import (
     load_config,
     parse_list,
 )
@@ -151,7 +157,7 @@ stats_dir = os.path.join(
 )  # Permutation tests encoding curve
 ci_stats = os.path.join(
     statsDir,
-    "encoding_stats_peak_latency_CI_redone.pkl",
+    "encoding_stats_peak_latency_CI.pkl",
 )  # CI peak latency
 if input_type == "images" or input_type == "miniclips":
     peakDir = os.path.join(
@@ -521,6 +527,7 @@ bars = ax[1].bar(
 )
 y_err_lower = [acc - lower for acc, lower in zip(accuracies, lower_ci)]
 y_err_upper = [upper - acc for acc, upper in zip(accuracies, upper_ci)]
+
 ax[1].errorbar(
     x_pos,
     accuracies,

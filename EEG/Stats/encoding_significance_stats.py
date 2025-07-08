@@ -14,10 +14,16 @@ Chance-level of encoding is 0.
 import os
 import numpy as np
 from scipy.stats import rankdata
-import statsmodels
+from statsmodels.stats.multitest import fdrcorrection
 import pickle
 import argparse
-from EEG.utils import (
+import sys
+from pathlib import Path
+project_root = Path(__file__).resolve().parents[2]
+print(project_root)
+sys.path.append(str(project_root))
+
+from EEG.Encoding.utils import (
     load_config,
     parse_list,
 )
@@ -141,7 +147,7 @@ def permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type, work
         # ---------------------------------------------------------------------
         # STEP 2.5 Benjamini-Hochberg correction
         # ---------------------------------------------------------------------
-        rejected, p_values_corr = statsmodels.stats.multitest.fdrcorrection(
+        rejected, p_values_corr = fdrcorrection(
             p_values, alpha=alpha, is_sorted=False
         )
 
@@ -157,9 +163,9 @@ def permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type, work
     # -------------------------------------------------------------------------
     # Save the dictionary
     if input_type == "miniclips":
-        fileDir = "encoding_miniclips_stats_{}_nonstd.pkl".format(tail)
+        fileDir = "encoding_stats_{}_nonstd.pkl".format(tail)
     elif input_type == "images":
-        fileDir = "encoding_images_stats_{}_nonstd.pkl".format(tail)
+        fileDir = "encoding_stats_{}_nonstd.pkl".format(tail)
 
     savefileDir = os.path.join(saveDir, fileDir)
 
