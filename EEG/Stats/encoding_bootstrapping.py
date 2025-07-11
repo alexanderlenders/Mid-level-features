@@ -324,6 +324,9 @@ if __name__ == "__main__":
     workDir = config.get(args.config, "save_dir")
     feature_names = parse_list(config.get(args.config, "feature_names"))
 
+    if args.config == "control_6_1" or args.config == "control_6_2":
+        feature_names = feature_names[:-1]  # remove the full feature set
+
     n_perm = args.num_perm
     timepoints = args.num_tp
     input_type = args.input_type

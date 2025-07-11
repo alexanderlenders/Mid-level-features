@@ -7,7 +7,6 @@ This script creates plots for the encoding analyses.
 
 @author: Alexander Lenders, Agnessa Karapetian
 """
-
 # -----------------------------------------------------------------------------
 # STEP 1: Initialize variables & import modules
 # -----------------------------------------------------------------------------
@@ -60,6 +59,10 @@ config = load_config(args.config_dir, args.config)
 workDir = config.get(args.config, "save_dir")
 noise_ceiling_dir = config.get(args.config, "noise_ceiling_dir")
 feature_names = parse_list(config.get(args.config, "feature_names"))
+
+if args.config == "control_6_1" or args.config == "control_6_2":
+    feature_names = feature_names[:-1]  # remove the full feature set
+
 feature_names_graph = parse_list(config.get(args.config, "feature_names_graph"))
 font = args.font
 input_type = args.input_type

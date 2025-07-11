@@ -12,77 +12,24 @@ alpha = .05, Benjamini-Hochberg correction.
 
 @author: AlexanderLenders, Agnessa Karapetian
 """
-# -----------------------------------------------------------------------------
-# STEP 1: Initialize variables
-# -----------------------------------------------------------------------------
-if __name__ == "__main__":
-    import argparse
+import argparse
+import os
+import numpy as np
+import pickle
+from scipy.stats import rankdata
+from statsmodels.stats.multitest import fdrcorrection
+import sys
+from pathlib import Path
+project_root = Path(__file__).resolve().parents[2]
+print(project_root)
+sys.path.append(str(project_root))
 
-    parser = argparse.ArgumentParser()
-
-    # add arguments / inputs
-    parser.add_argument(
-        "-np",
-        "--num_perm",
-        default=10000,
-        type=int,
-        metavar="",
-        help="Number of permutations",
-    )
-    parser.add_argument(
-        "-tp",
-        "--num_tp",
-        default=5,
-        type=int,
-        metavar="",
-        help="Number of timepoints",
-    )
-    parser.add_argument(
-        "-a",
-        "--alpha",
-        default=0.05,
-        type=int,
-        metavar="",
-        help="Significance level (alpha)",
-    )
-    parser.add_argument(
-        "-t",
-        "--tail",
-        default="both",
-        type=str,
-        metavar="",
-        help="One-sided: right, two-sided: both",
-    )
-    parser.add_argument(
-        "-sd",
-        "--savedir",
-        default="Z:/Unreal/Results/Encoding/CNN_redone/2D_ResNet18/stats/",
-        type=str,
-        metavar="",
-        help="Where to save results",
-    )
-    parser.add_argument(
-        "-tv",
-        "--total_var",
-        help="Total variance explained by all PCA components together",
-        default=90,
-    )
-
-    args = parser.parse_args()  # to get values for the arguments
-
-    n_perm = args.num_perm
-    timepoints = args.num_tp
-    alpha_value = args.alpha
-    tail = args.tail
-    saveDir = args.savedir
-    total_var = args.total_var
-
-# -----------------------------------------------------------------------------
-# STEP 2: Define Encoding Function
-# -----------------------------------------------------------------------------
+from EEG.Encoding.utils import (
+    load_config,
+)
 
 
-def encoding_stats(n_perm, alpha_value, tail, saveDir, total_var):
+def encoding_stats(n_perm, alpha_value, tail, total_var, weighted, encoding_dir):
     """
     Input:
     ----------
@@ -118,13 +65,6 @@ def encoding_stats(n_perm, alpha_value, tail, saveDir, total_var):
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
     # -------------------------------------------------------------------------
-    # Import modules
-    import os
-    import numpy as np
-    import pickle
-    from scipy.stats import rankdata
-    import statsmodels
-
     layers_names = (
         "layer1.0.relu_1",
         "layer1.1.relu_1",
@@ -150,8 +90,17 @@ def encoding_stats(n_perm, alpha_value, tail, saveDir, total_var):
 
     num_layers = len(layers_names)
 
-    workDir_img = "Z:/Unreal/Results/Encoding/CNN_redone/2D_ResNet18/"
-    workDir_vid = "Z:/Unreal/Results/Encoding/CNN_redone/3D_ResNet18/"
+    if weighted:
+        workDir_img = os.path.join(encoding_dir, "images", "weighted")
+        workDir_vid = os.path.join(encoding_dir, "miniclips", "weighted")
+    else:
+        workDir_img = os.path.join(encoding_dir, "images", "unweighted")
+        workDir_vid = os.path.join(encoding_dir, "miniclips", "unweighted")
+
+    saveDir = os.path.join(encoding_dir, "difference", "stats")
+
+    if not os.path.exists(saveDir):
+        os.makedirs(saveDir)
 
     np.random.seed(42)
 
@@ -237,7 +186,7 @@ def encoding_stats(n_perm, alpha_value, tail, saveDir, total_var):
         # ---------------------------------------------------------------------
         # Benjamini-Hochberg correction
         # ---------------------------------------------------------------------
-        rejected, p_values_corr = statsmodels.stats.multitest.fdrcorrection(
+        rejected, p_values_corr = fdrcorrection(
             p_values, alpha=alpha_value, is_sorted=False
         )
 
@@ -257,8 +206,82 @@ def encoding_stats(n_perm, alpha_value, tail, saveDir, total_var):
     with open(savefileDir, "wb") as f:
         pickle.dump(regression_features, f)
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
 
-# -----------------------------------------------------------------------------
-# STEP 3 Run function
-# -----------------------------------------------------------------------------
-encoding_stats(n_perm, alpha_value, tail, saveDir, total_var)
+    # add arguments / inputs
+    parser.add_argument(
+        "--config_dir",
+        type=str,
+        help="Directory to the configuration file.",
+        required=True,
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Configuration.",
+        required=True,
+    )
+    parser.add_argument(
+        "-np",
+        "--num_perm",
+        default=10000,
+        type=int,
+        metavar="",
+        help="Number of permutations",
+    )
+    parser.add_argument(
+        "-tp",
+        "--num_tp",
+        default=5,
+        type=int,
+        metavar="",
+        help="Number of timepoints",
+    )
+    parser.add_argument(
+        "-a",
+        "--alpha",
+        default=0.05,
+        type=int,
+        metavar="",
+        help="Significance level (alpha)",
+    )
+    parser.add_argument(
+        "-t",
+        "--tail",
+        default="both",
+        type=str,
+        metavar="",
+        help="One-sided: right, two-sided: both",
+    )
+    parser.add_argument(
+        "-tv",
+        "--total_var",
+        help="Total variance explained by all PCA components together",
+        default=90,
+    )
+    parser.add_argument(
+        '--weighted', 
+        action='store_true'
+    )
+
+    args = parser.parse_args()  # to get values for the arguments
+
+    config = load_config(args.config_dir, args.config)
+    encoding_dir = config.get(args.config, "save_dir_cnn")
+    n_perm = args.num_perm
+    timepoints = args.num_tp
+    alpha_value = args.alpha
+    tail = args.tail
+    total_var = args.total_var
+
+    if args.weighted:
+        weighted = True
+    else:
+        weighted = False
+
+    # -----------------------------------------------------------------------------
+    # STEP 3 Run function
+    # -----------------------------------------------------------------------------
+    encoding_stats(n_perm, alpha_value, tail, total_var, weighted, encoding_dir)
+

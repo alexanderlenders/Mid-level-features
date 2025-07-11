@@ -19,7 +19,7 @@ import torch
 import pickle
 from utils import (
     load_eeg,
-    load_features,
+    load_feature_set,
     OLS_pytorch,
     vectorized_correlation,
     load_config,
@@ -37,7 +37,8 @@ def hyperparameter_tuning(
     save_dir,
     eeg_dir,
     frame,
-    feature_names=None,
+    feature_names,
+    exclude
 ):
     """
     Input:
@@ -82,17 +83,6 @@ def hyperparameter_tuning(
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
     # -------------------------------------------------------------------------
-    if feature_names is None:
-        feature_names = (
-            "edges",
-            "world_normal",
-            "lighting",
-            "scene_depth",
-            "reflectance",
-            "skeleton",
-            "action",
-        )
-
     if input_type == "images":
         featuresDir = os.path.join(
             feat_dir,
@@ -144,12 +134,32 @@ def hyperparameter_tuning(
         "best_alpha_a_corr",
     )
 
+    if exclude:
+        print("Excluding guitar trials from the analysis (control analysis 9).")
+
+        X_train, X_val, _ = load_feature_set(
+            "action",
+            featuresDir)
+        
+        # Find all rows in X_train and X_test that contain a 1 in column 5 
+        guitar_trials_train = np.where(X_train[:, 5] == 1)[0]
+        guitar_trials_test = np.where(X_val[:, 5] == 1)[0]
+
+        # Remove these rows from the EEG data
+        y_train = np.delete(y_train, guitar_trials_train, axis=0)
+        y_validation = np.delete(y_validation, guitar_trials_test, axis=0)
+
     # define matrix where to save the values
     regression_features = dict.fromkeys(feature_names)
 
     for feature in features_dict.keys():
-        print(feature)
-        X_train, X_val, _ = load_features(feature, featuresDir)
+        X_train, X_val, _ = load_feature_set(feature, featuresDir)
+
+        if exclude:
+            # Remove guitar trials from the feature set
+            X_train = np.delete(X_train, guitar_trials_train, axis=0)
+            X_val = np.delete(X_val, guitar_trials_test, axis=0)
+
         output = dict.fromkeys(output_names)
 
         rmse = np.zeros((timepoints, len(alpha_space), n_channels))
@@ -271,6 +281,11 @@ if __name__ == "__main__":
         metavar="",
         help="Font",
     )
+    parser.add_argument(
+        "--exclude_guitar_trials",
+        action="store_true",
+        help="Exclude guitar trials from the analysis.",
+    )
 
     args = parser.parse_args()  # to get values for the arguments
 
@@ -279,6 +294,7 @@ if __name__ == "__main__":
     freq = args.freq
     region = args.region
     input_type = args.input_type
+    exclude_guitar_trials = args.exclude_guitar_trials
     frame = config.getint(args.config, "img_frame")
     save_dir = config.get(args.config, "save_dir")
     feature_names = parse_list(config.get(args.config, "feature_names"))
@@ -323,4 +339,5 @@ if __name__ == "__main__":
             eeg_dir,
             frame,
             feature_names=feature_names,
+            exclude=exclude_guitar_trials,
         )

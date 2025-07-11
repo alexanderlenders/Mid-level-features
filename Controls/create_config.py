@@ -58,10 +58,14 @@ feature_names_graph_default = [
 ]
 
 save_dir_default = os.path.join(root_dir, "results", "EEG", "default")
+save_dir_default_cnn = os.path.join(root_dir, "results", "CNN", "default")
+
 save_dir_feat_img = os.path.join(root_dir, "features", "images", "default")
 save_dir_feat_video = os.path.join(
     root_dir, "features", "miniclips", "default"
 )
+save_dir_cnn_img = os.path.join(root_dir, "data", "CNN", "2dresnet18")
+save_dir_cnn_video = os.path.join(root_dir, "data", "CNN", "3dresnet18")
 
 config.add_section("default")
 config.set("default", "feature_names", json.dumps(feature_names_default))
@@ -82,6 +86,9 @@ config.set("default", "save_dir_feat_img", save_dir_feat_img)
 config.set("default", "save_dir_feat_video", save_dir_feat_video)
 config.set("default", "eeg_dir", eeg_dir)
 config.set("default", "noise_ceiling_dir", noise_ceiling_dir)
+config.set("default", "save_dir_cnn_img", save_dir_cnn_img)
+config.set("default", "save_dir_cnn_video", save_dir_cnn_video)
+config.set("default", "save_dir_cnn", save_dir_default_cnn)
 
 # =============================================================================
 
@@ -138,6 +145,165 @@ config.set("control_2", "end_frame", "19")
 config.set("control_2", "save_dir_feat_video", save_dir_feat_video)
 config.set("control_2", "eeg_dir", eeg_dir)
 config.set("control_2", "noise_ceiling_dir", noise_ceiling_dir)
+
+# =============================================================================
+# Control analysis 3 (Use image annotations for miniclips EEG data)
+# =============================================================================
+feature_names_default = [
+    "edges",
+    "reflectance",
+    "lighting",
+    "normals",
+    "depth",
+    "skeleton",
+    "action"
+]
+feature_names_graph_default = [
+    "Edges",
+    "Reflectance",
+    "Lighting",
+    "Normals",
+    "Depth",
+    "Skeleton",
+    "Action"
+]
+
+save_dir_c3 = os.path.join(root_dir, "results", "EEG", "control_3")
+save_dir_feat_img = os.path.join(root_dir, "features", "images", "default")
+save_dir_feat_video = os.path.join(
+    root_dir, "features", "miniclips", "default"
+)
+
+config.add_section("control_3")
+config.set("control_3", "feature_names", json.dumps(feature_names_default))
+config.set("control_3", "feature_names_graph", json.dumps(feature_names_graph_default))
+config.set("control_3", "n_components", "100")
+config.set("control_3", "pca_method", "linear")
+config.set("control_3", "videos_dir", videos_dir)
+config.set("control_3", "video_annotations_dir", video_annotations_dir)
+config.set("control_3", "action_metadata_dir", action_metadata_dir)
+config.set("control_3", "character_metadata_dir", character_metadata_dir)
+config.set("control_3", "save_dir", save_dir_c3)
+config.set("control_3", "start_frame", "10")
+config.set("control_3", "end_frame", "19")
+config.set("control_3", "img_frame", "20")
+config.set("control_3", "images_dir", img_dir)
+config.set("control_3", "img_annotations_dir", img_annotations_dir)
+config.set("control_3", "save_dir_feat_img", save_dir_feat_img)
+config.set("control_3", "save_dir_feat_video", save_dir_feat_video)
+config.set("control_3", "eeg_dir", eeg_dir)
+config.set("control_3", "noise_ceiling_dir", noise_ceiling_dir)
+
+# =============================================================================
+# Control analysis 6.1 (Variance partitioning - Idea 1)
+# =============================================================================
+# Feature names for variance partitioning idea 1
+features = (
+    "edges",
+    "reflectance",
+    "lighting",
+    "normals",
+    "depth",
+    "skeleton",
+    "action"
+)
+# Leave-one-out combinations
+feature_names_6_1 = [
+    tuple(f for f in features if f != excluded)
+    for excluded in features
+]
+# Append the full feature set
+feature_names_6_1.append(features)
+
+feature_names_graph_default = [
+    "Edges",
+    "Reflectance",
+    "Lighting",
+    "Normals",
+    "Depth",
+    "Skeleton",
+    "Action"
+]
+
+save_dir_c6_1 = os.path.join(root_dir, "results", "EEG", "control_6_1")
+save_dir_feat_img = os.path.join(root_dir, "features", "images", "default")
+save_dir_feat_video = os.path.join(
+    root_dir, "features", "miniclips", "default"
+)
+
+config.add_section("control_6_1")
+config.set("control_6_1", "feature_names", json.dumps(feature_names_6_1))
+config.set("control_6_1", "feature_names_graph", json.dumps(feature_names_graph_default))
+config.set("control_6_1", "n_components", "100")
+config.set("control_6_1", "pca_method", "linear")
+config.set("control_6_1", "videos_dir", videos_dir)
+config.set("control_6_1", "video_annotations_dir", video_annotations_dir)
+config.set("control_6_1", "action_metadata_dir", action_metadata_dir)
+config.set("control_6_1", "character_metadata_dir", character_metadata_dir)
+config.set("control_6_1", "save_dir", save_dir_c6_1)
+config.set("control_6_1", "start_frame", "10")
+config.set("control_6_1", "end_frame", "19")
+config.set("control_6_1", "img_frame", "20")
+config.set("control_6_1", "images_dir", img_dir)
+config.set("control_6_1", "img_annotations_dir", img_annotations_dir)
+config.set("control_6_1", "save_dir_feat_img", save_dir_feat_img)
+config.set("control_6_1", "save_dir_feat_video", save_dir_feat_video)
+config.set("control_6_1", "eeg_dir", eeg_dir)
+config.set("control_6_1", "noise_ceiling_dir", noise_ceiling_dir)
+
+# =============================================================================
+# Control analysis 6.2 (Variance partitioning - Idea 2)
+# =============================================================================
+# Feature names for variance partitioning idea 2
+low_and_high_feat = ("edges", "action")
+mid_level_feat = (
+    "reflectance",
+    "lighting",
+    "normals",
+    "depth",
+    "skeleton"
+)
+
+feature_names_6_2 = [
+tuple(low_and_high_feat) + (mid_feat,)
+for mid_feat in mid_level_feat
+]
+
+feature_names_6_2.append(low_and_high_feat)
+
+feature_names_graph_6_2 = [
+    "Reflectance",
+    "Lighting",
+    "Normals",
+    "Depth",
+    "Skeleton",
+]
+
+save_dir_c6_2 = os.path.join(root_dir, "results", "EEG", "control_6_2")
+save_dir_feat_img = os.path.join(root_dir, "features", "images", "default")
+save_dir_feat_video = os.path.join(
+    root_dir, "features", "miniclips", "default"
+)
+
+config.add_section("control_6_2")
+config.set("control_6_2", "feature_names", json.dumps(feature_names_6_2))
+config.set("control_6_2", "feature_names_graph", json.dumps(feature_names_graph_6_2))
+config.set("control_6_2", "n_components", "100")
+config.set("control_6_2", "pca_method", "linear")
+config.set("control_6_2", "videos_dir", videos_dir)
+config.set("control_6_2", "video_annotations_dir", video_annotations_dir)
+config.set("control_6_2", "action_metadata_dir", action_metadata_dir)
+config.set("control_6_2", "character_metadata_dir", character_metadata_dir)
+config.set("control_6_2", "save_dir", save_dir_c6_2)
+config.set("control_6_2", "start_frame", "10")
+config.set("control_6_2", "end_frame", "19")
+config.set("control_6_2", "img_frame", "20")
+config.set("control_6_2", "images_dir", img_dir)
+config.set("control_6_2", "img_annotations_dir", img_annotations_dir)
+config.set("control_6_2", "save_dir_feat_img", save_dir_feat_img)
+config.set("control_6_2", "save_dir_feat_video", save_dir_feat_video)
+config.set("control_6_2", "eeg_dir", eeg_dir)
+config.set("control_6_2", "noise_ceiling_dir", noise_ceiling_dir)
 
 with open("./config.ini", "w") as f:
     config.write(f)

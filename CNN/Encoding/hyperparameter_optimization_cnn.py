@@ -12,11 +12,22 @@ import numpy as np
 import torch
 import pickle
 import argparse
-from EEG.Encoding.utils import load_features, OLS_pytorch, vectorized_correlation
 from utils import load_activation
+import sys
+from pathlib import Path
+project_root = Path(__file__).resolve().parents[2]
+print(project_root)
+sys.path.append(str(project_root))
+
+from EEG.Encoding.utils import (
+    load_config,
+    load_features,
+    OLS_pytorch,
+    vectorized_correlation,
+)
 
 
-def hyperparameter_tuning(input_type, feat_dir="/home/agnek95/Encoding-midlevel-features/Results/Encoding/", exp_var_dir="/scratch/agnek95/Unreal/CNN_activations_redone", save_dir="/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/"):
+def hyperparameter_tuning(input_type, feat_dir, save_dir, cnn_dir, frame):
     """
     Hyperparameter tuning for ridge regression for the DNN encoding.
 
@@ -48,18 +59,20 @@ def hyperparameter_tuning(input_type, feat_dir="/home/agnek95/Encoding-midlevel-
     )
 
     if input_type == "images":
-        featuresDir = os.path.join(feat_dir, "images/7_features/img_features_frame_20_redone_7features_onehot.pkl")
-
-        explained_var_dir = os.path.join(exp_var_dir, "2D_ResNet18/pca_90_percent/pca/")
-
-        saveDir = os.path.join(save_dir, "2D_ResNet18/pca_90_percent/hyperparameters/")
-
+        featuresDir = os.path.join(
+            feat_dir,
+            f"img_features_frame_{frame}_redone_{len(feature_names)}_features_onehot.pkl",
+        )
     elif input_type == "miniclips":
-        featuresDir = os.path.join(feat_dir, "miniclips/7_features/video_features_avg_frame_redone.pkl")
+        featuresDir = os.path.join(
+            feat_dir,
+            f"video_features_avg_frame_redone_{len(feature_names)}.pkl",
+        )
 
-        explained_var_dir = os.path.join(exp_var_dir, "3D_ResNet18/pca_90_percent/pca/")
 
-        saveDir = os.path.join(save_dir, "3D_ResNet18/pca_90_percent/hyperparameters/")
+    explained_var_dir = os.path.join(cnn_dir, "pca")
+    save_dir = os.path.join(save_dir, input_type)
+    act_dir = os.path.join(cnn_dir, "prepared")
 
     features_dict = dict.fromkeys(feature_names)
     num_layers = len(layers_names)
@@ -94,8 +107,8 @@ def hyperparameter_tuning(input_type, feat_dir="/home/agnek95/Encoding-midlevel-
         for tp, l in enumerate(layers_names):
             print(l)
 
-            y_train_tp = load_activation(input_type, "training", l)
-            y_val_tp = load_activation(input_type, "validation", l)
+            y_train_tp = load_activation("training", l, act_dir)
+            y_val_tp = load_activation("validation", l, act_dir)
 
             print(y_train_tp.shape)
             print(y_val_tp.shape)
@@ -184,9 +197,9 @@ def hyperparameter_tuning(input_type, feat_dir="/home/agnek95/Encoding-midlevel-
 
         # Save hyperparameters and scores
         if explained_var_dir:
-            resultsDir = os.path.join(saveDir, "weighted")
+            resultsDir = os.path.join(save_dir, "weighted")
         else:
-            resultsDir = os.path.join(saveDir, "unweighted")
+            resultsDir = os.path.join(save_dir, "unweighted")
 
         if not os.path.exists(resultsDir):
             os.makedirs(resultsDir)
@@ -202,6 +215,19 @@ def hyperparameter_tuning(input_type, feat_dir="/home/agnek95/Encoding-midlevel-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
+    # add arguments / inputs
+    parser.add_argument(
+        "--config_dir",
+        type=str,
+        help="Directory to the configuration file.",
+        required=True,
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Configuration.",
+        required=True,
+    )
     parser.add_argument(
         "--input_type",
         default="images",
@@ -209,30 +235,28 @@ if __name__ == "__main__":
         help="Images or miniclips",
         required=True,
     )
-    parser.add_argument(
-        "--feat_dir",
-        default="/home/agnek95/Encoding-midlevel-features/Results/Encoding/",
-        type=str,
-        help="Directory where the features are stored",
-    )
-    parser.add_argument(
-        "--exp_var_dir",
-        default="/scratch/agnek95/Unreal/CNN_activations_redone",
-        type=str,
-        help="Directory where the explained variance is stored",
-    )
-    parser.add_argument(
-        "--save_dir",
-        default="/home/agnek95/Encoding-midlevel-features/Results/CNN_Encoding/",
-        type=str,
-        help="Directory where the results will be saved",
-    )
+
+    args = parser.parse_args()
+
+    config = load_config(args.config_dir, args.config)
 
     args = parser.parse_args()
 
     input_type = args.input_type
-    feat_dir = args.feat_dir
-    exp_var_dir = args.exp_var_dir
-    save_dir = args.save_dir
+    frame = config.getint(args.config, "img_frame")
+    save_dir = config.get(args.config, "save_dir_cnn")
     
-    hyperparameter_tuning(input_type, feat_dir, exp_var_dir, save_dir)
+    if input_type == "images":
+        feat_dir = config.get(args.config, "feat_dir_cnn_img")
+        cnn_dir = config.get(args.config, "cnn_dir_img")
+    else:
+        feat_dir = config.get(args.config, "feat_dir_cnn_vid")
+        cnn_dir = config.get(args.config, "cnn_dir_vid")
+    
+    hyperparameter_tuning(
+        input_type=input_type,
+        feat_dir=feat_dir,
+        save_dir=save_dir,
+        cnn_dir=cnn_dir,
+        frame=frame,
+    )

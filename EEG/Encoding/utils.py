@@ -424,6 +424,32 @@ def load_features(feature, featuresDir):
 
     return X_train, X_val, X_test
 
+def load_feature_set(feature_set, featuresDir):
+    """
+    Loads and concatenates multiple features.
+    """
+    if isinstance(feature_set, str):
+        X_train, X_val, X_test = load_features(feature_set, featuresDir)
+        return X_train, X_val, X_test
+    else:
+        features_dict = np.load(featuresDir, allow_pickle=True).item()
+
+        X_train_list = []
+        X_val_list = []
+        X_test_list = []
+
+        for fname in feature_set:
+            X_prep = features_dict[fname]  # tuple: (train, val, test)
+            X_train_list.append(X_prep[0])
+            X_val_list.append(X_prep[1])
+            X_test_list.append(X_prep[2])
+
+        # Concatenate along feature dimension (axis=1)
+        X_train = np.concatenate(X_train_list, axis=1)
+        X_val = np.concatenate(X_val_list, axis=1)
+        X_test = np.concatenate(X_test_list, axis=1)
+
+        return X_train, X_val, X_test
 
 def load_alpha(
     sub, freq, region, feature, input_type, feat_dir, tp=0, feat_len=7
@@ -652,3 +678,4 @@ def load_config(config_dir: str, section: str):
         )
 
     return config
+

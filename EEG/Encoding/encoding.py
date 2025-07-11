@@ -10,7 +10,7 @@ scene features from the Unreal Engine for a single frame.
 """
 from utils import (
     load_eeg,
-    load_features,
+    load_feature_set,
     load_alpha,
     OLS_pytorch,
     vectorized_correlation,
@@ -22,6 +22,7 @@ import numpy as np
 import torch
 import pickle
 import argparse
+from sklearn.metrics import r2_score
 
 
 def encoding(
@@ -34,6 +35,7 @@ def encoding(
     eeg_dir,
     frame,
     feature_names,
+    exclude,
 ):
     """
     Input:
@@ -80,17 +82,6 @@ def encoding(
         Miniclips or images
 
     """
-    if feature_names is None:
-        feature_names = (
-            "edges",
-            "world_normal",
-            "lighting",
-            "scene_depth",
-            "reflectance",
-            "skeleton",
-            "action",
-        )
-
     if input_type == "images":
         featuresDir = os.path.join(
             feat_dir,
@@ -130,14 +121,34 @@ def encoding(
         sub, "test", region, freq, input_type, eeg_dir=eeg_dir
     )
 
-    output_names = ("rmse_score", "correlation")
+    output_names = ("rmse_score", "correlation", "var_explained")
 
     # define matrix where to save the values
     regression_features = dict.fromkeys(feature_names)
 
+    if exclude:
+        print("Excluding guitar trials from the analysis (control analysis 9).")
+
+        X_train, _, X_test = load_feature_set(
+            "action",
+            featuresDir)
+        
+        # Find all rows in X_train and X_test that contain a 1 in column 5 
+        guitar_trials_train = np.where(X_train[:, 5] == 1)[0]
+        guitar_trials_test = np.where(X_test[:, 5] == 1)[0]
+
+        # Remove these rows from the EEG data
+        y_train = np.delete(y_train, guitar_trials_train, axis=0)
+        y_test = np.delete(y_test, guitar_trials_test, axis=0)
+
     for feature in features_dict.keys():
-        print(feature)
-        X_train, _, X_test = load_features(feature, featuresDir)
+        X_train, _, X_test = load_feature_set(feature, featuresDir)
+
+        if exclude:
+            # Remove guitar trials from the feature set
+            X_train = np.delete(X_train, guitar_trials_train, axis=0)
+            X_test = np.delete(X_test, guitar_trials_test, axis=0)
+
         if alpha_tp is False:
             alpha = load_alpha(
                 sub,
@@ -152,6 +163,7 @@ def encoding(
 
         rmse = np.zeros((timepoints, n_channels))
         corr = np.zeros((timepoints, n_channels))
+        var_explained = np.zeros((timepoints, n_channels))
 
         for tp in range(timepoints):
             if alpha_tp is True:
@@ -179,9 +191,11 @@ def encoding(
             correlation = vectorized_correlation(prediction, y_test_tp)
             rmse[tp, :] = rmse_score
             corr[tp, :] = correlation
+            var_explained[tp, :] = r2_score(y_test_tp, prediction, multioutput="raw_values")
 
         output["rmse_score"] = rmse
         output["correlation"] = corr
+        output["var_explained"] = var_explained
         regression_features[feature] = output
 
     # -------------------------------------------------------------------------
@@ -257,6 +271,11 @@ if __name__ == "__main__":
         metavar="",
         help="Font",
     )
+    parser.add_argument(
+        "--exclude_guitar_trials",
+        action="store_true",
+        help="Exclude guitar trials from the analysis.",
+    )
 
     args = parser.parse_args()  # to get values for the arguments
 
@@ -265,10 +284,12 @@ if __name__ == "__main__":
     freq = args.freq
     region = args.region
     input_type = args.input_type
+    exclude_guitar_trials = args.exclude_guitar_trials
     frame = config.getint(args.config, "img_frame")
     save_dir = config.get(args.config, "save_dir")
     feature_names = parse_list(config.get(args.config, "feature_names"))
     eeg_dir = config.get(args.config, "eeg_dir")
+        
 
     # -------------------------------------------------------------------------
     # STEP 3 Run function
@@ -312,4 +333,5 @@ if __name__ == "__main__":
             eeg_dir=eeg_dir,
             frame=frame,
             feature_names=feature_names,
+            exclude=exclude_guitar_trials,
         )

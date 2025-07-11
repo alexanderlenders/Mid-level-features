@@ -8,81 +8,98 @@ PLOT FOR ENCODING OF DNN LAYERS
 # -----------------------------------------------------------------------------
 # STEP 1: Initialize variables
 # -----------------------------------------------------------------------------
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-
-    # add arguments / inputs
-    parser.add_argument(
-        "-sp",
-        "--save",
-        default=True,
-        type=bool,
-        metavar="",
-        help="Save plots in SaveDir?",
-    )
-    parser.add_argument(
-        "-f", "--font", default="Arial", type=str, metavar="", help="Font"
-    )
-    parser.add_argument(
-        "-i",
-        "--input_type",
-        default="images",
-        type=str,
-        metavar="",
-        help="images, miniclips or difference",
-    )
-
-    args = parser.parse_args()  # to get values for the arguments
-
-    save = args.save
-    font = args.font
-    input_type = args.input_type  # images, miniclips or difference
-
-# -----------------------------------------------------------------------------
-# STEP 2: Import modules & Define Variables
-# -----------------------------------------------------------------------------
-# Import modules
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import os
+import argparse
+import sys
+from pathlib import Path
+project_root = Path(__file__).resolve().parents[2]
+print(project_root)
+sys.path.append(str(project_root))
 
+from EEG.Encoding.utils import (
+    load_config,
+    parse_list,
+)
+
+parser = argparse.ArgumentParser()
+
+# add arguments / inputs
+parser.add_argument(
+    "--config_dir",
+    type=str,
+    help="Directory to the configuration file.",
+    required=True,
+)
+parser.add_argument(
+    "--config",
+    type=str,
+    help="Configuration.",
+    required=True,
+)
+parser.add_argument(
+    "-f", "--font", default="Arial", type=str, metavar="", help="Font"
+)
+parser.add_argument(
+    "-i",
+    "--input_type",
+    default="images",
+    type=str,
+    metavar="",
+    help="images, miniclips or difference",
+)
+parser.add_argument(
+    '--weighted', 
+    action='store_true'
+)
+
+args = parser.parse_args()  # to get values for the arguments
+
+config = load_config(args.config_dir, args.config)
+workDir = config.get(args.config, "save_dir")
+font = args.font
+input_type = args.input_type  # images, miniclips or difference
+weighted = args.weighted
+
+# -----------------------------------------------------------------------------
+# STEP 2: Import modules & Define Variables
+# -----------------------------------------------------------------------------
 plt.rcParams["svg.fonttype"] = "none"
 
-if input_type == "miniclips":
-    workDir = "Z:/Unreal/Results/Encoding/CNN_redone/3D_ResNet18/"
-elif input_type == "images":
-    workDir = "Z:/Unreal/Results/Encoding/CNN_redone/2D_ResNet18/"
+# if input_type == "miniclips":
+#     workDir = "Z:/Unreal/Results/Encoding/CNN_redone/3D_ResNet18/"
+# elif input_type == "images":
+#     workDir = "Z:/Unreal/Results/Encoding/CNN_redone/2D_ResNet18/"
 
-elif input_type == "difference":
-    workDir_vid = "Z:/Unreal/Results/Encoding/CNN_redone/3D_ResNet18/"
-    workDir_img = "Z:/Unreal/Results/Encoding/CNN_redone/2D_ResNet18/"
+# elif input_type == "difference":
+#     workDir_vid = "Z:/Unreal/Results/Encoding/CNN_redone/3D_ResNet18/"
+#     workDir_img = "Z:/Unreal/Results/Encoding/CNN_redone/2D_ResNet18/"
 
-saveDir = "Z:/Unreal/Results/Encoding/plots_redone/"  # for all plots
+# saveDir = "Z:/Unreal/Results/Encoding/plots_redone/"  # for all plots
 
-if input_type == "difference":
-    stats_dir = os.path.join(
-        workDir_img, "stats/", "encoding_stats_layers_both_difference.pkl"
-    )
-    ci_dir = os.path.join(
-        workDir_img, "stats/", "encoding_layers_CI95_accuracy_difference.pkl"
-    )
-    peakDir = os.path.join(
-        workDir_img, "stats/", "encoding_difference_in_peak.pkl"
-    )
-else:
-    stats_dir = os.path.join(
-        workDir, "stats/", "encoding_stats_layers_both.pkl"
-    )
-    ci_dir = os.path.join(
-        workDir, "stats/", "encoding_layers_CI95_accuracy.pkl"
-    )
-    peakDir = os.path.join(workDir, "stats/", "encoding_layers_CI95_peak.pkl")
-    ci_stats_peaks = os.path.join(
-        workDir, "stats/", "encoding_layers_stats_peak_latency_diff.pkl"
-    )
+# if input_type == "difference":
+#     stats_dir = os.path.join(
+#         workDir_img, "stats/", "encoding_stats_layers_both_difference.pkl"
+#     )
+#     ci_dir = os.path.join(
+#         workDir_img, "stats/", "encoding_layers_CI95_accuracy_difference.pkl"
+#     )
+#     peakDir = os.path.join(
+#         workDir_img, "stats/", "encoding_difference_in_peak.pkl"
+#     )
+# else:
+#     stats_dir = os.path.join(
+#         workDir, "stats/", "encoding_stats_layers_both.pkl"
+#     )
+#     ci_dir = os.path.join(
+#         workDir, "stats/", "encoding_layers_CI95_accuracy.pkl"
+#     )
+#     peakDir = os.path.join(workDir, "stats/", "encoding_layers_CI95_peak.pkl")
+#     ci_stats_peaks = os.path.join(
+#         workDir, "stats/", "encoding_layers_stats_peak_latency_diff.pkl"
+#     )
 
 feature_names = (
     "edges",
@@ -143,7 +160,6 @@ for feature in feature_names:
         f_vid = encoding_results_vid[feature]["correlation_average"]
         f_diff = f_img - f_vid
         features_mean.append(f_diff)
-
     else:
         f = encoding_results[feature]["correlation_average"]
         features_mean.append(f)
