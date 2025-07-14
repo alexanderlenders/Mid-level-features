@@ -5,22 +5,28 @@ TIME GENERALIZATION ANALYSIS - CONTROL ANALYSIS 8
 
 @author: Alexander Lenders
 """
-from utils import (
-    load_eeg,
-    load_feature_set,
-    load_alpha,
-    OLS_pytorch,
-    vectorized_correlation,
-    load_config,
-    parse_list,
-)
 import os
 import numpy as np
 import torch
 import pickle
 import argparse
 from sklearn.metrics import r2_score
+import sys
+from pathlib import Path
 
+project_root = Path(__file__).resolve().parents[2]
+print(project_root)
+sys.path.append(str(project_root))
+
+from EEG.Encoding.utils import (
+    load_config,
+    parse_list,
+    load_eeg,
+    load_feature_set,
+    load_alpha,
+    OLS_pytorch,
+    vectorized_correlation,
+)
 
 def time_gen(
     sub,

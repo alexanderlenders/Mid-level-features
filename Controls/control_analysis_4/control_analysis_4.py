@@ -12,12 +12,20 @@ import matplotlib.pyplot as plt
 import sys
 from pathlib import Path
 import argparse
+
 project_root = Path(__file__).resolve().parents[2]
 print(project_root)
 sys.path.append(str(project_root))
 from EEG.Encoding.utils import load_eeg, vectorized_correlation, load_config
 
-def c4(subj_list_img: list, subj_list_vid: list, eeg_dir: str, save_dir: str, font: str = "Arial"):
+
+def c4(
+    subj_list_img: list,
+    subj_list_vid: list,
+    eeg_dir: str,
+    save_dir: str,
+    font: str = "Arial",
+):
     """
     Function for control analysis 4, in which image and video responses are correlated
     across timepoints after applying MVNN and averaging across electrodes, trials, and participants.
@@ -27,10 +35,11 @@ def c4(subj_list_img: list, subj_list_vid: list, eeg_dir: str, save_dir: str, fo
     N_CHANNELS = 19  # Use same channels as in encoding analysis
     REGION = "posterior"  # Use same region as in encoding analysis
     FREQ = 50
-    
+
     # First step: Load all the EEG data for all subjects (images)
     full_eeg_data_img = []
     for sub in subj_list_img:
+        print(sub)
         y_test, _ = load_eeg(
             sub, "test", REGION, FREQ, "images", eeg_dir=eeg_dir
         )
@@ -54,14 +63,15 @@ def c4(subj_list_img: list, subj_list_vid: list, eeg_dir: str, save_dir: str, fo
     # Second step: Load all the EEG data for all subjects (videos)
     full_eeg_data_vid = []
     for sub in subj_list_vid:
+        print(sub)
         y_test, _ = load_eeg(
             sub, "test", REGION, FREQ, "miniclips", eeg_dir=eeg_dir
         )
         y_train, _ = load_eeg(
-            sub, "train", REGION, FREQ, "miniclips", eeg_dir=eeg_dir
+            sub, "training", REGION, FREQ, "miniclips", eeg_dir=eeg_dir
         )
         y_val, _ = load_eeg(
-            sub, "val", REGION, FREQ, "miniclips", eeg_dir=eeg_dir
+            sub, "validation", REGION, FREQ, "miniclips", eeg_dir=eeg_dir
         )
 
         # Concatenate train, val, and test data
@@ -73,12 +83,8 @@ def c4(subj_list_img: list, subj_list_vid: list, eeg_dir: str, save_dir: str, fo
     # Now average across participants
     full_eeg_data_vid = full_eeg_data_vid.mean(axis=0)
 
-    print(full_eeg_data_vid.shape, flush=True)
-    print(full_eeg_data_img.shape, flush=True)
-
     # Number of timepoints
     timepoints = full_eeg_data_img.shape[2]
-    print(timepoints, flush=True)
 
     # Third step: Compute the correlation between image and video responses for each timepoint
     corr = np.zeros((timepoints, N_CHANNELS))
@@ -95,6 +101,7 @@ def c4(subj_list_img: list, subj_list_vid: list, eeg_dir: str, save_dir: str, fo
 
     # Average across electrodes
     corr = np.mean(corr, axis=1)
+    corr = corr[10:]
 
     # Fifth step: Plot correlation across timepoints
     timepoints = np.arange(60)  # for plotting
@@ -107,7 +114,21 @@ def c4(subj_list_img: list, subj_list_vid: list, eeg_dir: str, save_dir: str, fo
     ax.axhline(y=0, color="lightgrey", linestyle="solid", linewidth=1)
 
     x_tick_values_curves = np.arange(0, 65, 5)
-    x_tick_labels_curves = [-200, -100, 0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+    x_tick_labels_curves = [
+        -200,
+        -100,
+        0,
+        100,
+        200,
+        300,
+        400,
+        500,
+        600,
+        700,
+        800,
+        900,
+        1000,
+    ]
 
     # Plot
     ax.plot(
@@ -152,15 +173,14 @@ def c4(subj_list_img: list, subj_list_vid: list, eeg_dir: str, save_dir: str, fo
         os.makedirs(save_dir)
 
     plotDir = os.path.join(
-        save_dir,
-        f"plot_correlation_image_and_video_responses.svg"
+        save_dir, f"plot_correlation_image_and_video_responses.svg"
     )
     plt.savefig(plotDir, dpi=300, format="svg", transparent=True)
     plotDir = os.path.join(
-        save_dir,
-        f"plot_correlation_image_and_video_responses.png"
+        save_dir, f"plot_correlation_image_and_video_responses.png"
     )
     plt.savefig(plotDir, dpi=300, format="png", transparent=True)
+
 
 if __name__ == "__main__":
 
@@ -180,7 +200,7 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-    "-f", "--font", default="Arial", type=str, metavar="", help="Font"
+        "-f", "--font", default="Arial", type=str, metavar="", help="Font"
     )
 
     args = parser.parse_args()  # to get values for the arguments
@@ -190,28 +210,28 @@ if __name__ == "__main__":
     SAVE_DIR = "/scratch/alexandel91/mid_level_features/results/c4"
 
     subj_list_vid = [
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            17,
-            18,
-            20,
-            21,
-            23,
-            25,
-            27,
-            28,
-            29,
-            30,
-            31,
-            32,
-            34,
-            36,
-        ]
-    
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        17,
+        18,
+        20,
+        21,
+        23,
+        25,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        34,
+        36,
+    ]
+
     subj_list_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
 
     # Run the function
@@ -222,4 +242,3 @@ if __name__ == "__main__":
         save_dir=SAVE_DIR,
         font=args.font,
     )
-

@@ -42,7 +42,7 @@ def permutation_test(list_sub_vid, list_sub_img, workDir, n_perm, tail, alpha, t
     if not os.path.exists(saveDir):
         os.makedirs(saveDir)
 
-    identifierDir = f"seq_50hz_posterior_time_gen_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
+    identifierDir = f"seq_50hz_posteriortime_gen_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
 
     n_sub_vid = len(list_sub_vid)
     n_sub_img = len(list_sub_img)
@@ -103,7 +103,7 @@ def permutation_test(list_sub_vid, list_sub_img, workDir, n_perm, tail, alpha, t
         mean_orig_tg_vid = np.mean(results_vid, axis = 0)
         mean_orig_tg_img = np.mean(results_img, axis = 0)
 
-        stat_map_tg[0, :, :] = mean_orig_tg_vid - mean_orig_tg_img
+        stat_map_tg[0, :, :] = mean_orig_tg_img - mean_orig_tg_vid
         
         for permutation in range(1, n_perm): 
             # shuffle the labels
@@ -115,7 +115,7 @@ def permutation_test(list_sub_vid, list_sub_img, workDir, n_perm, tail, alpha, t
             mean_group1 = np.mean(group1, axis=0)
             mean_group2 = np.mean(group2, axis=0)
 
-            t_stat_perm = mean_group1 - mean_group2
+            t_stat_perm = mean_group2 - mean_group1
 
             # calculate standardized mean and put it in stats map 
             stat_map_tg[permutation, :] = t_stat_perm

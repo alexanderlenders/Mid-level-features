@@ -8,9 +8,9 @@
 #SBATCH --mail-type=ALL                              
 #SBATCH --nodes=1                                    
 #SBATCH --ntasks=1                                  
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=20000 # specifies the maximum amount of memory in MB per node!                           
-#SBATCH --time=02:00:00 # maximum time                           
+#SBATCH --cpus-per-task=2
+#SBATCH --mem=16000 # specifies the maximum amount of memory in MB per node!                           
+#SBATCH --time=12:00:00 # maximum time                           
 #SBATCH --qos=standard
 #SBATCH --partition=main
 

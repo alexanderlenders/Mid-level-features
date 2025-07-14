@@ -4,7 +4,7 @@
 # ==============================================================================
 
 #SBATCH --mail-user=alexandel91@zedat.fu-berlin.de   
-#SBATCH --job-name=c1_encoding
+#SBATCH --job-name=c3_encoding
 #SBATCH --mail-type=ALL                              
 #SBATCH --nodes=1                                    
 #SBATCH --ntasks=1                                   

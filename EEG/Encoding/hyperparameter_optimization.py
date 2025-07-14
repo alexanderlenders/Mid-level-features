@@ -38,7 +38,8 @@ def hyperparameter_tuning(
     eeg_dir,
     frame,
     feature_names,
-    exclude
+    exclude, 
+    full_feat: bool = False
 ):
     """
     Input:
@@ -84,18 +85,27 @@ def hyperparameter_tuning(
     # STEP 2.1 Import Modules & Define Variables
     # -------------------------------------------------------------------------
     if input_type == "images":
-        featuresDir = os.path.join(
-            feat_dir,
-            f"img_features_frame_{frame}_redone_{len(feature_names)}_features_onehot.pkl",
-        )
-
+        if full_feat:
+            featuresDir = os.path.join(
+                feat_dir,
+                f"img_features_frame_{frame}_redone_7_features_onehot.pkl",
+            )
+        else:
+            featuresDir = os.path.join(
+                feat_dir,
+                f"img_features_frame_{frame}_redone_{len(feature_names)}_features_onehot.pkl",
+            )
     elif input_type == "miniclips":
-        featuresDir = os.path.join(
-            feat_dir,
-            f"video_features_avg_frame_redone_{len(feature_names)}.pkl",
-        )
-
-    features_dict = dict.fromkeys(feature_names)
+        if full_feat:
+            featuresDir = os.path.join(
+                feat_dir,
+                f"video_features_avg_frame_redone_7.pkl",
+            )
+        else:
+            featuresDir = os.path.join(
+                feat_dir,
+                f"video_features_avg_frame_redone_{len(feature_names)}.pkl",
+            )
 
     if region == "wholebrain":
         n_channels = 64
@@ -150,9 +160,17 @@ def hyperparameter_tuning(
         y_validation = np.delete(y_validation, guitar_trials_test, axis=0)
 
     # define matrix where to save the values
-    regression_features = dict.fromkeys(feature_names)
+    regression_features = {
+    (
+        f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
+    ): None
+    for f in feature_names
+    }
 
-    for feature in features_dict.keys():
+    print(regression_features.keys(), flush=True)
+
+    for feature in feature_names:
+        print(feature, flush=True)
         X_train, X_val, _ = load_feature_set(feature, featuresDir)
 
         if exclude:
@@ -166,7 +184,6 @@ def hyperparameter_tuning(
         corr = np.zeros((timepoints, len(alpha_space), n_channels))
 
         for tp in range(timepoints):
-            print(tp)
             y_train_tp = y_train[:, :, tp]
             y_val_tp = y_validation[:, :, tp]
 
@@ -176,8 +193,6 @@ def hyperparameter_tuning(
                 try:
                     regression.fit(X_train, y_train_tp, solver="cholesky")
                 except Exception as error:
-                    print("Attention. Cholesky solver did not work: ", error)
-                    print("Trying the standard linalg.solver...")
                     regression.fit(X_train, y_train_tp, solver="solve")
                 prediction = regression.predict(entry=X_val)
                 rmse_score = regression.score(entry=X_val, y=y_val_tp)
@@ -213,7 +228,10 @@ def hyperparameter_tuning(
         output["best_alpha_a_rmse"] = best_alpha_a_rmse
         output["best_alpha_a_corr"] = best_alpha_a_corr
 
-        regression_features[feature] = output
+        if isinstance(feature, list):
+            regression_features[", ".join(feature)] = output
+        else:
+            regression_features[feature] = output
 
     # -------------------------------------------------------------------------
     # STEP 2.7 Save hyperparameters and scores
@@ -328,16 +346,33 @@ if __name__ == "__main__":
         subjects = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
         feat_dir = config.get(args.config, "save_dir_feat_img")
 
-    for sub in subjects:
-        hyperparameter_tuning(
-            sub,
-            freq,
-            region,
-            input_type,
-            feat_dir,
-            save_dir,
-            eeg_dir,
-            frame,
-            feature_names=feature_names,
-            exclude=exclude_guitar_trials,
-        )
+    if args.config == "control_6_1" or args.config == "control_6_2":
+        for sub in subjects:
+            hyperparameter_tuning(
+                sub,
+                freq,
+                region,
+                input_type,
+                feat_dir,
+                save_dir,
+                eeg_dir,
+                frame,
+                feature_names=feature_names,
+                exclude=exclude_guitar_trials,
+                full_feat=True
+            )
+    else:
+        for sub in subjects:
+            print(sub)
+            hyperparameter_tuning(
+                sub,
+                freq,
+                region,
+                input_type,
+                feat_dir,
+                save_dir,
+                eeg_dir,
+                frame,
+                feature_names=feature_names,
+                exclude=exclude_guitar_trials,
+            )

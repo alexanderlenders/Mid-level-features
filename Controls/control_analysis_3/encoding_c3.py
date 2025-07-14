@@ -8,20 +8,26 @@ scene features from the Unreal Engine for a single frame.
 
 @author: Alexander Lenders, Agnessa Karapetian
 """
-from utils import (
-    load_eeg,
-    load_features,
-    load_alpha,
-    OLS_pytorch,
-    vectorized_correlation,
-    load_config,
-    parse_list,
-)
 import os
 import numpy as np
 import torch
 import pickle
 import argparse
+
+import sys
+from pathlib import Path
+project_root = Path(__file__).resolve().parents[2]
+sys.path.append(str(project_root))
+
+from EEG.Encoding.utils import (
+    load_config,
+    parse_list,
+    load_eeg,
+    load_features,
+    load_alpha,
+    OLS_pytorch,
+    vectorized_correlation,
+)
 
 
 def encoding(
@@ -93,7 +99,7 @@ def encoding(
 
     # -> Hardcode image features for c3 <-
     featuresDir = os.path.join(
-        feat_dir,
+        "/scratch/alexandel91/mid_level_features/features/images/default",
         f"img_features_frame_{frame}_redone_{len(feature_names)}_features_onehot.pkl",
     )
 
@@ -111,10 +117,12 @@ def encoding(
 
     alpha_tp = False  # maybe add to function as a parameter above
 
+    print("training")
     y_train, timepoints = load_eeg(
         sub, "training", region, freq, input_type, eeg_dir=eeg_dir
     )
 
+    print("test")
     y_test, _ = load_eeg(
         sub, "test", region, freq, input_type, eeg_dir=eeg_dir
     )
@@ -125,7 +133,6 @@ def encoding(
     regression_features = dict.fromkeys(feature_names)
 
     for feature in features_dict.keys():
-        print(feature)
         X_train, _, X_test = load_features(feature, featuresDir)
         if alpha_tp is False:
             alpha = load_alpha(
@@ -160,8 +167,6 @@ def encoding(
             try:
                 regression.fit(X_train, y_train_tp, solver="cholesky")
             except Exception as error:
-                print("Attention. Cholesky solver did not work: ", error)
-                print("Trying the standard linalg.solver...")
                 regression.fit(X_train, y_train_tp, solver="solve")
             prediction = regression.predict(X_test)
             rmse_score = regression.score(entry=X_test, y=y_test_tp)
@@ -291,6 +296,7 @@ if __name__ == "__main__":
         feat_dir = config.get(args.config, "save_dir_feat_img")
 
     for sub in subjects:
+        print(sub)
         result = encoding(
             sub,
             freq,

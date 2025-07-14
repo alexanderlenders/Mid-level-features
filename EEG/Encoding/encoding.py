@@ -36,6 +36,7 @@ def encoding(
     frame,
     feature_names,
     exclude,
+    full_feat: bool = False
 ):
     """
     Input:
@@ -83,17 +84,27 @@ def encoding(
 
     """
     if input_type == "images":
-        featuresDir = os.path.join(
-            feat_dir,
-            f"img_features_frame_{frame}_redone_{len(feature_names)}_features_onehot.pkl",
-        )
+        if full_feat:
+            featuresDir = os.path.join(
+                feat_dir,
+                f"img_features_frame_{frame}_redone_7_features_onehot.pkl",
+            )
+        else:
+            featuresDir = os.path.join(
+                feat_dir,
+                f"img_features_frame_{frame}_redone_{len(feature_names)}_features_onehot.pkl",
+            )
     elif input_type == "miniclips":
-        featuresDir = os.path.join(
-            feat_dir,
-            f"video_features_avg_frame_redone_{len(feature_names)}.pkl",
-        )
-
-    features_dict = dict.fromkeys(feature_names)
+        if full_feat:
+            featuresDir = os.path.join(
+                feat_dir,
+                f"video_features_avg_frame_redone_7.pkl",
+            )
+        else:
+            featuresDir = os.path.join(
+                feat_dir,
+                f"video_features_avg_frame_redone_{len(feature_names)}.pkl",
+            )
 
     # Device agnostic code: Use gpu if possible, otherwise cpu
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -124,7 +135,13 @@ def encoding(
     output_names = ("rmse_score", "correlation", "var_explained")
 
     # define matrix where to save the values
-    regression_features = dict.fromkeys(feature_names)
+    # define matrix where to save the values
+    regression_features = {
+    (
+        f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
+    ): None
+    for f in feature_names
+    }
 
     if exclude:
         print("Excluding guitar trials from the analysis (control analysis 9).")
@@ -141,7 +158,7 @@ def encoding(
         y_train = np.delete(y_train, guitar_trials_train, axis=0)
         y_test = np.delete(y_test, guitar_trials_test, axis=0)
 
-    for feature in features_dict.keys():
+    for feature in feature_names:
         X_train, _, X_test = load_feature_set(feature, featuresDir)
 
         if exclude:
@@ -183,8 +200,6 @@ def encoding(
             try:
                 regression.fit(X_train, y_train_tp, solver="cholesky")
             except Exception as error:
-                print("Attention. Cholesky solver did not work: ", error)
-                print("Trying the standard linalg.solver...")
                 regression.fit(X_train, y_train_tp, solver="solve")
             prediction = regression.predict(X_test)
             rmse_score = regression.score(entry=X_test, y=y_test_tp)
@@ -196,7 +211,11 @@ def encoding(
         output["rmse_score"] = rmse
         output["correlation"] = corr
         output["var_explained"] = var_explained
-        regression_features[feature] = output
+        
+        if isinstance(feature, list):
+            regression_features[", ".join(feature)] = output
+        else:
+            regression_features[feature] = output
 
     # -------------------------------------------------------------------------
     # STEP 2.8 Save hyperparameters and scores
@@ -322,16 +341,33 @@ if __name__ == "__main__":
         subjects = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
         feat_dir = config.get(args.config, "save_dir_feat_img")
 
-    for sub in subjects:
-        result = encoding(
-            sub,
-            freq,
-            region,
-            input_type,
-            feat_dir=feat_dir,
-            save_dir=save_dir,
-            eeg_dir=eeg_dir,
-            frame=frame,
-            feature_names=feature_names,
-            exclude=exclude_guitar_trials,
-        )
+    if args.config == "control_6_1" or args.config == "control_6_2":
+        for sub in subjects:
+            result = encoding(
+                sub,
+                freq,
+                region,
+                input_type,
+                feat_dir=feat_dir,
+                save_dir=save_dir,
+                eeg_dir=eeg_dir,
+                frame=frame,
+                feature_names=feature_names,
+                exclude=exclude_guitar_trials,
+                full_feat=True
+            )
+    else:
+        for sub in subjects:
+            print(sub)
+            result = encoding(
+                sub,
+                freq,
+                region,
+                input_type,
+                feat_dir=feat_dir,
+                save_dir=save_dir,
+                eeg_dir=eeg_dir,
+                frame=frame,
+                feature_names=feature_names,
+                exclude=exclude_guitar_trials,
+            )

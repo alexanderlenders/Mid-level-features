@@ -17,6 +17,7 @@ import pickle
 import os
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
 print(project_root)
 sys.path.append(str(project_root))
@@ -63,7 +64,9 @@ feature_names = parse_list(config.get(args.config, "feature_names"))
 if args.config == "control_6_1" or args.config == "control_6_2":
     feature_names = feature_names[:-1]  # remove the full feature set
 
-feature_names_graph = parse_list(config.get(args.config, "feature_names_graph"))
+feature_names_graph = parse_list(
+    config.get(args.config, "feature_names_graph")
+)
 font = args.font
 input_type = args.input_type
 
@@ -148,7 +151,6 @@ saveDir = os.path.join(workDir, "plots")
 if os.path.exists(saveDir) == False:
     os.makedirs(saveDir)
 
-
 identifierDir = f"seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
 
 # Stats #
@@ -163,13 +165,13 @@ ci_stats = os.path.join(
     "encoding_stats_peak_latency_CI.pkl",
 )  # CI peak latency
 if input_type == "images" or input_type == "miniclips":
-    peakDir = os.path.join(
-        statsDir, "encoding_CI95_peak.pkl"
-    )  # CI 95% peaks
+    peakDir = os.path.join(statsDir, "encoding_CI95_peak.pkl")  # CI 95% peaks
 elif input_type == "difference":
     peakDir = os.path.join(
         statsDir, "encoding_diff_in_peak.pkl"
     )  # CI 95% peaks
+
+print("Test 2")
 
 ### Define some variables ###
 num_timepoints_og = 70  # full epoch
@@ -189,7 +191,8 @@ if input_type == "miniclips" or input_type == "images":
 
     for subject in list_sub:
         fileDir = os.path.join(workDir, f"{subject}_{identifierDir}")
-        encoding_results = np.load(fileDir, allow_pickle=True)
+        with open(fileDir, "rb") as f:
+            encoding_results = pickle.load(f)
         results.append(encoding_results)
 
 elif input_type == "difference":
@@ -199,13 +202,15 @@ elif input_type == "difference":
     for subject in list_sub_vid:
         workDir_vid = os.path.join(original_workDir, "miniclips")
         fileDir_vid = os.path.join(workDir_vid, f"{subject}_{identifierDir}")
-        encoding_results_vid = np.load(fileDir_vid, allow_pickle=True)
+        with open(fileDir_vid, "rb") as f:
+            encoding_results_vid = pickle.load(f)
         results_vid.append(encoding_results_vid)
 
     for subject in list_sub_img:
         workDir_img = os.path.join(original_workDir, "images")
         fileDir_img = os.path.join(workDir_img, f"{subject}_{identifierDir}")
-        encoding_results_img = np.load(fileDir_img, allow_pickle=True)
+        with open(fileDir_img, "rb") as f:
+            encoding_results_img = pickle.load(f)
         results_img.append(encoding_results_img)
 
 ### Create mean of all subjects for each feature ###
@@ -354,25 +359,71 @@ upper_ci = [item[2] for item in peaks.values()]
 
 ### Rearrange the accuracies, lower CIs, and upper CIs based on the sorted indices ###
 # sorted_indices = sorted(range(len(accuracies)), key=lambda k: accuracies[k])
-sorted_indices = [
-    0,
-    4,
-    3,
-    1,
-    2,
-    5,
-    6,
-]  # hardcoded - based on results from images
-sorted_feature_names_graph = [
-    feature_names_graph[i] for i in sorted_indices
-]
-sorted_feature_names = [feature_names[i] for i in sorted_indices]
-sorted_color_dict = [colors[i] for i in sorted_indices]
-sorted_features_mean = [features_mean[i] for i in sorted_indices]
+
+if args.config == "default" or args.config == "control_3" or args.config == "control_1" or args.config == "control_2" or args.config == "control_9":
+    # Hardcoded to have same plot as in MS
+    feature_names = (
+        "edges",
+        "world_normal",
+        "scene_depth",
+        "lighting",
+        "reflectance",
+        "skeleton",
+        "action",
+    )
+
+    # Names in the plot
+    feature_names_graph = (
+        "Edges",
+        "Normals",
+        "Depth",
+        "Lighting",
+        "Reflectance",
+        "Skeleton",
+        "Action",
+    )
+
+    sorted_indices = [
+        0,
+        4,
+        3,
+        1,
+        2,
+        5,
+        6,
+    ]
+    sorted_indices = [
+        0,
+        4,
+        3,
+        1,
+        2,
+        5,
+        6,
+    ]  # hardcoded - based on results from images
+    sorted_feature_names_graph = [
+        feature_names_graph[i] for i in sorted_indices
+    ]
+    sorted_feature_names = [feature_names[i] for i in sorted_indices]
+    sorted_color_dict = [colors[i] for i in sorted_indices]
+    sorted_features_mean = [features_mean[i] for i in sorted_indices]
+elif args.config == "control_1" or args.config == "control_2":
+    colors = [colormap(5)]
+    sorted_feature_names_graph = feature_names_graph
+    sorted_feature_names = feature_names
+    sorted_color_dict = colors
+    sorted_features_mean = features_mean
+else:
+    sorted_feature_names_graph = feature_names_graph
+    sorted_feature_names = feature_names
+    sorted_color_dict = colors
+    sorted_features_mean = features_mean
+
 
 for i, feature in enumerate(sorted_features_mean):
     # accuracy
     f_name = sorted_feature_names[i]
+    print(f_name)
     accuracy = feature
     accuracy = accuracy[10:]
 
@@ -479,10 +530,6 @@ ax[0].set_xlim(0, 60)
 # STEP 5: Subplot 2 -> Peak latencies
 # -----------------------------------------------------------------------------
 # the difference plot is the difference in peak latencies
-accuracies = [accuracies[i] for i in sorted_indices]
-lower_ci = [lower_ci[i] for i in sorted_indices]  # for bar plot
-upper_ci = [upper_ci[i] for i in sorted_indices]  # for bar plot
-
 y_range = max(upper_ci) - min(lower_ci)
 top = max(upper_ci)
 
@@ -511,9 +558,7 @@ if input_type != "difference":
     # sig line params
     line_offset = 435 + y_range * 0.2  # Offset for the lines
     line_height = 20  # Height of each significance line
-    text_offset = (
-        line_offset - y_range * 0.02
-    )  # Offset for the text labels
+    text_offset = line_offset - y_range * 0.02  # Offset for the text labels
 
     for i, sig_combi in enumerate(sorted_sig_combi_numbers):
         x1, x2 = sig_combi
@@ -608,11 +653,11 @@ ax[0].tick_params(axis="both", direction="inout")
 plt.show()
 plotDir = os.path.join(
     saveDir,
-    f"plot_encoding_{len(feature_names)}_features_{input_type}_nonstd.svg"
+    f"plot_encoding_{len(feature_names)}_features_{input_type}_nonstd.svg",
 )
 plt.savefig(plotDir, dpi=300, format="svg", transparent=True)
 plotDir = os.path.join(
     saveDir,
-    f"plot_encoding_full_{len(feature_names)}_features_{input_type}_nonstd.png"
+    f"plot_encoding_full_{len(feature_names)}_features_{input_type}_nonstd.png",
 )
 plt.savefig(plotDir, dpi=300, format="png", transparent=True)

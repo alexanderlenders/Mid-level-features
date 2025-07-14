@@ -3,30 +3,37 @@
 
 source /home/alexandel91/.bashrc
 conda activate encoding
-    
-# First step: Hyperparameter optimization
-python ./hyperparameter_optimization_c3.py \
-    --config_dir ../config.ini \
-    --config control_3 \
-    --input_type "miniclips" 
 
-# Second step: Encoding
-python ./encoding_c3.py \
-    --config_dir ../config.ini \
-    --config control_3 \
-    --input_type "miniclips"
+# echo "Starting hyperparameter optimization for miniclips..."
+# # First step: Hyperparameter optimization
+# python ./hyperparameter_optimization_c3.py \
+#     --config_dir ../config.ini \
+#     --config control_3 \
+#     --input_type "miniclips" 
+# echo "Hyperparameter optimization completed."
 
-# Third step: Bootstrapping
-python ../../EEG/Stats/encoding_bootstrapping.py \
-    --config_dir ../config.ini \
-    --config control_3 \
-    --input_type "miniclips"
+# # Wait for the hyperparameter optimization to finish
+# echo "Starting encoding analysis for miniclips..."
+# # Second step: Encoding
+# python ./encoding_c3.py \
+#     --config_dir ../config.ini \
+#     --config control_3 \
+#     --input_type "miniclips"
+# echo "Encoding analysis completed for miniclips."
 
-# Fourth step: Stats
-python ../../EEG/Stats/encoding_significance_stats.py \
-    --config_dir ../config.ini \
-    --config control_3 \
-    --input_type "miniclips"
+# # Wait for the encoding to finish
+# echo "Stating bootstrapping and stats for miniclips..."
+# # Third step: Bootstrapping
+# python ../../EEG/Stats/encoding_bootstrapping.py \
+#     --config_dir ../config.ini \
+#     --config control_3 \
+#     --input_type "miniclips"
+
+# # Fourth step: Stats
+# python ../../EEG/Stats/encoding_significance_stats.py \
+#     --config_dir ../config.ini \
+#     --config control_3 \
+#     --input_type "miniclips"
 
 # Fifth step: Plotting 
 python ../../EEG/Plotting/plot_encoding.py \

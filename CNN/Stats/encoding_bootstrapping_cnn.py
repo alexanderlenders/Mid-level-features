@@ -17,6 +17,7 @@ import argparse
 from statsmodels.stats.multitest import fdrcorrection
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
 print(project_root)
 sys.path.append(str(project_root))
@@ -24,6 +25,7 @@ sys.path.append(str(project_root))
 from EEG.Encoding.utils import (
     load_config,
 )
+
 
 def bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, weighted):
     """
@@ -76,7 +78,7 @@ def bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, weighted):
     else:
         workDir = os.path.join(encoding_dir, input_type, "unweighted")
         saveDir = os.path.join(workDir, "stats")
-    
+
     if not os.path.exists(saveDir):
         os.makedirs(saveDir)
 
@@ -130,8 +132,8 @@ def bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, weighted):
         # ---------------------------------------------------------------------
         # STEP 2.4 Calculate 95%-CI
         # ---------------------------------------------------------------------
-        upper = int(np.ceil(n_perm * 0.975))
-        lower = int(np.ceil(n_perm * 0.025))
+        upper = int(np.ceil(n_perm * 0.975)) - 1
+        lower = int(np.ceil(n_perm * 0.025)) - 1
 
         ci_dict = {}
 
@@ -158,7 +160,9 @@ def bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, weighted):
         pickle.dump(features_results, f)
 
 
-def bootstrapping_CI_peak_layer(n_perm, input_type, encoding_dir, total_var, weighted):
+def bootstrapping_CI_peak_layer(
+    n_perm, input_type, encoding_dir, total_var, weighted
+):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and
     each feature.
@@ -275,8 +279,8 @@ def bootstrapping_CI_peak_layer(n_perm, input_type, encoding_dir, total_var, wei
         # ---------------------------------------------------------------------
         # STEP 2.3 Calculate 95%-CI
         # ---------------------------------------------------------------------
-        upper = round(n_perm * 0.975)
-        lower = round(n_perm * 0.025)
+        upper = round(n_perm * 0.975) - 1
+        lower = round(n_perm * 0.025) - 1
 
         # sort and get upper and lower percentiles
         bt_data_peaks.sort()
@@ -450,8 +454,8 @@ def bootstrapping_stats_diff_btw_features(
             # STEP 2.4 Compute p-Value and CI
             # -----------------------------------------------------------------
             # CI
-            upper = int(np.ceil(n_perm * 0.975))
-            lower = int(np.ceil(n_perm * 0.025))
+            upper = int(np.ceil(n_perm * 0.975)) - 1
+            lower = int(np.ceil(n_perm * 0.025)) - 1
 
             feature_diff_bt_abs = np.abs(feature_diff_bt)
             feature_diff_bt_abs.sort()
@@ -545,10 +549,7 @@ if __name__ == "__main__":
         "for more precise results, calculate from explained_variance.pkl",
         default=90,
     )
-    parser.add_argument(
-        '--weighted', 
-        action='store_true'
-        )
+    parser.add_argument("--weighted", action="store_true")
 
     args = parser.parse_args()  # to get values for the arguments
 
@@ -564,9 +565,12 @@ if __name__ == "__main__":
     else:
         weighted = False
 
-    bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, total_var, weighted)
-    bootstrapping_CI_peak_layer(n_perm, input_type, encoding_dir, total_var, weighted)
+    bootstrapping_CI(
+        n_perm, n_layers, input_type, encoding_dir, total_var, weighted
+    )
+    bootstrapping_CI_peak_layer(
+        n_perm, input_type, encoding_dir, total_var, weighted
+    )
     bootstrapping_stats_diff_btw_features(
-        n_perm, n_layers, input_type, encoding_dir, total_var, 
-        weighted
+        n_perm, n_layers, input_type, encoding_dir, total_var, weighted
     )

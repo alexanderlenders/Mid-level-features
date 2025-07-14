@@ -17,15 +17,23 @@ import os
 import numpy as np
 import torch
 import pickle
-from utils import (
-    load_eeg,
-    load_features,
-    OLS_pytorch,
-    vectorized_correlation,
+import argparse
+
+import sys
+from pathlib import Path
+project_root = Path(__file__).resolve().parents[2]
+sys.path.append(str(project_root))
+
+from EEG.Encoding.utils import (
     load_config,
     parse_list,
+    load_eeg,
+    load_features,
+    load_alpha,
+    OLS_pytorch,
+    vectorized_correlation,
 )
-import argparse
+
 
 
 def hyperparameter_tuning(
@@ -93,9 +101,9 @@ def hyperparameter_tuning(
             "action",
         )
 
-    # -> Hardcode image features for control analysis 3 <-
+    # -> Hardcode image features for c3 <-
     featuresDir = os.path.join(
-        feat_dir,
+        "/scratch/alexandel91/mid_level_features/features/images/default",
         f"img_features_frame_{frame}_redone_{len(feature_names)}_features_onehot.pkl",
     )
 
@@ -141,7 +149,6 @@ def hyperparameter_tuning(
         corr = np.zeros((timepoints, len(alpha_space), n_channels))
 
         for tp in range(timepoints):
-            print(tp)
             y_train_tp = y_train[:, :, tp]
             y_val_tp = y_validation[:, :, tp]
 
@@ -151,8 +158,6 @@ def hyperparameter_tuning(
                 try:
                     regression.fit(X_train, y_train_tp, solver="cholesky")
                 except Exception as error:
-                    print("Attention. Cholesky solver did not work: ", error)
-                    print("Trying the standard linalg.solver...")
                     regression.fit(X_train, y_train_tp, solver="solve")
                 prediction = regression.predict(entry=X_val)
                 rmse_score = regression.score(entry=X_val, y=y_val_tp)
@@ -298,6 +303,7 @@ if __name__ == "__main__":
         feat_dir = config.get(args.config, "save_dir_feat_img")
 
     for sub in subjects:
+        print(sub)
         hyperparameter_tuning(
             sub,
             freq,

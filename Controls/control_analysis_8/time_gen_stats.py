@@ -41,7 +41,7 @@ def permutation_test(list_sub, workDir, n_perm, tail, alpha, timepoints, input_t
     if not os.path.exists(saveDir):
         os.makedirs(saveDir)
 
-    identifierDir = f"seq_50hz_posterior_time_gen_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
+    identifierDir = f"seq_50hz_posteriortime_gen_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
 
     n_sub = len(list_sub)
     

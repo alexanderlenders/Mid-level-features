@@ -4,12 +4,12 @@
 source /home/alexandel91/.bashrc
 conda activate encoding
     
-# Third step: Hyperparameter optimization
-python ../../EEG/Encoding/hyperparameter_optimization.py \
-    --config_dir ../config.ini \
-    --config control_9 \
-    --input_type "miniclips" \
-    --exclude_guitar_trials
+# # Third step: Hyperparameter optimization
+# python ../../EEG/Encoding/hyperparameter_optimization.py \
+#     --config_dir ../config.ini \
+#     --config control_9 \
+#     --input_type "miniclips" \
+#     --exclude_guitar_trials
 
 # Fourth step: Encoding
 python ../../EEG/Encoding/encoding.py \

@@ -18,6 +18,7 @@ import pickle
 import argparse
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
 print(project_root)
 sys.path.append(str(project_root))
@@ -25,6 +26,7 @@ sys.path.append(str(project_root))
 from EEG.Encoding.utils import (
     load_config,
 )
+
 
 def bootstrapping_CI(n_perm, encoding_dir, total_var, weighted):
     """
@@ -154,8 +156,8 @@ def bootstrapping_CI(n_perm, encoding_dir, total_var, weighted):
         # ---------------------------------------------------------------------
         # STEP 2.4 Calculate 95%-CI
         # ---------------------------------------------------------------------
-        upper = int(np.ceil(n_perm * 0.975))
-        lower = int(np.ceil(n_perm * 0.025))
+        upper = int(np.ceil(n_perm * 0.975)) - 1
+        lower = int(np.ceil(n_perm * 0.025)) - 1
 
         ci_dict = {}
 
@@ -220,7 +222,7 @@ def bootstrapping_CI_peak_layer(n_perm, encoding_dir, total_var, weighted):
         workDir_vid = os.path.join(encoding_dir, "miniclips", "unweighted")
 
     saveDir = os.path.join(encoding_dir, "difference", "stats")
-        
+
     if not os.path.exists(saveDir):
         os.makedirs(saveDir)
 
@@ -334,8 +336,8 @@ def bootstrapping_CI_peak_layer(n_perm, encoding_dir, total_var, weighted):
         # ---------------------------------------------------------------------
         # STEP 2.4 Calculate 95%-CI
         # ---------------------------------------------------------------------
-        upper = round(n_perm * 0.975)
-        lower = round(n_perm * 0.025)
+        upper = round(n_perm * 0.975) - 1
+        lower = round(n_perm * 0.025) - 1
 
         bt_diff_peaks.sort()
         lower_ci = bt_diff_peaks[lower]
@@ -399,10 +401,7 @@ if __name__ == "__main__":
         help="Total variance explained by all PCA components together",
         default=90,
     )
-    parser.add_argument(
-        '--weighted', 
-        action='store_true'
-    )
+    parser.add_argument("--weighted", action="store_true")
 
     args = parser.parse_args()  # to get values for the arguments
 
@@ -411,7 +410,7 @@ if __name__ == "__main__":
     n_perm = args.num_perm
     n_layers = args.num_layers
     total_var = int(args.total_var)
-    
+
     if args.weighted:
         weighted = True
     else:

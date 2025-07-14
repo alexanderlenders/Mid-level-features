@@ -197,7 +197,7 @@ if __name__ == "__main__":
 
     img_dir = config.get(args.config, "images_dir")
     save_dir = config.get(args.config, "save_dir_cnn_img")
-    seed = config.getint(args.config, "seed")
+    seed = 42
 
     # Run feature extraction
     extract_activations(

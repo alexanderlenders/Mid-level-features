@@ -154,7 +154,7 @@ def permutation_test(
         mean_orig_vid = np.mean(results_f_vid, axis=0)
         mean_orig_img = np.mean(results_f_img, axis=0)
 
-        t_stat = mean_orig_vid - mean_orig_img
+        t_stat = mean_orig_img - mean_orig_vid
 
         stat_map[0, :] = t_stat
 
@@ -169,7 +169,7 @@ def permutation_test(
             mean_group_1 = np.mean(group_1, axis=0)
             mean_group_2 = np.mean(group_2, axis=0)
 
-            t_stat = mean_group_1 - mean_group_2
+            t_stat = mean_group_2 - mean_group_1
 
             # calculate mean and put it in stats map
             stat_map[permutation, :] = t_stat

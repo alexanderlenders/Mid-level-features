@@ -1,0 +1,180 @@
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+dict_keys(['edges, action, reflectance', 'edges, action, lighting', 'edges, action, world_normal', 'edges, action, scene_depth', 'edges, action, skeleton', 'edges, action'])
+['edges', 'action', 'reflectance']
+['edges', 'action', 'lighting']
+['edges', 'action', 'world_normal']
+['edges', 'action', 'scene_depth']
+['edges', 'action', 'skeleton']
+['edges', 'action']
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu
+Using device: cpu

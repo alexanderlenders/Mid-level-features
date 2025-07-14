@@ -432,7 +432,7 @@ def load_feature_set(feature_set, featuresDir):
         X_train, X_val, X_test = load_features(feature_set, featuresDir)
         return X_train, X_val, X_test
     else:
-        features_dict = np.load(featuresDir, allow_pickle=True).item()
+        features_dict = np.load(featuresDir, allow_pickle=True)
 
         X_train_list = []
         X_val_list = []
@@ -473,7 +473,10 @@ def load_alpha(
 
     alpha_values = np.load(alphaDir, allow_pickle=True)
 
-    alpha = alpha_values[feature]["best_alpha_a_corr"]
+    if isinstance(feature, list):
+        alpha = alpha_values[(", ".join(feature))]["best_alpha_a_corr"]
+    else:
+        alpha = alpha_values[feature]["best_alpha_a_corr"]
 
     return alpha
 

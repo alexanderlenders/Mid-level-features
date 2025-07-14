@@ -7,3 +7,8 @@ python ./download_kinetics.py \
     --root_dir /scratch/alexandel91/mid_level_features/kinetics_400 \
     --split train \
     --num_download_workers $num_workers
+
+python ./download_kinetics.py \
+    --root_dir /scratch/alexandel91/mid_level_features/kinetics_400 \
+    --split val \
+    --num_download_workers $num_workers

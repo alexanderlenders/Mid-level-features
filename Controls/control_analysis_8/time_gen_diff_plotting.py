@@ -115,12 +115,12 @@ n_sub_vid = len(list_sub_vid)
 n_sub_img = len(list_sub_img)
 timepoints = 70  # number of timepoints in the time generalization matrix
 
-identifierDir = f"seq_50hz_posterior_time_gen_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
+identifierDir = f"seq_50hz_posteriortime_gen_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
 
 results = [] # list of dictionaries
 
 stats_dir = os.path.join(workDir, "difference", "stats")
-id_stats = 'time_gen_stats_both.pkl' 
+id_stats = 'time_gen_diff_stats_both.pkl' 
 time_dir = os.path.join(stats_dir, id_stats)
 
 with open(time_dir, 'rb') as file:
@@ -165,7 +165,8 @@ for feature in feature_names:
         subject_result_averaged = np.mean(subject_result, axis=2)
         results_img[index, :, :] = subject_result_averaged
     
-    mean_time_gen = np.mean(results_vid, axis=0) - np.mean(results_img, axis=0)
+    mean_time_gen = np.mean(results_img, axis=0) - np.mean(results_vid, axis=0)
+    mean_time_gen = np.flip(mean_time_gen, axis=0)
     reduced_time_gen = mean_time_gen[0:60, 10:70]
 
     ticks = np.arange(0.5, 0.72, 0.02)
@@ -173,13 +174,11 @@ for feature in feature_names:
 
     fig, ax = plt.subplots()
 
-    heatmap = ax.imshow(reduced_time_gen, cmap='jet', 
-                        extent=[0, reduced_time_gen.shape[1], reduced_time_gen.shape[0], 0])
+    heatmap = ax.imshow(reduced_time_gen, cmap='jet', vmin=-0.1, vmax=0.1,
+                        extent=[0, reduced_time_gen.shape[1], 60, 0])
 
     # Add colorbar
     cbar = plt.colorbar(heatmap, ax=ax, pad=0.02)  # Adjust the pad value as needed
-    cbar.set_ticks(ticks)
-    cbar.set_ticklabels(tick_labels)
     cbar.ax.set_ylabel("Pearson's r", fontdict={'family': font, 'size': 13}, 
                         labelpad = 10)
 
@@ -250,7 +249,7 @@ for feature in feature_names:
     )
 
     # Create custom patches for the legend
-    significant_patch = mpatches.Patch(color='darkred', label='Significant')
+    significant_patch = mpatches.Patch(color='greenyellow', label='Significant')
     non_significant_patch = mpatches.Patch(color='darkblue', label='Not Significant')
 
     # Add the legend

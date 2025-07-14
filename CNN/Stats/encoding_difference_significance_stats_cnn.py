@@ -132,39 +132,35 @@ def encoding_stats(n_perm, alpha_value, tail, total_var, weighted, encoding_dir)
             num_comp_layer_img = corr_img.shape[0]
             num_comp_layer_vid = corr_vid.shape[0]
 
+            all_results = np.vstack(
+                (corr_vid, corr_img))
+            labels = np.array(
+                [0] * num_comp_layer_vid + [1] * num_comp_layer_img)
+            # 0 for video, 1 for image
+
             # create mean for each layer over all images
             # this is our "original data" and permutation 1 in the stat_map
             mean_orig_img = np.sum(corr_img) / total_var
             mean_orig_vid = np.sum(corr_vid) / total_var
+            # Order does not matter, as we are using a two-tailed test
             mean_orig_diff = mean_orig_img - mean_orig_vid
 
             stat_map[0, l] = mean_orig_diff
 
             for permutation in range(1, n_perm):
-                perm_img = np.expand_dims(
-                    np.random.choice(
-                        [-1, 1], size=(num_comp_layer_img,), replace=True
-                    ),
-                    1,
-                )
-                perm_img = perm_img.T
-                perm_corr_img = corr_img * perm_img
+                # Shuffle the labels
+                shuffled_labels = np.random.permutation(labels)
 
-                perm_vid = np.expand_dims(
-                    np.random.choice(
-                        [-1, 1], size=(num_comp_layer_vid,), replace=True
-                    ),
-                    1,
-                )
-                perm_vid = perm_vid.T
-                perm_corr_vid = corr_vid * perm_vid
+                # Assign to new permuted groups
+                group_1 = all_results[shuffled_labels == 0, :]
+                group_2 = all_results[shuffled_labels == 1, :]
 
-                # create mean for each layer over all images for every permutation
-                mean_img = np.sum(perm_corr_img) / total_var
-                mean_vid = np.sum(perm_corr_vid) / total_var
-                mean_diff = mean_img - mean_vid
-                stat_map[permutation, l] = mean_diff
+                mean_group_1 = np.sum(group_1) / total_var
+                mean_group_2 = np.sum(group_2) / total_var
 
+                stat = mean_group_2 - mean_group_1
+
+                stat_map[permutation, l] = stat
         # ---------------------------------------------------------------------
         # Calculate ranks and p-values
         # ---------------------------------------------------------------------

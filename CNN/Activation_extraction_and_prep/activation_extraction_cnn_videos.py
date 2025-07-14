@@ -320,7 +320,7 @@ if __name__ == "__main__":
 
     videos_dir = config.get(args.config, "videos_dir")
     save_dir = config.get(args.config, "save_dir_cnn_video")
-    seed = config.getint(args.config, "seed")
+    seed = 42
 
     # Run feature extraction
     extract_activations(

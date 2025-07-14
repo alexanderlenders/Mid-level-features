@@ -10,63 +10,106 @@ import matplotlib.pyplot as plt
 import sys
 from pathlib import Path
 import argparse
+
 project_root = Path(__file__).resolve().parents[2]
 print(project_root)
 sys.path.append(str(project_root))
-from EEG.Encoding.utils import vectorized_correlation, load_config, load_features, parse_list
+from EEG.Encoding.utils import (
+    vectorized_correlation,
+    load_config,
+    load_features,
+    parse_list,
+)
 
-def c5(feat_dir_img, feat_dir_vid, save_dir: str, feature_names, frame, font: str = "Arial"):
+
+def c5(
+    feat_dir_img,
+    feat_dir_vid,
+    save_dir: str,
+    feature_names,
+    frame,
+    font: str = "Arial",
+):
     """
     Function for control analysis 5, in which image and video features are correlated.
     The output is a plot showing the correlation coefficients for each feature.
     """
     featuresDir_img = os.path.join(
-            feat_dir_img,
-            f"img_features_frame_{frame}_redone_{len(feature_names)}_features_onehot.pkl",
-        )
+        feat_dir_img,
+        f"img_features_frame_{frame}_redone_{len(feature_names)}_features_onehot.pkl",
+    )
 
     featuresDir_vid = os.path.join(
-            feat_dir_vid,
-            f"video_features_avg_frame_redone_{len(feature_names)}.pkl",
-        )
-    
+        feat_dir_vid,
+        f"video_features_avg_frame_redone_{len(feature_names)}.pkl",
+    )
+
     features_dict = dict.fromkeys(feature_names)
 
     # First step: Load all the features for images and videos
     for feature in features_dict.keys():
-        X_train_img, X_val_img, X_test_img = load_features(feature, featuresDir_img)
-        X_test_vid, X_val_vid, X_test_vid = load_features(feature, featuresDir_vid)
+        X_train_img, X_val_img, X_test_img = load_features(
+            feature, featuresDir_img
+        )
+        X_test_vid, X_val_vid, X_test_vid = load_features(
+            feature, featuresDir_vid
+        )
 
         X_img = np.concatenate((X_train_img, X_val_img, X_test_img), axis=0)
         X_vid = np.concatenate((X_train_img, X_val_vid, X_test_vid), axis=0)
 
-        features_dict[feature] = vectorized_correlation(X_img, X_vid)
+        corr = np.mean(vectorized_correlation(X_img, X_vid))
+        # Make sure that maximum correlation is 1
+        if corr > 1:
+            corr = 1.0
+        elif corr < -1:
+            corr = -1.0
 
+        features_dict[feature] = corr
 
     # Sort features alphabetically (optional)
     features = sorted(features_dict.keys())
+    feature_labels = [
+        "Action",
+        "Edges",
+        "Lighting",
+        "Reflectance",
+        "Depth",
+        "Skeleton",
+        "Normals",
+    ]
     correlations = [features_dict[feature] for feature in features]
 
     plt.close()
-    fig, ax = plt.subplots(figsize=(7, 4.5))  # Adjust size as needed
-
-    # Horizontal line at 0
-    ax.axhline(y=0, color="lightgrey", linestyle="solid", linewidth=1)
+    fig, ax = plt.subplots(figsize=(6, 4.5))  # Adjust size as needed
 
     # Bar or point plot (choose one)
-    ax.plot(features, correlations, 'o-', color="black", linewidth=2, markersize=6)  # Point plot
-    # ax.bar(features, correlations, color="grey", edgecolor="black")  # Or use a bar plot instead
+    # ax.plot(
+    #     features, correlations, "o-", color="black", linewidth=2, markersize=6
+    # )  # Point plot
+    colormap = plt.colormaps["Set2"]
+    colors = [colormap(i) for i in range(len(features))]
+
+    # Sort colors manually
+    sort_indices = [6, 0, 3, 4, 2, 5, 1]
+    colors = [colors[i] for i in sort_indices]
+
+    ax.bar(
+        features, correlations, color=colors, edgecolor="black"
+    )  # Or use a bar plot instead
 
     # Labels and ticks
     ax.set_ylabel("Pearson's r", fontdict={"family": font, "size": 11})
     ax.set_xlabel("Feature", fontdict={"family": font, "size": 11})
 
     ax.set_xticks(np.arange(len(features)))
-    ax.set_xticklabels(features, rotation=45, ha='right', fontsize=9, fontname=font)
+    ax.set_xticklabels(
+        feature_labels, rotation=45, ha="right", fontsize=11, fontname=font
+    )
 
     ax.set_yticks(
-        ticks=[-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5],
-        labels=[-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5],
+        ticks=[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+        labels=[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
         fontsize=9,
         fontname=font,
     )
@@ -87,8 +130,11 @@ def c5(feat_dir_img, feat_dir_vid, save_dir: str, feature_names, frame, font: st
         os.makedirs(save_dir)
 
     for ext in ["svg", "png"]:
-        plot_path = os.path.join(save_dir, f"plot_featurewise_correlations.{ext}")
+        plot_path = os.path.join(
+            save_dir, f"plot_featurewise_correlations.{ext}"
+        )
         plt.savefig(plot_path, dpi=300, format=ext, transparent=True)
+
 
 if __name__ == "__main__":
 
@@ -108,7 +154,7 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-    "-f", "--font", default="Arial", type=str, metavar="", help="Font"
+        "-f", "--font", default="Arial", type=str, metavar="", help="Font"
     )
 
     args = parser.parse_args()  # to get values for the arguments
@@ -122,5 +168,11 @@ if __name__ == "__main__":
 
     SAVE_DIR = "/scratch/alexandel91/mid_level_features/results/c5"
 
-    c5(feat_dir_img, feat_dir_vid, SAVE_DIR, feature_names, frame, font=args.font)
-
+    c5(
+        feat_dir_img,
+        feat_dir_vid,
+        SAVE_DIR,
+        feature_names,
+        frame,
+        font=args.font,
+    )

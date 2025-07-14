@@ -99,7 +99,7 @@ if os.path.exists(saveDir) is False:
 n_sub = len(list_sub)
 timepoints = 70  # number of timepoints in the time generalization matrix
 
-identifierDir = f"seq_50hz_posterior_time_gen_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
+identifierDir = f"seq_50hz_posteriortime_gen_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
 
 results = [] # list of dictionaries
 
@@ -121,7 +121,7 @@ for feature in feature_names:
     # -----------------------------------------------------------------------------
     # Create time generalization plot with seaborn (correlation)
     # -----------------------------------------------------------------------------
-    results = np.zeros((n_sub, timepoints))
+    results = np.zeros((n_sub, timepoints, timepoints))
 
     for index, subject in enumerate(list_sub):
         subject_result = results_unfiltered[str(subject)][feature][
@@ -129,9 +129,10 @@ for feature in feature_names:
         ]
         # averaged over all channels
         subject_result_averaged = np.mean(subject_result, axis=2)
-        results[index, :] = subject_result_averaged
+        results[index, :, :] = subject_result_averaged
     
     mean_time_gen = np.mean(results, axis=0)
+    mean_time_gen = np.flip(mean_time_gen, axis=0)
     reduced_time_gen = mean_time_gen[0:60, 10:70]
 
     ticks = np.arange(0.5, 0.72, 0.02)
@@ -139,13 +140,11 @@ for feature in feature_names:
 
     fig, ax = plt.subplots()
 
-    heatmap = ax.imshow(reduced_time_gen, cmap='jet', 
-                        extent=[0, reduced_time_gen.shape[1], reduced_time_gen.shape[0], 0])
+    heatmap = ax.imshow(reduced_time_gen, cmap='jet', vmin=0,
+                        extent=[0, reduced_time_gen.shape[1], 60, 0])
 
     # Add colorbar
     cbar = plt.colorbar(heatmap, ax=ax, pad=0.02)  # Adjust the pad value as needed
-    cbar.set_ticks(ticks)
-    cbar.set_ticklabels(tick_labels)
     cbar.ax.set_ylabel("Pearson's r", fontdict={'family': font, 'size': 13}, 
                         labelpad = 10)
 
@@ -216,7 +215,7 @@ for feature in feature_names:
     )
 
     # Create custom patches for the legend
-    significant_patch = mpatches.Patch(color='darkred', label='Significant')
+    significant_patch = mpatches.Patch(color='greenyellow', label='Significant')
     non_significant_patch = mpatches.Patch(color='darkblue', label='Not Significant')
 
     # Add the legend
@@ -233,7 +232,6 @@ for feature in feature_names:
     plt.tight_layout()
     plt.show()
     
-
     plotDir_svg = os.path.join(saveDir, f"time_gen_{feature}_stats.svg")
     plotDir = os.path.join(saveDir, f"time_gen_{feature}_stats.png")
     plt.savefig(plotDir_svg, format='svg', dpi=300, transparent=True)

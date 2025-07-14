@@ -4,31 +4,31 @@
 source /home/alexandel91/.bashrc
 conda activate encoding
     
-# Third step: Hyperparameter optimization
-python ../../EEG/Encoding/hyperparameter_optimization.py \
-    --config_dir ../config.ini \
-    --config control_9 \
-    --input_type "images" \
-    --exclude_guitar_trials
+# # Third step: Hyperparameter optimization
+# python ../../EEG/Encoding/hyperparameter_optimization.py \
+#     --config_dir ../config.ini \
+#     --config control_9 \
+#     --input_type "images" \
+#     --exclude_guitar_trials
 
-# Fourth step: Encoding
-python ../../EEG/Encoding/encoding.py \
-    --config_dir ../config.ini \
-    --config control_9 \
-    --input_type "images" \
-    --exclude_guitar_trials
+# # Fourth step: Encoding
+# python ../../EEG/Encoding/encoding.py \
+#     --config_dir ../config.ini \
+#     --config control_9 \
+#     --input_type "images" \
+#     --exclude_guitar_trials
 
-# Fifth step: Bootstrapping
-python ../../EEG/Stats/encoding_bootstrapping.py \
-    --config_dir ../config.ini \
-    --config control_9 \
-    --input_type "images"
+# # Fifth step: Bootstrapping
+# python ../../EEG/Stats/encoding_bootstrapping.py \
+#     --config_dir ../config.ini \
+#     --config control_9 \
+#     --input_type "images"
 
-# Sixth step: Stats
-python ../../EEG/Stats/encoding_significance_stats.py \
-    --config_dir ../config.ini \
-    --config control_9 \
-    --input_type "images"
+# # Sixth step: Stats
+# python ../../EEG/Stats/encoding_significance_stats.py \
+#     --config_dir ../config.ini \
+#     --config control_9 \
+#     --input_type "images"
 
 # Seventh step: Plotting 
 python ../../EEG/Plotting/plot_encoding.py \
