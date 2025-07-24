@@ -4,13 +4,13 @@
 # ==============================================================================
 
 #SBATCH --mail-user=alexandel91@zedat.fu-berlin.de   
-#SBATCH --job-name=download_kinetics
+#SBATCH --job-name=train_kinetics
 #SBATCH --mail-type=ALL                              
 #SBATCH --nodes=1                                    
-#SBATCH --ntasks=1                                  
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=20000 # specifies the maximum amount of memory in MB per node!                           
-#SBATCH --time=08:00:00 # maximum time                           
+#SBATCH --ntasks=2 # 1 process per GPU                                  
+#SBATCH --cpus-per-task=16 # 16 CPU cores per process
+#SBATCH --mem=60000 # specifies the maximum amount of memory in MB per node!                           
+#SBATCH --time=90:00:00 # maximum time                           
 #SBATCH --qos=standard
 #SBATCH --partition=agcichy
 #SBATCH --gres=gpu:2
@@ -23,5 +23,5 @@ conda activate encoding
 num_workers=${SLURM_CPUS_PER_TASK}
 num_gpus=2
 
-./sbatch_train.sh $num_workers $num_gpus > train.txt 2>&1
+./train.sh $num_workers $num_gpus > train_final_smaller_lr.txt 2>&1
 

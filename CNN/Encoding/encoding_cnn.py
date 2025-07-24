@@ -3,8 +3,8 @@
 """
 ENCODING - DEEP NETS
 
-This script implements the multivariate linear ridge regression for the EEG
-data.
+This script implements the multivariate linear ridge regression for the unit
+activations in deep nets.
 
 @author: Alexander Lenders, Agnessa Karapetian
 """
@@ -17,8 +17,8 @@ from utils import load_activation, load_alpha
 
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 
 from EEG.Encoding.utils import (
@@ -29,16 +29,41 @@ from EEG.Encoding.utils import (
 )
 
 
-def encoding(input_type, feat_dir, cnn_dir, save_dir, frame):
+def encoding(
+    input_type: str, feat_dir: str, cnn_dir: str, save_dir: str, frame: int, alpha_tp: bool = True
+):
     """
-    Perform encoding (ridge regression) for predicting the unit activations
-    in deep nets.
+    Performs encoding using ridge regression to predict unit activations in deep neural networks
+    (e.g., ResNet) from mid-level features extracted from images or video clips. For each feature
+    and each specified layer, fits a regression model to predict activations, evaluates performance
+    metrics (RMSE, correlation, weighted correlation), and saves results.
+
+    Input:
+    ----------
+    Feature and activation directories containing precomputed features and CNN activations for
+    images or video clips. Features are loaded from .pkl files, and activations are loaded per layer.
+    The function supports both weighted and unweighted regression based on explained variance.
+
+    Returns:
+    ----------
+    Saves a dictionary of regression results for each feature in a .pkl file in the specified
+    save directory. The results include RMSE scores, correlation scores, weighted correlations,
+    and their averages for each layer.
 
     Parameters
     ----------
     input_type : str
-        Images or miniclips
-
+        Type of input data ("images" or "miniclips").
+    feat_dir : str
+        Directory containing feature .pkl files.
+    cnn_dir : str
+        Directory containing CNN activations and explained variance files.
+    save_dir : str
+        Directory to save regression results.
+    frame : int
+        Frame index for selecting image features (used if input_type is "images").
+    alpha_tp : bool, optional
+        If True, loads alpha hyperparameter per layer; otherwise loads a single alpha per feature (default: True).
     """
     # -------------------------------------------------------------------------
     # STEP 1 Define Variables
@@ -73,7 +98,7 @@ def encoding(input_type, feat_dir, cnn_dir, save_dir, frame):
             feat_dir,
             f"video_features_avg_frame_redone_{len(feature_names)}.pkl",
         )
-    
+
     explained_var_dir = os.path.join(cnn_dir, "pca")
     save_dir = os.path.join(save_dir, input_type)
     act_dir = os.path.join(cnn_dir, "prepared")
@@ -92,6 +117,7 @@ def encoding(input_type, feat_dir, cnn_dir, save_dir, frame):
         "correlation",
         "rmse_average",
         "correlation_average",
+        "weighted_correlation",
     )
 
     # define matrix where to save the values
@@ -100,7 +126,6 @@ def encoding(input_type, feat_dir, cnn_dir, save_dir, frame):
     num_layers = len(layers_names)
 
     for feature in features_dict.keys():
-        print(feature)
         X_train, _, X_test = load_features(feature, featuresDir)
 
         if explained_var_dir:
@@ -108,17 +133,18 @@ def encoding(input_type, feat_dir, cnn_dir, save_dir, frame):
         else:
             alpha_dir_final = os.path.join(save_dir, "unweighted")
 
-
-        alpha = load_alpha(input_type, feature=feature, feat_dir=alpha_dir_final
-        )
+        if alpha_tp is False:
+            alpha = load_alpha(feature=feature, feat_dir=alpha_dir_final)
 
         output = dict.fromkeys(output_names)
 
         rmse_scores = {}
         corr_scores = {}
+        weighted_corr_scores = {}
 
         for tp, l in enumerate(layers_names):
-            print(l)
+            if alpha_tp is True:
+                alpha = load_alpha(feature, alpha_dir_final, tp)
 
             y_train_tp = load_activation("training", l, act_dir)
             y_test_tp = load_activation("test", l, act_dir)
@@ -136,6 +162,23 @@ def encoding(input_type, feat_dir, cnn_dir, save_dir, frame):
 
             rmse_scores[l] = rmse_score
             corr_scores[l] = correlation
+
+            if explained_var_dir:
+                # Load the explained variance for the current layer
+                explained_var_layer = os.path.join(
+                    explained_var_dir, l, "explained_variance.pkl"
+                )
+
+                with open(explained_var_layer, "rb") as file:
+                    explained_var = pickle.load(file)
+
+                explained_var = np.array(explained_var["explained_variance"])
+                total_variance = np.sum(explained_var)
+
+                # Weighted correlation
+                weighted_corr_scores[l] = (
+                    correlation * explained_var / total_variance
+                )
 
         if explained_var_dir:
             rmse_avg_chan = np.zeros((num_layers))
@@ -167,6 +210,7 @@ def encoding(input_type, feat_dir, cnn_dir, save_dir, frame):
         output["correlation"] = corr_scores
         output["rmse_average"] = rmse_avg_chan
         output["correlation_average"] = corr_avg_chan
+        output["weighted_correlation"] = weighted_corr_scores
 
         regression_features[feature] = output
 
@@ -225,13 +269,16 @@ if __name__ == "__main__":
     input_type = args.input_type
     frame = config.getint(args.config, "img_frame")
     save_dir = config.get(args.config, "save_dir_cnn")
-    
+
+    # Hardcoded for now
+    ALPHA_PER_TP = True
+
     if input_type == "images":
-        feat_dir = config.get(args.config, "feat_dir_cnn_img")
-        cnn_dir = config.get(args.config, "cnn_dir_img")
+        feat_dir = config.get(args.config, "save_dir_feat_img")
+        cnn_dir = config.get(args.config, "save_dir_cnn_img")
     else:
-        feat_dir = config.get(args.config, "feat_dir_cnn_vid")
-        cnn_dir = config.get(args.config, "cnn_dir_vid")
+        feat_dir = config.get(args.config, "save_dir_feat_video")
+        cnn_dir = config.get(args.config, "save_dir_cnn_video")
+    
 
-    encoding(input_type, feat_dir, cnn_dir, save_dir, frame)
-
+    encoding(input_type, feat_dir, cnn_dir, save_dir, frame, alpha_tp=ALPHA_PER_TP)

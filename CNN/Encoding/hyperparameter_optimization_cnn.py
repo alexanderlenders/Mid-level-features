@@ -15,8 +15,8 @@ import argparse
 from utils import load_activation
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 
 from EEG.Encoding.utils import (
@@ -27,15 +27,37 @@ from EEG.Encoding.utils import (
 )
 
 
-def hyperparameter_tuning(input_type, feat_dir, save_dir, cnn_dir, frame):
+def hyperparameter_tuning(input_type: str, feat_dir: str, save_dir: str, cnn_dir: str, frame: int):
     """
-    Hyperparameter tuning for ridge regression for the DNN encoding.
+    Performs hyperparameter tuning for encoding unit activations in deep neural networks
+    (e.g., ResNet) from mid-level features extracted from images or video clips. For each feature
+    and each specified layer, fits a ridge regression model with varying regularization strengths
+    (alpha), evaluates performance metrics (RMSE, correlation, weighted correlation), and saves results.
+
+    Input:
+    ----------
+    Feature and activation directories containing precomputed features and CNN activations for
+    images or video clips. Features are loaded from .pkl files, and activations are loaded per layer.
+    The function supports both weighted and unweighted regression based on explained variance.
+
+    Returns:
+    ----------
+    Saves a dictionary of regression results for each feature in a .pkl file in the specified
+    save directory. The results include RMSE scores, correlation scores, weighted correlations,
+    and their averages for each layer, along with the best alpha values for each metric.
 
     Parameters
     ----------
     input_type : str
-        Images or miniclips
-
+        Type of input data ("images" or "miniclips").
+    feat_dir : str
+        Directory containing feature .pkl files.
+    save_dir : str
+        Directory to save regression results.
+    cnn_dir : str
+        Directory containing CNN activations and explained variance files.
+    frame : int
+        Frame index for selecting image features (used if input_type is "images").
     """
     # set up some variables and paths
     layers_names = (
@@ -69,7 +91,6 @@ def hyperparameter_tuning(input_type, feat_dir, save_dir, cnn_dir, frame):
             f"video_features_avg_frame_redone_{len(feature_names)}.pkl",
         )
 
-
     explained_var_dir = os.path.join(cnn_dir, "pca")
     save_dir = os.path.join(save_dir, input_type)
     act_dir = os.path.join(cnn_dir, "prepared")
@@ -82,7 +103,7 @@ def hyperparameter_tuning(input_type, feat_dir, save_dir, cnn_dir, frame):
     print(f"Using device: {device}")
 
     # Hyperparameter space
-    alpha_space = np.logspace(-5, 10, 10)
+    alpha_space = np.logspace(-5, 10, 20)
 
     output_names = (
         "rmse_score",
@@ -97,7 +118,6 @@ def hyperparameter_tuning(input_type, feat_dir, save_dir, cnn_dir, frame):
     regression_features = dict.fromkeys(feature_names)
 
     for feature in features_dict.keys():
-        print(feature)
         X_train, X_val, _ = load_features(feature, featuresDir)
         output = dict.fromkeys(output_names)
 
@@ -105,13 +125,9 @@ def hyperparameter_tuning(input_type, feat_dir, save_dir, cnn_dir, frame):
         corr_scores = {}
 
         for tp, l in enumerate(layers_names):
-            print(l)
 
             y_train_tp = load_activation("training", l, act_dir)
             y_val_tp = load_activation("validation", l, act_dir)
-
-            print(y_train_tp.shape)
-            print(y_val_tp.shape)
 
             rmse = np.zeros((1, len(alpha_space), y_train_tp.shape[1]))
             corr = np.zeros((1, len(alpha_space), y_train_tp.shape[1]))
@@ -154,11 +170,6 @@ def hyperparameter_tuning(input_type, feat_dir, save_dir, cnn_dir, frame):
 
                 rmse_it = rmse_scores[layer][0]
                 corr_it = corr_scores[layer][0]
-
-                print(layer)
-                print(explained_var.shape)
-                print(rmse_it.shape)
-                print(corr_it.shape)
 
                 rmse_avg_chan[i, :] = (
                     np.sum(rmse_it * explained_var, axis=1) / total_variance
@@ -245,13 +256,13 @@ if __name__ == "__main__":
     input_type = args.input_type
     frame = config.getint(args.config, "img_frame")
     save_dir = config.get(args.config, "save_dir_cnn")
-    
+
     if input_type == "images":
-        feat_dir = config.get(args.config, "feat_dir_cnn_img")
-        cnn_dir = config.get(args.config, "cnn_dir_img")
+        feat_dir = config.get(args.config, "save_dir_feat_img")
+        cnn_dir = config.get(args.config, "save_dir_cnn_img")
     else:
-        feat_dir = config.get(args.config, "feat_dir_cnn_vid")
-        cnn_dir = config.get(args.config, "cnn_dir_vid")
+        feat_dir = config.get(args.config, "save_dir_feat_video")
+        cnn_dir = config.get(args.config, "save_dir_cnn_video")
     
     hyperparameter_tuning(
         input_type=input_type,

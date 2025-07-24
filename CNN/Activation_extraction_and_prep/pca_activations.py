@@ -5,7 +5,6 @@ REDUCE DIM OF EXTRACTED CNN ACTIVATIONS USING PCA
 
 @author: Alexander Lenders, Agnessa Karapetian
 """
-# Import modules
 import os
 import numpy as np
 import scipy.io
@@ -17,21 +16,22 @@ from sklearn.preprocessing import StandardScaler
 import argparse
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 
 from EEG.Encoding.utils import (
     load_config,
 )
 
+
 def pca(
     features_train,
     features_val,
     features_test,
-    pca_method="linear",
-    n_comp=1000,
-    diagnostics=True,
+    pca_method: str = "linear",
+    n_comp: int = 1000,
+    diagnostics: bool = True,
     pca_save_dir: str = None,
     min_var: float = None,
 ):
@@ -117,9 +117,9 @@ def pca(
             cumulative_variance = np.cumsum(per_var)
 
             # Check where cumulative variance exceeds min_var
-            min_var_index = np.where(cumulative_variance >= min_var * 100)[
+            min_var_index = np.where(cumulative_variance >= min_var * 100)[0][
                 0
-            ][0]
+            ]
 
             print("=====================================================")
             print("Min Var Index: ", min_var_index)
@@ -163,7 +163,8 @@ def pca(
 
     return pca_train, pca_val, pca_test
 
-def apply_pca(feature_dir, character_dir, num_comp=1000):
+
+def apply_pca(feature_dir: str, character_dir: str, num_comp: int = 1000):
     """
     Apply PCA to the extracted features (extra script to reduce RAM usage)
     """
@@ -173,8 +174,6 @@ def apply_pca(feature_dir, character_dir, num_comp=1000):
     num_videos = 1440
 
     save_dir = os.path.join(feature_dir, "pca")
-
-    print(num_comp)
 
     MIN_VAR = 0.9
     (print("Applying PCA with minimum variance of: ", MIN_VAR))
@@ -430,7 +429,7 @@ def apply_pca(feature_dir, character_dir, num_comp=1000):
     # STEP 3: SAVE FEATURES #
     # --------------------------------------
     features_dir = os.path.join(save_dir, "features_resnet_scenes_avg.pkl")
-    
+
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
 
@@ -470,11 +469,11 @@ if __name__ == "__main__":
     config = load_config(args.config_dir, args.config)
 
     character_dir = config.get(args.config, "character_metadata_dir")
-    
+
     if input_type == "images":
         feature_dir = config.get(args.config, "save_dir_cnn_img")
     elif input_type == "miniclips":
-        feature_dir = config.get(args.config, "save_dir_cnn_vid")
+        feature_dir = config.get(args.config, "save_dir_cnn_video")
 
     # run
     apply_pca(
@@ -482,4 +481,3 @@ if __name__ == "__main__":
         character_dir=character_dir,
         num_comp=1000,
     )
-    

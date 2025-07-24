@@ -1,5 +1,3 @@
-/home/alexandel91/Mid-level-features
-/home/alexandel91/Mid-level-features
 findfont: Font family 'Arial' not found.
 findfont: Font family 'Arial' not found.
 findfont: Font family 'Arial' not found.
@@ -287,12 +285,3 @@ findfont: Font family 'Arial' not found.
 findfont: Font family 'Arial' not found.
 findfont: Font family 'Arial' not found.
 findfont: Font family 'Arial' not found.
-/home/alexandel91/Mid-level-features
-Test 2
-edges
-reflectance
-lighting
-world_normal
-scene_depth
-skeleton
-action

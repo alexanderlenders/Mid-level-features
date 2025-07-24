@@ -3,7 +3,7 @@ Script to train the ResNet-18 model on Kinetics-400 video frames (control analys
 """
 
 import argparse
-import pytorch_lightning as pl
+import lightning as pl
 from model import ResNetClassifier
 from data import KineticsFrameDataModule
 from utils import set_random_seeds
@@ -11,7 +11,20 @@ from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.callbacks import ModelCheckpoint
 import os
 
-def main(data_dir, batch_size, num_workers, max_epochs, lr, gpus, seed, save_dir, dev=False, class_names=None):
+
+def main(
+    data_dir,
+    batch_size,
+    num_workers,
+    max_epochs,
+    lr,
+    gpus,
+    seed,
+    save_dir,
+    dev=False,
+    class_names=None,
+    weight_decay=0.0,
+):
     # Check if the save directory exists, if not create it
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
@@ -23,28 +36,37 @@ def main(data_dir, batch_size, num_workers, max_epochs, lr, gpus, seed, save_dir
         data_dir=data_dir,
         batch_size=batch_size,
         num_workers=num_workers,
-        class_names=class_names
+        class_names=class_names,
     )
 
-    model = ResNetClassifier(lr=lr, num_classes=len(class_names))
+    if class_names is not None:
+        model = ResNetClassifier(lr=lr, weight_decay=weight_decay, num_classes=len(class_names))
+    else:
+        model = ResNetClassifier(lr=lr, weight_decay=weight_decay)
+
+    print("******Training ResNet-18 on Kinetics-400 video frames******")
+    print("Learning rate:", lr)
+    print("Weight decay:", weight_decay)
+    print("Batch size:", batch_size)
+    print("****************************************************")
 
     # Define logger
     logger = TensorBoardLogger(
-        save_dir=save_dir,
-        name="resnet18_kinetics",
-        log_graph=False
+        save_dir=save_dir, name="resnet18_kinetics", log_graph=False
     )
 
     # Determine model checkpoints
     checkpoint_callback = ModelCheckpoint(
-        monitor='val_loss',
-        dirpath=os.path.join(save_dir, 'checkpoints'),
-        filename='resnet18-{epoch:02d}-{val_loss:.2f}',
-        save_top_k=1,
-        every_n_epochs=10,
-        mode='min',
-        save_last=True
+        monitor="val_loss",
+        dirpath=os.path.join(save_dir, "checkpoints"),
+        filename="resnet18-{epoch:02d}-{val_loss:.2f}",
+        save_top_k=3,
+        every_n_epochs=1,
+        mode="min",
+        save_last=True,
     )
+
+    print("Number of GPUs available:", gpus)
 
     trainer = pl.Trainer(
         max_epochs=max_epochs,
@@ -54,24 +76,40 @@ def main(data_dir, batch_size, num_workers, max_epochs, lr, gpus, seed, save_dir
         deterministic=True,
         callbacks=[checkpoint_callback],
         fast_dev_run=dev,
+        strategy="ddp" if gpus > 1 else None,
     )
 
     trainer.fit(model, datamodule=dm)
 
-    # Test the model
-    trainer.test(model, datamodule=dm)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', type=str, required=True, help='Path to Kinetics-400 root folder')
-    parser.add_argument('--batch_size', type=int, default=64)
-    parser.add_argument('--num_workers', type=int, default=4)
-    parser.add_argument('--max_epochs', type=int, default=10)
-    parser.add_argument('--lr', type=float, default=3e-4)
-    parser.add_argument('--gpus', type=int, default=1)
-    parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
-    parser.add_argument('--save_dir', type=str, default='logs', help='Directory to save logs and checkpoints')
-    parser.add_argument('--dev', action='store_true', help='Run in development mode (fast_dev_run)')
+    parser.add_argument(
+        "--data_dir",
+        type=str,
+        required=True,
+        help="Path to Kinetics-400 root folder",
+    )
+    parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--num_workers", type=int, default=4)
+    parser.add_argument("--max_epochs", type=int, default=10)
+    parser.add_argument("--lr", type=float, default=3e-4)
+    parser.add_argument("--weight_decay", type=float, default=0.0)
+    parser.add_argument("--gpus", type=int, default=1)
+    parser.add_argument(
+        "--seed", type=int, default=42, help="Random seed for reproducibility"
+    )
+    parser.add_argument(
+        "--save_dir",
+        type=str,
+        default="logs",
+        help="Directory to save logs and checkpoints",
+    )
+    parser.add_argument(
+        "--dev",
+        action="store_true",
+        help="Run in development mode (fast_dev_run)",
+    )
 
     args = parser.parse_args()
 
@@ -110,5 +148,18 @@ if __name__ == "__main__":
     seed = args.seed
     save_dir = args.save_dir
     dev = args.dev
+    weight_decay = args.weight_decay
 
-    main(data_dir, batch_size, num_workers, max_epochs, lr, gpus, seed, save_dir, dev, class_names)
+    main(
+        data_dir,
+        batch_size,
+        num_workers,
+        max_epochs,
+        lr,
+        gpus,
+        seed,
+        save_dir,
+        dev,
+        class_names,
+        weight_decay,
+    )

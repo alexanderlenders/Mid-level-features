@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-ENCODING - AVERAGE FEATURES BEFORE PCA - UNREAL ENGINE
-
-This script implements the multivariate linear ridge regression for the
-scene features from the Unreal Engine for a single frame.
+This script implements the encoding analysis for control analysis 3.
 
 @author: Alexander Lenders, Agnessa Karapetian
 """
@@ -29,17 +26,16 @@ from EEG.Encoding.utils import (
     vectorized_correlation,
 )
 
-
 def encoding(
-    sub,
-    freq,
-    region,
-    input_type,
-    feat_dir,
-    save_dir,
-    eeg_dir,
-    frame,
-    feature_names,
+    sub: int,
+    freq: int,
+    region: str,
+    input_type: str,
+    feat_dir: str,
+    save_dir: str,
+    eeg_dir: str,
+    frame: int,
+    feature_names: list,
 ):
     """
     Input:
@@ -115,7 +111,7 @@ def encoding(
     elif region == "posterior":
         n_channels = 19
 
-    alpha_tp = False  # maybe add to function as a parameter above
+    alpha_tp = True  # Hardcoded
 
     print("training")
     y_train, timepoints = load_eeg(
@@ -158,7 +154,7 @@ def encoding(
                     feature,
                     input_type,
                     feat_dir=save_dir,
-                    timepoint=tp,
+                    tp=tp,
                     feat_len=len(feature_names),
                 )
             y_train_tp = y_train[:, :, tp]

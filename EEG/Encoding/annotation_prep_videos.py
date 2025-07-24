@@ -7,8 +7,6 @@ This script prepares the annotations from the Unreal Engine by extracting the lo
 high-level features from them. For the low-level feature, canny edges, the canny algorithm is applied.
 Lastly, a PCA is performed on all features which have more than n=100 components.
 
-Anaconda-environment on local machine: opencv_env
-
 @author: Alexander Lenders, Agnessa Karapetian
 """
 import argparse
@@ -33,13 +31,13 @@ import os
 
 
 def feature_extraction(
-    videos_dir,
-    annotations_dir,
-    character_dir,
-    action_dir,
-    save_dir,
-    n_components,
-    pca_method,
+    videos_dir: str,
+    annotations_dir: str,
+    character_dir: str,
+    action_dir: str,
+    save_dir: str,
+    n_components: int,
+    pca_method: str,
     feature_names: list = None,
     start_frame: int = 10,
     end_frame: int = 19,
@@ -79,6 +77,12 @@ def feature_extraction(
         Number of components for the PCA
     pca_method: str
         Whether to use a linearPCA ('linear') or KernelPCA ('nonlinear')
+    feature_names: list
+        List of features to extract, if None, all features are extracted
+    start_frame: int
+        Start frame for the video, default is 10
+    end_frame: int
+        End frame for the video, default is 19
     """
     if feature_names is None:
         # Feature names
@@ -127,8 +131,6 @@ def feature_extraction(
     pca_features = dict.fromkeys(feature_names)
 
     for feature in pca_features.keys():
-        print(feature)
-
         datasets = []
 
         if feature == "edges":

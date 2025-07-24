@@ -33,14 +33,14 @@ import os
 
 
 def feature_extraction(
-    images_dir,
-    n_components,
-    annotations_dir,
-    character_dir,
-    action_dir,
-    save_dir,
-    pca_method,
-    frame,
+    images_dir: str,
+    n_components: int,
+    annotations_dir: str,
+    character_dir: str,
+    action_dir: str,
+    save_dir: str,
+    pca_method: str,
+    frame: int,
     feature_names: list = None,
 ):
     """
@@ -78,6 +78,11 @@ def feature_extraction(
         Whether to use a linearPCA ('linear') or KernelPCA ('nonlinear')
     frame: int
         Image frame where to get annotations
+    feature_names: list, optional
+        List of feature names to extract. If None, default features are used.
+        Default is None, which uses all features:
+        ['edges', 'skeleton', 'world_normal', 'lighting', 'scene_depth',
+        'reflectance', 'action'].
     """
     if feature_names is None:
         # Feature names
@@ -129,7 +134,6 @@ def feature_extraction(
     pca_features = dict.fromkeys(feature_names)
 
     for feature in pca_features.keys():
-        print(feature)
 
         datasets = []
 

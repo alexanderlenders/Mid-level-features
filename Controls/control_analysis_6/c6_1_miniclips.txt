@@ -1,222 +1,491 @@
-Hyperparam tuning
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Using device: cpu
-dict_keys(['reflectance, lighting, world_normal, scene_depth, skeleton, action', 'edges, lighting, world_normal, scene_depth, skeleton, action', 'edges, reflectance, world_normal, scene_depth, skeleton, action', 'edges, reflectance, lighting, scene_depth, skeleton, action', 'edges, reflectance, lighting, world_normal, skeleton, action', 'edges, reflectance, lighting, world_normal, scene_depth, action', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton', 'edges, reflectance, lighting, world_normal, scene_depth, skeleton, action'])
-['reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'world_normal', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'scene_depth', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'skeleton', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'action']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton']
-['edges', 'reflectance', 'lighting', 'world_normal', 'scene_depth', 'skeleton', 'action']
-Encoding
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
-Using device: cpu
+/home/alexandel91/Mid-level-features
+edges, reflectance, lighting, world_normal, scene_depth, skeleton, action
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+findfont: Font family 'Arial' not found.
+/home/alexandel91/Mid-level-features
+edges, reflectance, lighting, world_normal, scene_depth, skeleton, action
+reflectance, lighting, world_normal, scene_depth, skeleton, action
+edges, lighting, world_normal, scene_depth, skeleton, action
+edges, reflectance, world_normal, scene_depth, skeleton, action
+edges, reflectance, lighting, scene_depth, skeleton, action
+edges, reflectance, lighting, world_normal, skeleton, action
+edges, reflectance, lighting, world_normal, scene_depth, action
+edges, reflectance, lighting, world_normal, scene_depth, skeleton
+edges, reflectance, lighting, world_normal, scene_depth, skeleton, action

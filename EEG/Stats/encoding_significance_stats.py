@@ -9,7 +9,6 @@ alpha-level of .05. The statistical tests are two-sided per default.
 Chance-level of encoding is 0.
 
 @author: Alexander Lenders, Agnessa Karapetian
-
 """
 import os
 import numpy as np
@@ -20,7 +19,6 @@ import argparse
 import sys
 from pathlib import Path
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 
 from EEG.Encoding.utils import (
@@ -28,7 +26,7 @@ from EEG.Encoding.utils import (
     parse_list,
 )
 
-def permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type, workDir, feature_names):
+def permutation_test(list_sub: list, n_perm: int, tail: str, alpha: float, timepoints: int, input_type: str, workDir: str, feature_names: list, var_part: bool = False):
     """
     Input:
     ----------
@@ -62,6 +60,13 @@ def permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type, work
         Number of timepoints
     input_type: str
         Miniclips or images
+    workDir: str
+        Working directory where the results are saved
+    feature_names: list
+        List of feature names to be analyzed
+    var_part: bool
+        If True, only the last feature is analyzed (for control_6_1 and control
+        6_2). If False, all features are analyzed (Default: False)
     """
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
@@ -70,7 +75,7 @@ def permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type, work
     saveDir = os.path.join(workDir, "stats")
     if not os.path.exists(saveDir):
         os.makedirs(saveDir)
-
+    
     identifierDir = f"seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
 
     n_sub = len(list_sub)
@@ -78,6 +83,15 @@ def permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type, work
     # set random seed (for reproduction)
     np.random.seed(42)
 
+    if var_part:
+        feature_names = feature_names[-1:]
+
+    temp_list = [
+        f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
+        for f in feature_names  
+    ]
+
+    feature_names = temp_list
     # -------------------------------------------------------------------------
     # STEP 2.2 Load results
     # -------------------------------------------------------------------------
@@ -243,14 +257,16 @@ if __name__ == "__main__":
     workDir = config.get(args.config, "save_dir")
     feature_names = parse_list(config.get(args.config, "feature_names"))
 
-    if args.config == "control_6_1" or args.config == "control_6_2":
-        feature_names = feature_names[:-1]  # remove the full feature set
-
+    tail = args.tail
     n_perm = args.num_perm
     timepoints = args.num_tp
     alpha = args.alpha
-    tail = args.tail
     input_type = args.input_type
+
+    if args.config == "control_6_1" or args.config == "control_6_2":
+        var_part = True
+    else:
+        var_part = False
 
     if input_type == "miniclips":
         list_sub = [
@@ -278,4 +294,4 @@ if __name__ == "__main__":
     elif input_type == "images":
         list_sub = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
 
-    permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type, workDir, feature_names)
+    permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type, workDir, feature_names, var_part=var_part)

@@ -1,15 +1,7 @@
-"#!/usr/bin/env python3"
-
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-HYPERPARAMETER TUNING FOR ENCODING - AVERAGE FEATURES BEFORE PCA - UNREAL ENGINE
-
-This script tunes the hyperparameter alpha (<=> lambda) for ridge regression.
-To do this, the alpha parameter are added to the data matrix X (data 
-augmentation trick), which creates a simple OLS problem, with is solved using 
-Cholesky decomposition. 
-
-Anaconda environment on local machine: dnn_video
+This script implements the hyperparameter optimization for control analysis 3.
 
 @author: Alexander Lenders, Agnessa Karapetian
 """
@@ -37,15 +29,15 @@ from EEG.Encoding.utils import (
 
 
 def hyperparameter_tuning(
-    sub,
-    freq,
-    region,
-    input_type,
-    feat_dir,
-    save_dir,
-    eeg_dir,
-    frame,
-    feature_names=None,
+    sub: int,
+    freq: int,
+    region: str,
+    input_type: str,
+    feat_dir: str,
+    save_dir: str,
+    eeg_dir: str,
+    frame: int,
+    feature_names: list = None,
 ):
     """
     Input:
@@ -86,6 +78,16 @@ def hyperparameter_tuning(
         The region for which the EEG data should be analyzed.
     input_type: str
         Miniclips or images
+    feat_dir: str
+        Directory where the features are stored.
+    save_dir: str
+        Directory where the results should be saved.
+    eeg_dir: str
+        Directory where the EEG data is stored.
+    frame: int
+        Frame number to be used for the analysis.
+    feature_names: list
+        List of feature names to be used for the analysis. If None, default features are used
     """
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
@@ -119,7 +121,7 @@ def hyperparameter_tuning(
     print(f"Using device: {device}")
 
     # Hyperparameter space
-    alpha_space = np.logspace(-5, 10, 10)
+    alpha_space = np.logspace(-5, 10, 20)
 
     y_train, timepoints = load_eeg(
         sub, "training", region, freq, input_type, eeg_dir=eeg_dir

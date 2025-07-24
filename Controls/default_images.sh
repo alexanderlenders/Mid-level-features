@@ -4,18 +4,20 @@
 source /home/alexandel91/.bashrc
 conda activate encoding
 
-# First step: MVNN
-python ../EEG/Encoding/mvnn_encoding.py \
-    --config_dir ./config.ini \
-    --config default \
-    --input_type "images"
+export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
+
+# # First step: MVNN
+# python ../EEG/Encoding/mvnn_encoding.py \
+#     --config_dir ./config.ini \
+#     --config default \
+#     --input_type "images"
 
 # # Second step: Preprocess the features of the first frame in each video
 # python ../EEG/Encoding/annotation_prep_images.py \
 #     --config_dir ./config.ini \
 #     --config default 
     
-# # Third step: Hyperparameter optimization
+# Third step: Hyperparameter optimization
 # python ../EEG/Encoding/hyperparameter_optimization.py \
 #     --config_dir ./config.ini \
 #     --config default \
@@ -41,9 +43,10 @@ python ../EEG/Encoding/mvnn_encoding.py \
 #     --config default \
 #     --input_type "images"
 
-# # Seventh step: Plotting 
-# echo "Plotting results..."
-# python ../EEG/Plotting/plot_encoding.py \
-#     --config_dir ./config.ini \
-#     --config default \
-#     --input_type "images"
+# Seventh step: Plotting 
+echo "Plotting results..."
+python ../EEG/Plotting/plot_encoding.py \
+    --config_dir ./config.ini \
+    --config default \
+    --input_type "images" \
+    --legend

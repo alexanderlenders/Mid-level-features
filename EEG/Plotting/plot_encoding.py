@@ -19,7 +19,6 @@ import sys
 from pathlib import Path
 
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 
 from EEG.Encoding.utils import (
@@ -53,6 +52,11 @@ parser.add_argument(
     metavar="",
     help="images, miniclips or difference",
 )
+parser.add_argument(
+    "--legend",
+    action="store_true",
+    help="Show legend in plots",
+)
 
 args = parser.parse_args()  # to get values for the arguments
 
@@ -60,9 +64,7 @@ config = load_config(args.config_dir, args.config)
 workDir = config.get(args.config, "save_dir")
 noise_ceiling_dir = config.get(args.config, "noise_ceiling_dir")
 feature_names = parse_list(config.get(args.config, "feature_names"))
-
-if args.config == "control_6_1" or args.config == "control_6_2":
-    feature_names = feature_names[:-1]  # remove the full feature set
+plot_legend = args.legend
 
 feature_names_graph = parse_list(
     config.get(args.config, "feature_names_graph")
@@ -170,8 +172,6 @@ elif input_type == "difference":
     peakDir = os.path.join(
         statsDir, "encoding_diff_in_peak.pkl"
     )  # CI 95% peaks
-
-print("Test 2")
 
 ### Define some variables ###
 num_timepoints_og = 70  # full epoch
@@ -361,28 +361,6 @@ upper_ci = [item[2] for item in peaks.values()]
 # sorted_indices = sorted(range(len(accuracies)), key=lambda k: accuracies[k])
 
 if args.config == "default" or args.config == "control_3" or args.config == "control_1" or args.config == "control_2" or args.config == "control_9":
-    # Hardcoded to have same plot as in MS
-    feature_names = (
-        "edges",
-        "world_normal",
-        "scene_depth",
-        "lighting",
-        "reflectance",
-        "skeleton",
-        "action",
-    )
-
-    # Names in the plot
-    feature_names_graph = (
-        "Edges",
-        "Normals",
-        "Depth",
-        "Lighting",
-        "Reflectance",
-        "Skeleton",
-        "Action",
-    )
-
     sorted_indices = [
         0,
         4,
@@ -391,39 +369,18 @@ if args.config == "default" or args.config == "control_3" or args.config == "con
         2,
         5,
         6,
-    ]
-    sorted_indices = [
-        0,
-        4,
-        3,
-        1,
-        2,
-        5,
-        6,
-    ]  # hardcoded - based on results from images
-    sorted_feature_names_graph = [
-        feature_names_graph[i] for i in sorted_indices
-    ]
-    sorted_feature_names = [feature_names[i] for i in sorted_indices]
+    ] 
     sorted_color_dict = [colors[i] for i in sorted_indices]
-    sorted_features_mean = [features_mean[i] for i in sorted_indices]
-elif args.config == "control_1" or args.config == "control_2":
-    colors = [colormap(5)]
-    sorted_feature_names_graph = feature_names_graph
-    sorted_feature_names = feature_names
-    sorted_color_dict = colors
-    sorted_features_mean = features_mean
 else:
-    sorted_feature_names_graph = feature_names_graph
-    sorted_feature_names = feature_names
     sorted_color_dict = colors
-    sorted_features_mean = features_mean
 
+sorted_features_mean = features_mean
+sorted_feature_names_graph = feature_names_graph
+sorted_feature_names = feature_names
 
 for i, feature in enumerate(sorted_features_mean):
     # accuracy
     f_name = sorted_feature_names[i]
-    print(f_name)
     accuracy = feature
     accuracy = accuracy[10:]
 
@@ -639,7 +596,7 @@ ax[1].tick_params(
 plt.tight_layout()
 
 # legend
-if input_type == "images":
+if plot_legend:
     legend_font_props = {"family": font, "size": 9}
     ax[0].legend(
         prop=legend_font_props, frameon=False, bbox_to_anchor=[0.6, 0.82]

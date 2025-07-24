@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-BOOTSTRAPPING ENCODING
+BOOTSTRAPPING ENCODING (DIFFERENCE)
 
 This script calculates Bootstrap 95%-CIs for the encoding accuracy for each
 timepoint (in ms) and each feature. These can be used for the encoding plot as
@@ -20,7 +20,6 @@ from statsmodels.stats.multitest import fdrcorrection
 import sys
 from pathlib import Path
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 
 from EEG.Encoding.utils import (
@@ -29,7 +28,7 @@ from EEG.Encoding.utils import (
 )
 import argparse
 
-def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, workDir, feature_names):
+def bootstrapping_CI(list_sub_vid: list, list_sub_img: list, n_perm: int, timepoints: int, workDir: str, feature_names: list):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and
     each feature.
@@ -48,8 +47,14 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, workDir, fe
 
     Parameters
     ----------
-    list_sub : list
-          List of subjects for which encoding results exist
+    list_sub_vid : list
+          List of subjects for videos
+    list_sub_img : list
+          List of subjects for images
+    workDir : str
+          Working directory where the results are saved
+    feature_names : list
+          List of feature names to be analyzed
     n_perm : int
           Number of permutations for bootstrapping
     timepoints : int
@@ -77,6 +82,12 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, workDir, fe
     # set random seed (for reproduction)
     np.random.seed(42)
 
+    temp_list = [
+        f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
+        for f in feature_names  
+    ]
+    feature_names = temp_list
+
     # -------------------------------------------------------------------------
     # STEP 2.2 Load results
     # -------------------------------------------------------------------------
@@ -91,8 +102,6 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, workDir, fe
         fileDir_img = os.path.join(workDir_img, f"{subject}_{identifierDir}")
         encoding_results_img = np.load(fileDir_img, allow_pickle=True)
         results_img[str(subject)] = encoding_results_img
-
-    # Loop over all features
 
     feature_results = {}
 

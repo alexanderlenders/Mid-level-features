@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-STATS ENCODING LAYERS CNN
+STATS ENCODING LAYERS CNN (DIFFERENCE)
 
 This script implements the statistical tests for the encoding analyis predicting
 the unit activity within the action DNN layers based on the single gaming-engine
 features.
-
-It conducts permutation tests by permuting the PCA components per layer,
-alpha = .05, Benjamini-Hochberg correction.
 
 @author: AlexanderLenders, Agnessa Karapetian
 """
@@ -21,15 +18,13 @@ from statsmodels.stats.multitest import fdrcorrection
 import sys
 from pathlib import Path
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 
 from EEG.Encoding.utils import (
     load_config,
 )
 
-
-def encoding_stats(n_perm, alpha_value, tail, total_var, weighted, encoding_dir):
+def encoding_stats(n_perm: int, alpha_value: float, tail: str, weighted: bool, encoding_dir: str):
     """
     Input:
     ----------
@@ -54,13 +49,14 @@ def encoding_stats(n_perm, alpha_value, tail, total_var, weighted, encoding_dir)
         Number of permutations for bootstrapping
     saveDir : str
         Where to save the results
-    total_var : int
-        Total variance explained by all PCA components
+    weighted : bool
+        If True, uses weighted regression results.
     alpha_value : int
         Significance level
     tail : str
         One-sided or two-sided test
-
+    encoding_dir : str
+        Directory containing the encoding results.
     """
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
@@ -117,17 +113,19 @@ def encoding_stats(n_perm, alpha_value, tail, total_var, weighted, encoding_dir)
     regression_features = dict.fromkeys(feature_names)
 
     for feature in features_dict.keys():
-
         # create statistical map
         stat_map = np.zeros((n_perm, num_layers))
         for l, layer in enumerate(layers_names):
-            # for l, corr_layer in enumerate(encoding_results[feature]['weighted_correlations'].values()):
-            corr_img = encoding_results_img[feature]["weighted_correlations"][
+            corr_img = encoding_results_img[feature]["weighted_correlation"][
                 layer
             ]
-            corr_vid = encoding_results_vid[feature]["weighted_correlations"][
+            corr_vid = encoding_results_vid[feature]["weighted_correlation"][
                 layer
             ]
+            
+            # Add a new axis (such that v_stack later on works)
+            corr_img = corr_img[:, np.newaxis]
+            corr_vid = corr_vid[:, np.newaxis]
 
             num_comp_layer_img = corr_img.shape[0]
             num_comp_layer_vid = corr_vid.shape[0]
@@ -138,10 +136,10 @@ def encoding_stats(n_perm, alpha_value, tail, total_var, weighted, encoding_dir)
                 [0] * num_comp_layer_vid + [1] * num_comp_layer_img)
             # 0 for video, 1 for image
 
-            # create mean for each layer over all images
+            # create sum for each layer (this is equivalent to the mean for weighted corrs)
             # this is our "original data" and permutation 1 in the stat_map
-            mean_orig_img = np.sum(corr_img) / total_var
-            mean_orig_vid = np.sum(corr_vid) / total_var
+            mean_orig_img = np.sum(corr_img)
+            mean_orig_vid = np.sum(corr_vid)
             # Order does not matter, as we are using a two-tailed test
             mean_orig_diff = mean_orig_img - mean_orig_vid
 
@@ -155,8 +153,8 @@ def encoding_stats(n_perm, alpha_value, tail, total_var, weighted, encoding_dir)
                 group_1 = all_results[shuffled_labels == 0, :]
                 group_2 = all_results[shuffled_labels == 1, :]
 
-                mean_group_1 = np.sum(group_1) / total_var
-                mean_group_2 = np.sum(group_2) / total_var
+                mean_group_1 = np.sum(group_1)
+                mean_group_2 = np.sum(group_2)
 
                 stat = mean_group_2 - mean_group_1
 
@@ -251,12 +249,6 @@ if __name__ == "__main__":
         help="One-sided: right, two-sided: both",
     )
     parser.add_argument(
-        "-tv",
-        "--total_var",
-        help="Total variance explained by all PCA components together",
-        default=90,
-    )
-    parser.add_argument(
         '--weighted', 
         action='store_true'
     )
@@ -269,8 +261,6 @@ if __name__ == "__main__":
     timepoints = args.num_tp
     alpha_value = args.alpha
     tail = args.tail
-    total_var = args.total_var
-
     if args.weighted:
         weighted = True
     else:
@@ -279,5 +269,5 @@ if __name__ == "__main__":
     # -----------------------------------------------------------------------------
     # STEP 3 Run function
     # -----------------------------------------------------------------------------
-    encoding_stats(n_perm, alpha_value, tail, total_var, weighted, encoding_dir)
+    encoding_stats(n_perm, alpha_value, tail, weighted, encoding_dir)
 

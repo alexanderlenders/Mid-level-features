@@ -4,6 +4,8 @@
 source /home/alexandel91/.bashrc
 conda activate encoding
 
+export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
+
 # First step: Bootstrapping
 python ../EEG/Stats/encoding_difference_bootstrapping.py \
     --config_dir ./config.ini \

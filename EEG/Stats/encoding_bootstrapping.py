@@ -20,7 +20,6 @@ import pickle
 import sys
 from pathlib import Path
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 
 from EEG.Encoding.utils import (
@@ -29,7 +28,7 @@ from EEG.Encoding.utils import (
 )
 import argparse
 
-def bootstrapping_CI(list_sub, n_perm, timepoints, input_type, workDir, feature_names):
+def bootstrapping_CI(list_sub: list, n_perm: int, timepoints: int, input_type: str, workDir: str, feature_names: list):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and
     each feature.
@@ -56,6 +55,10 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type, workDir, feature_
           Number of timepoints
     input_type : str
         Images or miniclips
+    workDir : str
+        Working directory where the results are saved
+    feature_names : list
+        List of feature names to be processed
     """
     # -------------------------------------------------------------------------
     # STEP 2.1 Define Variables
@@ -88,9 +91,14 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type, workDir, feature_
     results_dict = {}
     ci_dict_all = {}
 
-    for feature in feature_names:
+    # define matrix where to save the values
+    temp_list = [
+        f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
+        for f in feature_names  
+    ]
+    feature_names = temp_list
 
-        print(f"Processing feature: {feature}")
+    for feature in feature_names:
 
         results = np.zeros((n_sub, timepoints))
         for index, subject in enumerate(list_sub):

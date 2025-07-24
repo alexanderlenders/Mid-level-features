@@ -1,9 +1,10 @@
 """
 This script contains the code for control analysis 4, where the image and
-video responses for the same stimuli are correlated. Note that the correlation
-is computed after applying MVNN, and after averaging across trials, and participants. The correlation is computed for each electrode separately, and then averaged across electrodes.
+video EEG responses for the same stimuli are correlated. Note that the correlation
+is computed after applying MVNN, and after averaging across trials, and participants. 
+The correlation is computed for each electrode separately, and then averaged across electrodes.
 
-@author: Alexander Lenders
+@author: Alexander Lenders, Agnessa Karapetian
 """
 
 import numpy as np
@@ -14,10 +15,8 @@ from pathlib import Path
 import argparse
 
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 from EEG.Encoding.utils import load_eeg, vectorized_correlation, load_config
-
 
 def c4(
     subj_list_img: list,
@@ -29,8 +28,6 @@ def c4(
     """
     Function for control analysis 4, in which image and video responses are correlated
     across timepoints after applying MVNN and averaging across electrodes, trials, and participants.
-
-    This analysis is only conducted for the test data set.
     """
     N_CHANNELS = 19  # Use same channels as in encoding analysis
     REGION = "posterior"  # Use same region as in encoding analysis
@@ -39,7 +36,6 @@ def c4(
     # First step: Load all the EEG data for all subjects (images)
     full_eeg_data_img = []
     for sub in subj_list_img:
-        print(sub)
         y_test, _ = load_eeg(
             sub, "test", REGION, FREQ, "images", eeg_dir=eeg_dir
         )
@@ -63,7 +59,6 @@ def c4(
     # Second step: Load all the EEG data for all subjects (videos)
     full_eeg_data_vid = []
     for sub in subj_list_vid:
-        print(sub)
         y_test, _ = load_eeg(
             sub, "test", REGION, FREQ, "miniclips", eeg_dir=eeg_dir
         )
@@ -80,6 +75,7 @@ def c4(
         full_eeg_data_vid.append(y)
 
     full_eeg_data_vid = np.array(full_eeg_data_vid)
+
     # Now average across participants
     full_eeg_data_vid = full_eeg_data_vid.mean(axis=0)
 
@@ -95,15 +91,14 @@ def c4(
 
         correlation = vectorized_correlation(y_img, y_vid)
 
-        print(correlation.shape, flush=True)
-
         corr[tp, :] = correlation
 
     # Average across electrodes
     corr = np.mean(corr, axis=1)
-    corr = corr[10:]
 
     # Fifth step: Plot correlation across timepoints
+    # To have consistent plots, we remove the first 10 timepoints (as in encoding results)
+    corr = corr[10:]
     timepoints = np.arange(60)  # for plotting
 
     ### Create the plot ###

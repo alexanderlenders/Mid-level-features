@@ -29,17 +29,17 @@ import argparse
 
 
 def hyperparameter_tuning(
-    sub,
-    freq,
-    region,
-    input_type,
-    feat_dir,
-    save_dir,
-    eeg_dir,
-    frame,
-    feature_names,
-    exclude, 
-    full_feat: bool = False
+    sub: int,
+    freq: int,
+    region: str,
+    input_type: str,
+    feat_dir: str,
+    save_dir: str,
+    eeg_dir: str,
+    frame: int,
+    feature_names: list,
+    exclude: bool,
+    full_feat: bool = False,
 ):
     """
     Input:
@@ -80,6 +80,21 @@ def hyperparameter_tuning(
         The region for which the EEG data should be analyzed.
     input_type: str
         Miniclips or images
+    feat_dir: str
+        Directory where the features are stored.
+    save_dir: str
+        Directory where the results should be saved.
+    eeg_dir: str
+        Directory where the EEG data is stored.
+    frame: int
+        Frame number for images (default is 0).
+    feature_names: list
+        List of feature names to be used for the analysis.
+    exclude: bool
+        If True, guitar trials will be excluded from the analysis.
+    full_feat: bool
+        If True, all features will be used, otherwise only the specified features.
+        Default is False.
     """
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
@@ -117,7 +132,7 @@ def hyperparameter_tuning(
     print(f"Using device: {device}")
 
     # Hyperparameter space
-    alpha_space = np.logspace(-5, 10, 10)
+    alpha_space = np.logspace(-5, 10, 20)
 
     if input_type == "miniclips":
         y_train, timepoints = load_eeg(
@@ -145,13 +160,13 @@ def hyperparameter_tuning(
     )
 
     if exclude:
-        print("Excluding guitar trials from the analysis (control analysis 9).")
+        print(
+            "Excluding guitar trials from the analysis (control analysis 9)."
+        )
 
-        X_train, X_val, _ = load_feature_set(
-            "action",
-            featuresDir)
-        
-        # Find all rows in X_train and X_test that contain a 1 in column 5 
+        X_train, X_val, _ = load_feature_set("action", featuresDir)
+
+        # Find all rows in X_train and X_test that contain a 1 in column 5
         guitar_trials_train = np.where(X_train[:, 5] == 1)[0]
         guitar_trials_test = np.where(X_val[:, 5] == 1)[0]
 
@@ -161,16 +176,11 @@ def hyperparameter_tuning(
 
     # define matrix where to save the values
     regression_features = {
-    (
-        f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
-    ): None
-    for f in feature_names
+        (f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)): None
+        for f in feature_names
     }
 
-    print(regression_features.keys(), flush=True)
-
     for feature in feature_names:
-        print(feature, flush=True)
         X_train, X_val, _ = load_feature_set(feature, featuresDir)
 
         if exclude:
@@ -359,11 +369,10 @@ if __name__ == "__main__":
                 frame,
                 feature_names=feature_names,
                 exclude=exclude_guitar_trials,
-                full_feat=True
+                full_feat=True,
             )
     else:
         for sub in subjects:
-            print(sub)
             hyperparameter_tuning(
                 sub,
                 freq,

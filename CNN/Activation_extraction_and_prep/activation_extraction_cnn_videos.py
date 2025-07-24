@@ -1,7 +1,7 @@
 """
 Script to extract CNN activations from videos and save them in a specified directory.
 
-@author: Alexander Lenders
+@author: Alexander Lenders, Agnessa Karapetian
 """
 from torchvision.models.feature_extraction import get_graph_node_names
 from torchvision.models.feature_extraction import create_feature_extractor
@@ -19,14 +19,44 @@ import argparse
 from tqdm import tqdm
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 from EEG.Encoding.utils import (
     load_config,
 )
 
-def extract_activations(miniclips_dir, save_dir, seed, init):
+
+def extract_activations(miniclips_dir: str, save_dir: str, seed: int, init: bool):
+    """
+    Extracts activations from specified layers of a ResNet3D-18 model for a set of videos,
+    and saves the extracted features for each layer as .pkl files.
+    Loads a ResNet3D-18 model (optionally with pre-trained weights), preprocesses videos,
+    extracts activations from specified intermediate layers, and saves the flattened
+    activations for each video and layer.
+
+    Input:
+    ----------
+    Directory containing videos to process. Videos should be named in the format
+    '{video_number:04}.mp4'.
+
+    Returns:
+    ----------
+    Saves a dictionary of extracted features for each specified layer as a .pkl file
+    in the provided save directory. Each .pkl file contains a 2D numpy array of shape
+    (num_videos, num_units), where num_units = C*H*W for the layer.
+
+    Parameters
+    ----------
+    miniclips_dir : str
+        Directory containing input videos.
+    save_dir : str
+        Directory to save extracted features.
+    seed : int
+        Random seed for reproducibility.
+    init : bool
+        If True, loads pre-trained weights for the model; otherwise uses random initialization.
+    """
     # --------------------------------------
     # STEP 1: LOAD RESNET3D MODEL #
     # --------------------------------------
@@ -47,7 +77,7 @@ def extract_activations(miniclips_dir, save_dir, seed, init):
 
     # Define it manually as our original input has different shape than Kinetics400
     # And we want to keep the aspect ratio
-    resize_size = 128
+    resize_size = (171, 128)  # Custom for our dataset
     crop_size = (112, 112)
     mean = [0.43216, 0.394666, 0.37645]
     std = [0.22803, 0.22145, 0.216989]
@@ -76,23 +106,32 @@ def extract_activations(miniclips_dir, save_dir, seed, init):
     # --------------------------------------
     # STEP 3: EXTRACT UNIT ACTIVATIONS #
     # --------------------------------------
-    return_layers = ["layer1.0.relu", "layer1.1.relu", "layer2.0.relu", "layer2.1.relu", "layer3.0.relu", "layer3.1.relu", "layer4.0.relu", "layer4.1.relu"]
+    return_layers = [
+        "layer1.0.relu",
+        "layer1.1.relu",
+        "layer2.0.relu",
+        "layer2.1.relu",
+        "layer3.0.relu",
+        "layer3.1.relu",
+        "layer4.0.relu",
+        "layer4.1.relu",
+    ]
 
     # dimensions or num entries in each feature map in different layers
-    num_col_1_0 = 56*56
-    num_col_1_1 = 56*56
-    num_col_2_0 = 28*28
-    num_col_2_1 = 28*28
-    num_col_3_0 = 14*14
-    num_col_3_1 = 14*14
-    num_col_4_0 = 7*7
-    num_col_4_1 = 7*7
+    num_col_1_0 = 56 * 56
+    num_col_1_1 = 56 * 56
+    num_col_2_0 = 28 * 28
+    num_col_2_1 = 28 * 28
+    num_col_3_0 = 14 * 14
+    num_col_3_1 = 14 * 14
+    num_col_4_0 = 7 * 7
+    num_col_4_1 = 7 * 7
 
     num_feat_maps_1_0 = 64
     num_feat_maps_1_1 = 64
     num_feat_maps_2_0 = 128
     num_feat_maps_2_1 = 128
-    num_feat_maps_3_0 = 256 
+    num_feat_maps_3_0 = 256
     num_feat_maps_3_1 = 256
     num_feat_maps_4_0 = 512
     num_feat_maps_4_1 = 512
@@ -107,7 +146,7 @@ def extract_activations(miniclips_dir, save_dir, seed, init):
     layer4_0_features_s = np.zeros((512, num_col_4_0))
     layer4_1_features_s = np.zeros((512, num_col_4_1))
 
-    #array for saving flattened activations across videos
+    # array for saving flattened activations across videos
     layer1_0_features = np.zeros((1440, num_col_1_0 * num_feat_maps_1_0))
     layer1_1_features = np.zeros((1440, num_col_1_1 * num_feat_maps_1_1))
     layer2_0_features = np.zeros((1440, num_col_2_0 * num_feat_maps_2_0))
@@ -134,7 +173,7 @@ def extract_activations(miniclips_dir, save_dir, seed, init):
         # Get video directory (here referred to as image)
         image_file = str(img).zfill(4) + ".mp4"  # zfill: fill with zeros (4)
         image_dir = os.path.join(miniclips_dir, image_file)
-        
+
         # Load video
         video, _, _ = read_video(image_dir, output_format="TCHW")
 
@@ -165,7 +204,7 @@ def extract_activations(miniclips_dir, save_dir, seed, init):
                     layer1_0_features_s[fm, :] = flatten_fm_final
 
                 layer1_0_features[idx, :] = layer1_0_features_s.flatten()
-    
+
             elif layer == "layer1.1.relu":
                 for fm in range(len(list(feat_maps))):
 
@@ -178,7 +217,7 @@ def extract_activations(miniclips_dir, save_dir, seed, init):
                     layer1_1_features_s[fm, :] = flatten_fm_final
 
                 layer1_1_features[idx, :] = layer1_1_features_s.flatten()
-                
+
             elif layer == "layer2.0.relu":
                 for fm in range(len(list(feat_maps))):
 
@@ -191,7 +230,7 @@ def extract_activations(miniclips_dir, save_dir, seed, init):
                     layer2_0_features_s[fm, :] = flatten_fm_final
 
                 layer2_0_features[idx, :] = layer2_0_features_s.flatten()
-                
+
             elif layer == "layer2.1.relu":
                 for fm in range(len(list(feat_maps))):
 
@@ -204,7 +243,7 @@ def extract_activations(miniclips_dir, save_dir, seed, init):
                     layer2_1_features_s[fm, :] = flatten_fm_final
 
                 layer2_1_features[idx, :] = layer2_1_features_s.flatten()
-                
+
             elif layer == "layer3.0.relu":
                 for fm in range(len(list(feat_maps))):
 
@@ -217,7 +256,7 @@ def extract_activations(miniclips_dir, save_dir, seed, init):
                     layer3_0_features_s[fm, :] = flatten_fm_final
 
                 layer3_0_features[idx, :] = layer3_0_features_s.flatten()
-                
+
             elif layer == "layer3.1.relu":
                 for fm in range(len(list(feat_maps))):
 
@@ -230,7 +269,7 @@ def extract_activations(miniclips_dir, save_dir, seed, init):
                     layer3_1_features_s[fm, :] = flatten_fm_final
 
                 layer3_1_features[idx, :] = layer3_1_features_s.flatten()
-                
+
             elif layer == "layer4.0.relu":
                 for fm in range(len(list(feat_maps))):
 
@@ -243,7 +282,7 @@ def extract_activations(miniclips_dir, save_dir, seed, init):
                     layer4_0_features_s[fm, :] = flatten_fm_final
 
                 layer4_0_features[idx, :] = layer4_0_features_s.flatten()
-                
+
             elif layer == "layer4.1.relu":
                 for fm in range(len(list(feat_maps))):
 
@@ -274,19 +313,18 @@ def extract_activations(miniclips_dir, save_dir, seed, init):
         "layer3.0.relu_1": layer3_0_features,
         "layer3.1.relu_1": layer3_1_features,
         "layer4.0.relu_1": layer4_0_features,
-        "layer4.1.relu_1": layer4_1_features
+        "layer4.1.relu_1": layer4_1_features,
     }
 
-    print(type(features)) 
     for layer in features.keys():
-        print("Check")
         features_dir = os.path.join(save_dir, f"features_resnet_{layer}.pkl")
-        
+
         if not os.path.isdir(save_dir):
             os.makedirs(save_dir)
 
         with open(features_dir, "wb") as f:
             pickle.dump(features[layer], f)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -305,9 +343,9 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        '--init', 
-        action='store_true', 
-        help='Whether to use pretrained weights or not.'
+        "--init",
+        action="store_true",
+        help="Whether to use pretrained weights or not.",
     )
 
     args = parser.parse_args()
@@ -318,13 +356,13 @@ if __name__ == "__main__":
     else:
         init = False
 
-    videos_dir = config.get(args.config, "videos_dir")
+    mp4_dir = config.get(args.config, "mp4_dir")
     save_dir = config.get(args.config, "save_dir_cnn_video")
     seed = 42
 
     # Run feature extraction
     extract_activations(
-        miniclips_dir=videos_dir,
+        miniclips_dir=mp4_dir,
         save_dir=save_dir,
         seed=seed,
         init=init,

@@ -26,17 +26,18 @@ from sklearn.metrics import r2_score
 
 
 def encoding(
-    sub,
-    freq,
-    region,
-    input_type,
-    feat_dir,
-    save_dir,
-    eeg_dir,
-    frame,
-    feature_names,
-    exclude,
-    full_feat: bool = False
+    sub: int,
+    freq: int,
+    region: str,
+    input_type: str,
+    feat_dir: str,
+    save_dir: str,
+    eeg_dir: str,
+    frame: int,
+    feature_names: list,
+    exclude: list,
+    full_feat: bool = False,
+    alpha_tp: bool = True,
 ):
     """
     Input:
@@ -81,7 +82,24 @@ def encoding(
         The region for which the EEG data should be analyzed.
     input_type: str
         Miniclips or images
-
+    feat_dir : str
+        Directory where the features are stored.
+    save_dir : str
+        Directory where the results should be saved.
+    eeg_dir : str
+        Directory where the EEG data is stored.
+    frame : int
+        The frame number to be used for the analysis.
+    feature_names : list
+        List of feature names to be used in the analysis.
+    exclude : bool
+        If True, guitar trials will be excluded from the analysis.
+    full_feat : bool
+        If True, the full feature set will be used. If False, a reduced feature set
+        will be used based on the length of feature_names.
+    alpha_tp : bool
+        If True, the alpha value will be loaded for each timepoint. If False, the
+        alpha value will be loaded only once for the entire analysis.
     """
     if input_type == "images":
         if full_feat:
@@ -116,8 +134,6 @@ def encoding(
     elif region == "posterior":
         n_channels = 19
 
-    alpha_tp = False  # maybe add to function as a parameter above
-
     if input_type == "miniclips":
         y_train, timepoints = load_eeg(
             sub, "training", region, freq, input_type, eeg_dir=eeg_dir
@@ -135,22 +151,19 @@ def encoding(
     output_names = ("rmse_score", "correlation", "var_explained")
 
     # define matrix where to save the values
-    # define matrix where to save the values
     regression_features = {
-    (
-        f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
-    ): None
-    for f in feature_names
+        (f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)): None
+        for f in feature_names
     }
 
     if exclude:
-        print("Excluding guitar trials from the analysis (control analysis 9).")
+        print(
+            "Excluding guitar trials from the analysis (control analysis 9)."
+        )
 
-        X_train, _, X_test = load_feature_set(
-            "action",
-            featuresDir)
-        
-        # Find all rows in X_train and X_test that contain a 1 in column 5 
+        X_train, _, X_test = load_feature_set("action", featuresDir)
+
+        # Find all rows in X_train and X_test that contain a 1 in column 5
         guitar_trials_train = np.where(X_train[:, 5] == 1)[0]
         guitar_trials_test = np.where(X_test[:, 5] == 1)[0]
 
@@ -191,9 +204,10 @@ def encoding(
                     feature,
                     input_type,
                     feat_dir=save_dir,
-                    timepoint=tp,
+                    tp=tp,
                     feat_len=len(feature_names),
                 )
+
             y_train_tp = y_train[:, :, tp]
             y_test_tp = y_test[:, :, tp]
             regression = OLS_pytorch(alpha=alpha)
@@ -206,12 +220,14 @@ def encoding(
             correlation = vectorized_correlation(prediction, y_test_tp)
             rmse[tp, :] = rmse_score
             corr[tp, :] = correlation
-            var_explained[tp, :] = r2_score(y_test_tp, prediction, multioutput="raw_values")
+            var_explained[tp, :] = r2_score(
+                y_test_tp, prediction, multioutput="raw_values"
+            )
 
         output["rmse_score"] = rmse
         output["correlation"] = corr
         output["var_explained"] = var_explained
-        
+
         if isinstance(feature, list):
             regression_features[", ".join(feature)] = output
         else:
@@ -308,7 +324,9 @@ if __name__ == "__main__":
     save_dir = config.get(args.config, "save_dir")
     feature_names = parse_list(config.get(args.config, "feature_names"))
     eeg_dir = config.get(args.config, "eeg_dir")
-        
+
+    # Hardcoded for now
+    ALPHA_PER_TP = True
 
     # -------------------------------------------------------------------------
     # STEP 3 Run function
@@ -354,11 +372,11 @@ if __name__ == "__main__":
                 frame=frame,
                 feature_names=feature_names,
                 exclude=exclude_guitar_trials,
-                full_feat=True
+                full_feat=True,
+                alpha_tp=ALPHA_PER_TP,
             )
     else:
         for sub in subjects:
-            print(sub)
             result = encoding(
                 sub,
                 freq,
@@ -370,4 +388,5 @@ if __name__ == "__main__":
                 frame=frame,
                 feature_names=feature_names,
                 exclude=exclude_guitar_trials,
+                alpha_tp=ALPHA_PER_TP,
             )

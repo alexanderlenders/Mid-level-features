@@ -14,8 +14,8 @@ import numpy as np
 import argparse
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 
 from EEG.Encoding.utils import (
@@ -24,7 +24,24 @@ from EEG.Encoding.utils import (
 
 
 def load_features(feature: str, featuresDir: str):
-
+    """
+    Loads preprocessed feature activations from a specified .npy file and returns
+    training, validation, and test splits for a given feature.
+    Input:
+    ----------
+    Loads a pickle file containing a dictionary of features, where each feature key
+    maps to a tuple of (train, validation, test) arrays.
+    Returns:
+    ----------
+    Returns three numpy arrays corresponding to the training, validation, and test
+    splits for the specified feature.
+    Parameters
+    ----------
+    feature : str
+        The key corresponding to the desired feature in the loaded numpy dictionary.
+    featuresDir : str
+        Path to the .pkl file containing the features dictionary.
+    """
     features = np.load(featuresDir, allow_pickle=True)
     X_prep = features[feature]
 
@@ -54,7 +71,7 @@ def prepare_layers(layerDir: str):
         "layer4.0.relu_1",
         "layer4.1.relu_1",
     )
-    
+
     resDir = os.path.join(layerDir, "prepared")
     layerDir = os.path.join(layerDir, "pca", "features_resnet_scenes_avg.pkl")
 
@@ -68,6 +85,9 @@ def prepare_layers(layerDir: str):
         layer_data_train = X_train
         layer_data_test = X_test
         layer_data_val = X_val
+
+        if not os.path.exists(resDir):
+            os.makedirs(resDir)
 
         train_dir = os.path.join(
             resDir, f"{feature}_layer_activations_training.npy"
@@ -117,10 +137,10 @@ if __name__ == "__main__":
 
     input_type = args.input_type
     config = load_config(args.config_dir, args.config)
-    
+
     if input_type == "images":
         layer_dir = config.get(args.config, "save_dir_cnn_img")
     elif input_type == "miniclips":
-        layer_dir = config.get(args.config, "save_dir_cnn_vid")
-
+        layer_dir = config.get(args.config, "save_dir_cnn_video")
+    
     prepare_layers(layer_dir)

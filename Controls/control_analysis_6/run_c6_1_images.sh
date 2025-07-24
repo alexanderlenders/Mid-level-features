@@ -10,11 +10,11 @@ conda activate encoding
 #     --config control_6_1 \
 #     --input_type "images" 
 
-echo "Encoding"
-python ../../EEG/Encoding/encoding.py \
-    --config_dir ../config.ini \
-    --config control_6_1 \
-    --input_type "images"
+# echo "Encoding"
+# python ../../EEG/Encoding/encoding.py \
+#     --config_dir ../config.ini \
+#     --config control_6_1 \
+#     --input_type "images"
 
 # echo "Variance partitioning"
 # python ./control_analysis_6.py \
@@ -30,11 +30,11 @@ python ../../EEG/Encoding/encoding.py \
 #     --input_type "images"
 
 # python ../../EEG/Stats/encoding_significance_stats.py \
-#     --config_dir ./config.ini \
+#     --config_dir ../config.ini \
 #     --config control_6_1 \
 #     --input_type "images"
 
-# python ../../EEG/Plotting/plot_encoding.py \
-#     --config_dir ./config.ini \
-#     --config control_6_1 \
-#     --input_type "images"
+python ./control_analysis_6_plotting.py \
+    --config_dir ../config.ini \
+    --config control_6_1 \
+    --input_type "images"

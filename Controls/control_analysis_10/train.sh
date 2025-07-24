@@ -6,15 +6,16 @@ gpus=$2
 
 # Define variables 
 data_dir="/scratch/alexandel91/mid_level_features/kinetics_400"
-batch_size=64
-max_epochs=100
-lr=3e-4
+batch_size=128
+max_epochs=70
+lr=1e-5
 seed=42
 save_dir="/scratch/alexandel91/mid_level_features/results/CNN/training/ResNet18"
-
+weight_decay=0.0
+export OMP_NUM_THREADS=$num_workers
 
 # Run script
-python ./train.py \
+torchrun --nproc_per_node=$gpus ./train.py \
     --data_dir "$data_dir" \
     --batch_size "$batch_size" \
     --num_workers "$num_workers" \
@@ -22,4 +23,5 @@ python ./train.py \
     --lr "$lr" \
     --gpus "$gpus" \
     --seed "$seed" \
+    --weight_decay "$weight_decay" \
     --save_dir "$save_dir"

@@ -21,7 +21,6 @@ from statsmodels.stats.multitest import fdrcorrection
 import sys
 from pathlib import Path
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 
 from EEG.Encoding.utils import (
@@ -30,7 +29,7 @@ from EEG.Encoding.utils import (
 
 
 def encoding_stats(
-    n_perm, alpha_value, tail, input_type, encoding_dir, total_var, weighted
+    n_perm: int, alpha_value: float, tail: str, input_type: str, encoding_dir: str, weighted: bool
 ):
     """
     Input:
@@ -56,8 +55,8 @@ def encoding_stats(
         Number of permutations for bootstrapping
     encoding_dir : str
         Where encoding results are saved
-    total_var : int
-        Total variance explained by all PCA components
+    weighted : bool
+        If True, uses weighted regression results.
     alpha_value : int
         Significance level
     tail : str
@@ -117,24 +116,17 @@ def encoding_stats(
     regression_features = dict.fromkeys(feature_names)
 
     for feature in features_dict.keys():
-        print(feature)
         stat_map = {}
         # create statistical map
         stat_map = np.zeros((n_perm, num_layers))
 
-        # corr = encoding_results[feature]['correlation']
-
         for l, corr_layer in enumerate(
-            encoding_results[feature]["weighted_correlations"].values()
+            encoding_results[feature]["weighted_correlation"].values()
         ):
-            print(l)
-            print(corr_layer.shape)
             num_comp_layer = corr_layer.shape[0]
 
-            # create mean for each timepoint over all participants
-            # this is our "original data" and permutation 1 in the stat_map
-            # mean_orig = np.mean(corr_layer, axis = 0)
-            mean_orig = np.sum(corr_layer) / total_var
+            # compute sum (equivalent to mean for weighted corrs)
+            mean_orig = np.sum(corr_layer)
             stat_map[0, l] = mean_orig
 
             for permutation in range(1, n_perm):
@@ -148,10 +140,7 @@ def encoding_stats(
 
                 perm_corr_layer = corr_layer * perm
 
-                # create mean for each timepoint over all participants
-                # this is our "original data" and permutation 1 in the stat_map
-                # mean_orig = np.mean(perm_corr_layer, axis = 1)
-                mean_perm = np.sum(perm_corr_layer) / total_var
+                mean_perm = np.sum(perm_corr_layer)
                 stat_map[permutation, l] = mean_perm
 
         # ---------------------------------------------------------------------
@@ -248,12 +237,6 @@ if __name__ == "__main__":
         help="Font",
     )
     parser.add_argument(
-        "-tv",
-        "--total_var",
-        help="Total variance explained by all PCA components together",
-        default=90,
-    )
-    parser.add_argument(
         '--weighted', 
         action='store_true'
     )
@@ -263,9 +246,7 @@ if __name__ == "__main__":
     config = load_config(args.config_dir, args.config)
     encoding_dir = config.get(args.config, "save_dir_cnn")
     n_perm = args.num_perm
-    n_layers = args.num_layers
     input_type = args.input_type
-    total_var = int(args.total_var)
     alpha_value = args.alpha
     tail = args.tail
     
@@ -275,4 +256,4 @@ if __name__ == "__main__":
         weighted = False
 
     encoding_stats(
-    n_perm, alpha_value, tail, input_type, encoding_dir, total_var, weighted)
+    n_perm, alpha_value, tail, input_type, encoding_dir, weighted)

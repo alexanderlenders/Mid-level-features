@@ -13,9 +13,10 @@ import torch
 import os
 import ast
 from configparser import ConfigParser
+import pandas as pd
 
 
-def canny_edge(image, images_dir, frame, openCV=True, gaussian_filter_size=3):
+def canny_edge(image: int, images_dir: str, frame: int, openCV: bool = True, gaussian_filter_size: int = 3):
     """
     Parameters
     ----------
@@ -98,7 +99,7 @@ def canny_edge(image, images_dir, frame, openCV=True, gaussian_filter_size=3):
     return canny_edges
 
 
-def action(image, action_data, actions):
+def action(image: int, action_data: pd.DataFrame, actions: list):
     """
     Parameters
     ----------
@@ -115,7 +116,7 @@ def action(image, action_data, actions):
     return one_hot_vector
 
 
-def skeleton_pos(image, annotations_dir, frame):
+def skeleton_pos(image: int, annotations_dir: str, frame: int):
     """
     Parameters
     ----------
@@ -140,7 +141,7 @@ def skeleton_pos(image, annotations_dir, frame):
     return position_x_y
 
 
-def world_normals(image, annotations_dir, frame):
+def world_normals(image: int, annotations_dir: str, frame: int):
     """
     Parameters
     ----------
@@ -163,7 +164,7 @@ def world_normals(image, annotations_dir, frame):
     return world_normals_rgb
 
 
-def lighting(image, annotations_dir, frame):
+def lighting(image: int, annotations_dir: str, frame: int):
     """
     Parameters
     ----------
@@ -174,13 +175,19 @@ def lighting(image, annotations_dir, frame):
     frame: int
         Image frame
     """
-    if 'images' in annotations_dir:
+    if "images" in annotations_dir:
         image_file = (
-            str(image).zfill(4) + "_lightning" + "_frame_{}".format(frame) + ".jpg"
+            str(image).zfill(4)
+            + "_lightning"
+            + "_frame_{}".format(frame)
+            + ".jpg"
         )
     else:
         image_file = (
-            str(image).zfill(4) + "_lighting" + "_frame_{}".format(frame) + ".jpg"
+            str(image).zfill(4)
+            + "_lighting"
+            + "_frame_{}".format(frame)
+            + ".jpg"
         )
     image_dir = annotations_dir + "/" + image_file
     image = Image.open(image_dir)
@@ -188,7 +195,7 @@ def lighting(image, annotations_dir, frame):
     return lighting_np
 
 
-def depth(image, annotations_dir, frame):
+def depth(image: int, annotations_dir: str, frame: int):
     """
     Parameters
     ----------
@@ -211,7 +218,7 @@ def depth(image, annotations_dir, frame):
     return scene_depth
 
 
-def reflectance(image, annotations_dir, frame):
+def reflectance(image: int, annotations_dir: str, frame: int):
     """
     Parameters
     ----------
@@ -235,11 +242,11 @@ def reflectance(image, annotations_dir, frame):
 
 
 def pca(
-    features_train,
-    features_val,
-    features_test,
-    pca_method="linear",
-    n_comp=100,
+    features_train: np.ndarray,
+    features_val: np.ndarray,
+    features_test: np.ndarray,
+    pca_method: str = "linear",
+    n_comp: int = 100,
 ):
     """
     Note: This implements a (simple) PCA using SVD. One could also implement
@@ -294,7 +301,7 @@ def pca(
 
 
 def load_eeg(
-    sub, img_type, region, freq, input_type, eeg_dir="/scratch/agnek95/Unreal/"
+    sub: int, img_type: str, region: str, freq: int, input_type: str, eeg_dir: str,
 ):
     """
     Utility function to load the EEG data for a given subject and input type (video or image).
@@ -411,7 +418,7 @@ def load_eeg(
     return y, timepoints
 
 
-def load_features(feature, featuresDir):
+def load_features(feature: str, featuresDir: str):
     """
     Utility function to load the preprocessed features for a given feature type.
     """
@@ -424,7 +431,8 @@ def load_features(feature, featuresDir):
 
     return X_train, X_val, X_test
 
-def load_feature_set(feature_set, featuresDir):
+
+def load_feature_set(feature_set: str, featuresDir: str):
     """
     Loads and concatenates multiple features.
     """
@@ -451,8 +459,9 @@ def load_feature_set(feature_set, featuresDir):
 
         return X_train, X_val, X_test
 
+
 def load_alpha(
-    sub, freq, region, feature, input_type, feat_dir, tp=0, feat_len=7
+    sub: int, freq: int, region: str, feature: str, input_type: str, feat_dir: str, tp: int = None, feat_len: int = 7
 ):
     """
     Utility function to load the optimized alpha value for a given subject.
@@ -473,10 +482,18 @@ def load_alpha(
 
     alpha_values = np.load(alphaDir, allow_pickle=True)
 
-    if isinstance(feature, list):
-        alpha = alpha_values[(", ".join(feature))]["best_alpha_a_corr"]
+    if tp:
+        if isinstance(feature, list):
+            alpha = alpha_values[(", ".join(feature))]["best_alpha_corr"]
+            alpha = alpha[tp]
+        else:
+            alpha = alpha_values[feature]["best_alpha_corr"]
+            alpha = alpha[tp]
     else:
-        alpha = alpha_values[feature]["best_alpha_a_corr"]
+        if isinstance(feature, list):
+            alpha = alpha_values[(", ".join(feature))]["best_alpha_a_corr"]
+        else:
+            alpha = alpha_values[feature]["best_alpha_a_corr"]
 
     return alpha
 
@@ -633,7 +650,7 @@ class OLS_pytorch(object):
         return X.reshape(-1, 1)
 
 
-def vectorized_correlation(x, y):
+def vectorized_correlation(x: np.ndarray, y: np.ndarray):
     dim = 0  # calculate the correlation for each channel
     # we could additionally average the correlation over channels.
 
@@ -681,4 +698,3 @@ def load_config(config_dir: str, section: str):
         )
 
     return config
-

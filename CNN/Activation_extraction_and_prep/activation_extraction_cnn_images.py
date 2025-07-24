@@ -1,9 +1,8 @@
 """
 Script to extract CNN activations from images and save them in a specified directory.
 
-@author: Alexander Lenders
+@author: Alexander Lenders, Agnessa Karapetian
 """
-# Import modules
 from torchvision import models
 from torchvision import transforms
 from torchvision.models.feature_extraction import get_graph_node_names
@@ -20,15 +19,46 @@ import argparse
 import sys
 from pathlib import Path
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 
 from EEG.Encoding.utils import (
     load_config,
 )
 
-def extract_activations(images_dir, save_dir, seed=42, init=True, transform="vid"):
+def extract_activations(images_dir: str, save_dir: str, seed: int = 42, init: bool = True, transform: str = "vid"):
+    """
+    Extracts activations from specified layers of a ResNet18 model for a set of images,
+    and saves the extracted features for each layer as .pkl files.
+    Loads a ResNet18 model (optionally with pre-trained weights), preprocesses images,
+    extracts activations from specified intermediate layers, and saves the flattened
+    activations for each image and layer.
+    Input:
+    ----------
+    Directory containing images to process. Images should be named in the format
+    '{img_number:04}_frame_20.jpg'.
+    Returns:
+    ----------
+    Saves a dictionary of extracted features for each specified layer as a .pkl file
+    in the provided save directory. Each .pkl file contains a 2D numpy array of shape
+    (num_images, num_units), where num_units = C*H*W for the layer.
+    Parameters
+    ----------
+    images_dir : str
+        Directory containing input images.
+    save_dir : str
+        Directory to save extracted features.
+    seed : int, optional
+        Random seed for reproducibility (default: 42).
+    init : bool, optional
+        If True, loads pre-trained weights for the model (default: True).
+    transform : str, optional
+        Transformation type for preprocessing images. If "vid", uses 112x112 crop;
+        otherwise uses 224x224 crop (default: "vid").
+    """
+    # --------------------------------------
     # STEP 1: LOAD RESNET2D MODEL #
+    # --------------------------------------
+
     # Set random seeds (especially important for random initialization)
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -60,11 +90,15 @@ def extract_activations(images_dir, save_dir, seed=42, init=True, transform="vid
 
     model.eval()
 
+    # --------------------------------------
     # STEP 2: DEFINE DATA VARIABLES #
+    # --------------------------------------
+
     # number of images
     num_videos = 1440
 
     if transform == "vid":
+        print("Using video transformation.", flush=True)
 
         print("Downscaling the images to 112 x 112 pixels as in 3D ResNet18.")
         print("This corresponds to control analysis 11.")
@@ -160,7 +194,6 @@ def extract_activations(images_dir, save_dir, seed=42, init=True, transform="vid
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    # add arguments / inputs
     parser.add_argument(
         "--config_dir",
         type=str,
@@ -197,6 +230,7 @@ if __name__ == "__main__":
 
     img_dir = config.get(args.config, "images_dir")
     save_dir = config.get(args.config, "save_dir_cnn_img")
+    # Hardcoded seed for reproducibility
     seed = 42
 
     # Run feature extraction

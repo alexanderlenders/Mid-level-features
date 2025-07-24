@@ -4,17 +4,19 @@
 source /home/alexandel91/.bashrc
 conda activate encoding
 
-echo "Applying PCA to the activations..."
-python ../CNN/Activation_extraction_and_prep/pca_activations.py \
-    --config_dir ./config.ini \
-    --config default \
-    --input_type "images"
+export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
 
-echo "Preparing layers..."
-python ../CNN/Activation_extraction_and_prep/prepare_layers.py \
-    --config_dir ./config.ini \
-    --config default \
-    --input_type "images"
+# echo "Applying PCA to the activations..."
+# python ../CNN/Activation_extraction_and_prep/pca_activations.py \
+#     --config_dir ./config.ini \
+#     --config default \
+#     --input_type "images"
+
+# echo "Preparing layers..."
+# python ../CNN/Activation_extraction_and_prep/prepare_layers.py \
+#     --config_dir ./config.ini \
+#     --config default \
+#     --input_type "images"
 
 echo "Performing hyperparameter tuning..."
 python ../CNN/Encoding/hyperparameter_optimization_cnn.py \
@@ -43,7 +45,9 @@ python ../CNN/Stats/encoding_significance_stats_cnn.py \
     --weighted
 
 echo "Plotting results..."
-# python ../CNN/Plotting/plot_encoding_cnn.py \
-#     --config_dir ./config.ini \
-#     --config default
+python ../CNN/Plotting/encoding_plot_cnn.py \
+    --config_dir ./config.ini \
+    --config default \
+    --input_type "images" \
+    --weighted
 

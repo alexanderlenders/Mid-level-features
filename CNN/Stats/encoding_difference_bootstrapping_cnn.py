@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-BOOTSTRAPPING ENCODING LAYERS CNN
+BOOTSTRAPPING ENCODING LAYERS CNN (DIFFERENCE)
 
 This script calculates Bootstrap 95%-CIs for the encoding accuracy for each
 layer and each feature. These can be used for the encoding plot as
@@ -20,7 +20,6 @@ import sys
 from pathlib import Path
 
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 
 from EEG.Encoding.utils import (
@@ -28,7 +27,7 @@ from EEG.Encoding.utils import (
 )
 
 
-def bootstrapping_CI(n_perm, encoding_dir, total_var, weighted):
+def bootstrapping_CI(n_perm: int, encoding_dir: str, weighted: bool):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and
     each feature.
@@ -48,14 +47,12 @@ def bootstrapping_CI(n_perm, encoding_dir, total_var, weighted):
 
     Parameters
     ----------
-    ----------
     n_perm : int
         Number of permutations for bootstrapping
     encoding_dir : str
         Where encoding results are saved
-    total_var : int
-        Total variance explained by all PCA components
-
+    weighted : bool
+        If True, uses weighted regression results.
     """
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
@@ -110,10 +107,10 @@ def bootstrapping_CI(n_perm, encoding_dir, total_var, weighted):
 
     for feature in feature_names:
         regression_features_img[feature] = encoding_results_img[feature][
-            "weighted_correlations"
+            "weighted_correlation"
         ]
         regression_features_vid[feature] = encoding_results_vid[feature][
-            "weighted_correlations"
+            "weighted_correlation"
         ]
 
     features_results = {}
@@ -148,8 +145,8 @@ def bootstrapping_CI(n_perm, encoding_dir, total_var, weighted):
                 perm_l_data_img = layer_data_img[units_drawn_img]
                 perm_l_data_vid = layer_data_vid[units_drawn_vid]
 
-                mean_p_layer_img = np.sum(perm_l_data_img) / total_var
-                mean_p_layer_vid = np.sum(perm_l_data_vid) / total_var
+                mean_p_layer_img = np.sum(perm_l_data_img)
+                mean_p_layer_vid = np.sum(perm_l_data_vid)
 
                 bt_data[l, perm] = mean_p_layer_img - mean_p_layer_vid
 
@@ -184,7 +181,7 @@ def bootstrapping_CI(n_perm, encoding_dir, total_var, weighted):
 # ------------------------------------------------------------------------------
 
 
-def bootstrapping_CI_peak_layer(n_perm, encoding_dir, total_var, weighted):
+def bootstrapping_CI_peak_layer(n_perm: int, encoding_dir: str, weighted: bool):
     """
     Bootstrapped 95%-CIs for the layer of the largest encoding peak
     for each feature.
@@ -207,10 +204,9 @@ def bootstrapping_CI_peak_layer(n_perm, encoding_dir, total_var, weighted):
         Number of permutations for bootstrapping
     encoding_dir : str
         Where encoding results are saved
-    total_var : int
-        Total variance explained by all PCA components
+    weighted : bool
+        If True, uses weighted regression results.
     """
-
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
     # -------------------------------------------------------------------------
@@ -265,10 +261,10 @@ def bootstrapping_CI_peak_layer(n_perm, encoding_dir, total_var, weighted):
 
     for feature in feature_names:
         corr_img[feature] = encoding_results_img[feature][
-            "weighted_correlations"
+            "weighted_correlation"
         ]
         corr_vid[feature] = encoding_results_vid[feature][
-            "weighted_correlations"
+            "weighted_correlation"
         ]
 
     ci_diff_peaks_all = {}
@@ -324,8 +320,8 @@ def bootstrapping_CI_peak_layer(n_perm, encoding_dir, total_var, weighted):
                 perm_peak_data_vid = layer_data_vid[units_drawn_vid]
                 perm_peak_data_img = layer_data_img[units_drawn_img]
 
-                perm_mean_vid[l] = np.sum(perm_peak_data_vid) / total_var
-                perm_mean_img[l] = np.sum(perm_peak_data_img) / total_var
+                perm_mean_vid[l] = np.sum(perm_peak_data_vid)
+                perm_mean_img[l] = np.sum(perm_peak_data_img)
 
             # difference in the peaks
             peak_lat_vid = np.argmax(perm_mean_vid)
@@ -395,12 +391,6 @@ if __name__ == "__main__":
         metavar="",
         help="Number of permutations",
     )
-    parser.add_argument(
-        "-tv",
-        "--total_var",
-        help="Total variance explained by all PCA components together",
-        default=90,
-    )
     parser.add_argument("--weighted", action="store_true")
 
     args = parser.parse_args()  # to get values for the arguments
@@ -408,13 +398,11 @@ if __name__ == "__main__":
     config = load_config(args.config_dir, args.config)
     encoding_dir = config.get(args.config, "save_dir_cnn")
     n_perm = args.num_perm
-    n_layers = args.num_layers
-    total_var = int(args.total_var)
 
     if args.weighted:
         weighted = True
     else:
         weighted = False
 
-    bootstrapping_CI(n_perm, encoding_dir, total_var, weighted)
-    bootstrapping_CI_peak_layer(n_perm, encoding_dir, total_var, weighted)
+    bootstrapping_CI(n_perm, encoding_dir, weighted)
+    bootstrapping_CI_peak_layer(n_perm, encoding_dir, weighted)

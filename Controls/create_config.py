@@ -12,6 +12,8 @@ root_dir = "/scratch/alexandel91/mid_level_features"
 
 # Where the video frames are stored
 videos_dir = os.path.join(root_dir, "stimuli", "miniclips", "frames")
+# Where the mp4 videos are stored
+mp4_dir = os.path.join(root_dir, "stimuli", "miniclips", "mp4")
 # Where the video annotations are stored
 video_annotations_dir = os.path.join(
     root_dir, "stimuli", "miniclips", "frame_annotations"
@@ -45,7 +47,7 @@ feature_names_default = [
     "world_normal",
     "scene_depth",
     "skeleton",
-    "action"
+    "action",
 ]
 feature_names_graph_default = [
     "Edges",
@@ -54,7 +56,7 @@ feature_names_graph_default = [
     "Normals",
     "Depth",
     "Skeleton",
-    "Action"
+    "Action",
 ]
 
 save_dir_default = os.path.join(root_dir, "results", "EEG", "default")
@@ -64,12 +66,16 @@ save_dir_feat_img = os.path.join(root_dir, "features", "images", "default")
 save_dir_feat_video = os.path.join(
     root_dir, "features", "miniclips", "default"
 )
-save_dir_cnn_img = os.path.join(root_dir, "data", "CNN", "2dresnet18")
+save_dir_cnn_img = os.path.join(
+    root_dir, "data", "CNN", "2dresnet18_pretrained"
+)
 save_dir_cnn_video = os.path.join(root_dir, "data", "CNN", "3dresnet18")
 
 config.add_section("default")
 config.set("default", "feature_names", json.dumps(feature_names_default))
-config.set("default", "feature_names_graph", json.dumps(feature_names_graph_default))
+config.set(
+    "default", "feature_names_graph", json.dumps(feature_names_graph_default)
+)
 config.set("default", "n_components", "100")
 config.set("default", "pca_method", "linear")
 config.set("default", "videos_dir", videos_dir)
@@ -89,6 +95,7 @@ config.set("default", "noise_ceiling_dir", noise_ceiling_dir)
 config.set("default", "save_dir_cnn_img", save_dir_cnn_img)
 config.set("default", "save_dir_cnn_video", save_dir_cnn_video)
 config.set("default", "save_dir_cnn", save_dir_default_cnn)
+config.set("default", "mp4_dir", mp4_dir)
 
 # =============================================================================
 
@@ -105,7 +112,9 @@ save_dir_feat_video = os.path.join(
 
 config.add_section("control_1")
 config.set("control_1", "feature_names", json.dumps(feature_names_default))
-config.set("control_1", "feature_names_graph", json.dumps(feature_names_graph_default))
+config.set(
+    "control_1", "feature_names_graph", json.dumps(feature_names_graph_default)
+)
 config.set("control_1", "n_components", "100")
 config.set("control_1", "pca_method", "linear")
 config.set("control_1", "videos_dir", videos_dir)
@@ -133,7 +142,9 @@ save_dir_feat_video = os.path.join(
 
 config.add_section("control_2")
 config.set("control_2", "feature_names", json.dumps(feature_names_default))
-config.set("control_2", "feature_names_graph", json.dumps(feature_names_graph_default))
+config.set(
+    "control_2", "feature_names_graph", json.dumps(feature_names_graph_default)
+)
 config.set("control_2", "n_components", "100")
 config.set("control_2", "pca_method", "linear")
 config.set("control_2", "videos_dir", videos_dir)
@@ -158,7 +169,7 @@ feature_names_default = [
     "world_normal",
     "scene_depth",
     "skeleton",
-    "action"
+    "action",
 ]
 feature_names_graph_default = [
     "Edges",
@@ -167,7 +178,7 @@ feature_names_graph_default = [
     "Normals",
     "Depth",
     "Skeleton",
-    "Action"
+    "Action",
 ]
 
 save_dir_c3 = os.path.join(root_dir, "results", "EEG", "control_3")
@@ -178,7 +189,9 @@ save_dir_feat_video = os.path.join(
 
 config.add_section("control_3")
 config.set("control_3", "feature_names", json.dumps(feature_names_default))
-config.set("control_3", "feature_names_graph", json.dumps(feature_names_graph_default))
+config.set(
+    "control_3", "feature_names_graph", json.dumps(feature_names_graph_default)
+)
 config.set("control_3", "n_components", "100")
 config.set("control_3", "pca_method", "linear")
 config.set("control_3", "videos_dir", videos_dir)
@@ -207,17 +220,14 @@ features = (
     "world_normal",
     "scene_depth",
     "skeleton",
-    "action"
+    "action",
 )
 # Leave-one-out combinations
 feature_names_6_1 = [
-    tuple(f for f in features if f != excluded)
-    for excluded in features
+    tuple(f for f in features if f != excluded) for excluded in features
 ]
 # Append the full feature set
 feature_names_6_1.append(features)
-
-print(feature_names_6_1)
 
 feature_names_graph_default = [
     "Edges",
@@ -226,7 +236,7 @@ feature_names_graph_default = [
     "Normals",
     "Depth",
     "Skeleton",
-    "Action"
+    "Action",
 ]
 
 save_dir_c6_1 = os.path.join(root_dir, "results", "EEG", "control_6_1")
@@ -237,7 +247,11 @@ save_dir_feat_video = os.path.join(
 
 config.add_section("control_6_1")
 config.set("control_6_1", "feature_names", json.dumps(feature_names_6_1))
-config.set("control_6_1", "feature_names_graph", json.dumps(feature_names_graph_default))
+config.set(
+    "control_6_1",
+    "feature_names_graph",
+    json.dumps(feature_names_graph_default),
+)
 config.set("control_6_1", "n_components", "100")
 config.set("control_6_1", "pca_method", "linear")
 config.set("control_6_1", "videos_dir", videos_dir)
@@ -265,12 +279,11 @@ mid_level_feat = (
     "lighting",
     "world_normal",
     "scene_depth",
-    "skeleton"
+    "skeleton",
 )
 
 feature_names_6_2 = [
-tuple(low_and_high_feat) + (mid_feat,)
-for mid_feat in mid_level_feat
+    tuple(low_and_high_feat) + (mid_feat,) for mid_feat in mid_level_feat
 ]
 
 feature_names_6_2.append(low_and_high_feat)
@@ -291,7 +304,9 @@ save_dir_feat_video = os.path.join(
 
 config.add_section("control_6_2")
 config.set("control_6_2", "feature_names", json.dumps(feature_names_6_2))
-config.set("control_6_2", "feature_names_graph", json.dumps(feature_names_graph_6_2))
+config.set(
+    "control_6_2", "feature_names_graph", json.dumps(feature_names_graph_6_2)
+)
 config.set("control_6_2", "n_components", "100")
 config.set("control_6_2", "pca_method", "linear")
 config.set("control_6_2", "videos_dir", videos_dir)
@@ -320,7 +335,7 @@ feature_names_default = [
     "world_normal",
     "scene_depth",
     "skeleton",
-    "action"
+    "action",
 ]
 feature_names_graph_default = [
     "Edges",
@@ -329,7 +344,7 @@ feature_names_graph_default = [
     "Normals",
     "Depth",
     "Skeleton",
-    "Action"
+    "Action",
 ]
 
 save_dir_c9 = os.path.join(root_dir, "results", "EEG", "control_9")
@@ -341,7 +356,9 @@ save_dir_feat_video = os.path.join(
 
 config.add_section("control_9")
 config.set("control_9", "feature_names", json.dumps(feature_names_default))
-config.set("control_9", "feature_names_graph", json.dumps(feature_names_graph_default))
+config.set(
+    "control_9", "feature_names_graph", json.dumps(feature_names_graph_default)
+)
 config.set("control_9", "n_components", "100")
 config.set("control_9", "pca_method", "linear")
 config.set("control_9", "videos_dir", videos_dir)
@@ -358,6 +375,67 @@ config.set("control_9", "save_dir_feat_img", save_dir_feat_img)
 config.set("control_9", "save_dir_feat_video", save_dir_feat_video)
 config.set("control_9", "eeg_dir", eeg_dir)
 config.set("control_9", "noise_ceiling_dir", noise_ceiling_dir)
+
+
+# =============================================================================
+# Control analysis 11
+# =============================================================================
+feature_names_default = [
+    "edges",
+    "reflectance",
+    "lighting",
+    "world_normal",
+    "scene_depth",
+    "skeleton",
+    "action",
+]
+feature_names_graph_default = [
+    "Edges",
+    "Reflectance",
+    "Lighting",
+    "Normals",
+    "Depth",
+    "Skeleton",
+    "Action",
+]
+
+save_dir_default = os.path.join(root_dir, "results", "EEG", "control_11")
+save_dir_default_cnn = os.path.join(root_dir, "results", "CNN", "control_11")
+
+save_dir_cnn_img = os.path.join(
+    root_dir, "data", "CNN", "2dresnet18_pretrained", "control_11"
+)
+save_dir_cnn_video = os.path.join(
+    root_dir, "data", "CNN", "3dresnet18", "control_11"
+)
+
+config.add_section("control_11")
+config.set("control_11", "feature_names", json.dumps(feature_names_default))
+config.set(
+    "control_11",
+    "feature_names_graph",
+    json.dumps(feature_names_graph_default),
+)
+config.set("control_11", "n_components", "100")
+config.set("control_11", "pca_method", "linear")
+config.set("control_11", "videos_dir", videos_dir)
+config.set("control_11", "video_annotations_dir", video_annotations_dir)
+config.set("control_11", "action_metadata_dir", action_metadata_dir)
+config.set("control_11", "character_metadata_dir", character_metadata_dir)
+config.set("control_11", "save_dir", save_dir_default)
+config.set("control_11", "start_frame", "10")
+config.set("control_11", "end_frame", "19")
+config.set("control_11", "img_frame", "20")
+config.set("control_11", "images_dir", img_dir)
+config.set("control_11", "img_annotations_dir", img_annotations_dir)
+config.set("control_11", "save_dir_feat_img", save_dir_feat_img)
+config.set("control_11", "save_dir_feat_video", save_dir_feat_video)
+config.set("control_11", "eeg_dir", eeg_dir)
+config.set("control_11", "noise_ceiling_dir", noise_ceiling_dir)
+config.set("control_11", "save_dir_cnn_img", save_dir_cnn_img)
+config.set("control_11", "save_dir_cnn_video", save_dir_cnn_video)
+config.set("control_11", "save_dir_cnn", save_dir_default_cnn)
+config.set("control_11", "mp4_dir", mp4_dir)
 
 with open("./config.ini", "w") as f:
     config.write(f)

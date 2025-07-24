@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-STATISTICS FOR ENCODING ANALYSIS (PERMUTATION TESTS) - DIFFERENCE: STATIC IMAGES - VIDEOS
+STATISTICS FOR ENCODING ANALYSIS (DIFFERENCE)
 
 This script implements the statistical analysis for the encoding analysis, more precisely
 it tests whether the DIFFERENCES between videos and images are significant for each tp.
@@ -22,7 +22,6 @@ import pickle
 import sys
 from pathlib import Path
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 
 from EEG.Encoding.utils import (
@@ -33,14 +32,14 @@ import argparse
 
 
 def permutation_test(
-    list_sub_vid,
-    list_sub_img,
-    n_perm,
-    tail,
-    alpha,
-    timepoints,
-    workDir, 
-    feature_names
+    list_sub_vid: list,
+    list_sub_img: list,
+    n_perm: int,
+    tail: str,
+    alpha: float,
+    timepoints: int,
+    workDir: str,
+    feature_names: list
 ):
     """
     Inputs:
@@ -65,10 +64,10 @@ def permutation_test(
         List with subjects which should be included in the statistical analysis for decoding with videos
     list_sub_img : list
         List with subjects which should be included in the statistical analysis for decoding with images
-    workDir_vid : str
-        Directory with the results of the decoding analysis with videos
-    workDir_img : str
-        Directory with the results of the decoding analysis with static images
+    workDir : str
+        Working directory where the results are saved.
+    feature_names : list
+        List of feature names to be analyzed. This is used to load the results.
     saveDir : str
         Directory where to save the results of the statistical analysis.
     n_perm : int
@@ -98,6 +97,11 @@ def permutation_test(
     # set random seed (for reproduction)
     np.random.seed(42)
 
+    temp_list = [
+        f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
+        for f in feature_names  
+    ]
+    feature_names = temp_list
     # -------------------------------------------------------------------------
     # STEP 2.2 Load results
     # -------------------------------------------------------------------------
@@ -195,10 +199,6 @@ def permutation_test(
         # -------------------------------------------------------------------------
         # STEP 2.5 Benjamini-Hochberg correction
         # -------------------------------------------------------------------------
-        """
-        Please note, that we assume a positive dependence between the different 
-        statistical tests. 
-        """
         rejected, p_values_corr = fdrcorrection(
             p_values, alpha=alpha, is_sorted=False
         )
