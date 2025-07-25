@@ -1,7 +1,7 @@
 """
 This script contains the code for control analysis 4, where the image and
 video EEG responses for the same stimuli are correlated. Note that the correlation
-is computed after applying MVNN, and after averaging across trials, and participants. 
+is computed after applying MVNN, and after averaging across trials, and participants.
 The correlation is computed for each electrode separately, and then averaged across electrodes.
 
 @author: Alexander Lenders, Agnessa Karapetian
@@ -17,6 +17,7 @@ import argparse
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
 from EEG.Encoding.utils import load_eeg, vectorized_correlation, load_config
+
 
 def c4(
     subj_list_img: list,

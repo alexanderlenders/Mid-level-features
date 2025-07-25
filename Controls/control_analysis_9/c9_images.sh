@@ -3,6 +3,8 @@
 
 source /home/alexandel91/.bashrc
 conda activate encoding
+
+export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
     
 # # Third step: Hyperparameter optimization
 # python ../../EEG/Encoding/hyperparameter_optimization.py \

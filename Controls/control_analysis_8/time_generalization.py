@@ -27,6 +27,7 @@ from EEG.Encoding.utils import (
     vectorized_correlation,
 )
 
+
 def time_gen(
     sub,
     freq,
@@ -64,7 +65,7 @@ def time_gen(
     elif region == "posterior":
         n_channels = 19
 
-    alpha_tp = False  # maybe add to function as a parameter above
+    alpha_tp = True  # maybe add to function as a parameter above
 
     if input_type == "miniclips":
         y_train, timepoints = load_eeg(
@@ -127,15 +128,20 @@ def time_gen(
                 print("Attention. Cholesky solver did not work: ", error)
                 print("Trying the standard linalg.solver...")
                 regression.fit(X_train, y_train_tp, solver="solve")
-            
+
             for tp_test in range(timepoints):
                 y_test_tp = y_test[:, :, tp_test]
                 prediction = regression.predict(X_test)
 
-                rmse[tp, tp_test, :] = regression.score(entry=X_test, y=y_test_tp)
-                corr[tp, tp_test, :] = vectorized_correlation(prediction, y_test_tp)
-                var_explained[tp, tp_test, :] = r2_score(y_test_tp, prediction, multioutput="raw_values")
-
+                rmse[tp, tp_test, :] = regression.score(
+                    entry=X_test, y=y_test_tp
+                )
+                corr[tp, tp_test, :] = vectorized_correlation(
+                    prediction, y_test_tp
+                )
+                var_explained[tp, tp_test, :] = r2_score(
+                    y_test_tp, prediction, multioutput="raw_values"
+                )
 
         output["rmse_score"] = rmse
         output["correlation"] = corr

@@ -4,6 +4,8 @@
 source /home/alexandel91/.bashrc
 conda activate encoding
 
+export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
+
 # python ../../EEG/Encoding/hyperparameter_optimization.py \
 #     --config_dir ../config.ini \
 #     --config control_6_2 \

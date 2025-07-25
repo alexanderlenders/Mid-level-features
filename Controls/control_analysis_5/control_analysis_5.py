@@ -1,5 +1,5 @@
 """
-This script contains the code for control analysis 5, where the image and video annotations (averaged) are correlated.
+This script contains the code for control analysis 5, where the image and video annotations are correlated across the whole stimulus set.
 
 @author: Alexander Lenders
 """
@@ -12,7 +12,6 @@ from pathlib import Path
 import argparse
 
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 from EEG.Encoding.utils import (
     vectorized_correlation,
@@ -23,11 +22,11 @@ from EEG.Encoding.utils import (
 
 
 def c5(
-    feat_dir_img,
-    feat_dir_vid,
+    feat_dir_img: str,
+    feat_dir_vid: str,
     save_dir: str,
-    feature_names,
-    frame,
+    feature_names: list,
+    frame: int,
     font: str = "Arial",
 ):
     """
@@ -83,7 +82,7 @@ def c5(
     plt.close()
     fig, ax = plt.subplots(figsize=(6, 4.5))  # Adjust size as needed
 
-    # Bar or point plot (choose one)
+    # Bar or point plot
     # ax.plot(
     #     features, correlations, "o-", color="black", linewidth=2, markersize=6
     # )  # Point plot
@@ -166,6 +165,7 @@ if __name__ == "__main__":
     frame = config.getint(args.config, "img_frame")
     feature_names = parse_list(config.get(args.config, "feature_names"))
 
+    # Hardcoded for now
     SAVE_DIR = "/scratch/alexandel91/mid_level_features/results/c5"
 
     c5(

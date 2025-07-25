@@ -19,7 +19,6 @@ import sys
 from pathlib import Path
 
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 
 from EEG.Encoding.utils import (
@@ -53,25 +52,31 @@ parser.add_argument(
     metavar="",
     help="images or miniclips",
 )
+parser.add_argument(
+    "--legend",
+    action="store_true",
+    help="Show legend in plots",
+)
 
 args = parser.parse_args()  # to get values for the arguments
 
 config = load_config(args.config_dir, args.config)
 workDir = config.get(args.config, "save_dir")
+plot_legend = args.legend
 noise_ceiling_dir = config.get(args.config, "noise_ceiling_dir")
 feature_names = parse_list(config.get(args.config, "feature_names"))
 
 full_feature_set = feature_names[-1]
-full_feature_set = ', '.join(full_feature_set)  # Convert to string for printing
+full_feature_set = ", ".join(
+    full_feature_set
+)  # Convert to string for printing
 feature_names = feature_names[:-1]  # remove the full feature set
 
 temp_list = [
     f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
-    for f in feature_names  
+    for f in feature_names
 ]
 feature_names = temp_list
-
-print(full_feature_set)
 
 feature_names_graph = parse_list(
     config.get(args.config, "feature_names_graph")
@@ -146,7 +151,7 @@ if args.config == "control_6_1":
     colors = [colormap(i) for i in range(num_features)]
 else:
     # To have the same colour scheme
-    colors = [colormap(i+1) for i in range(num_features)]
+    colors = [colormap(i + 1) for i in range(num_features)]
 
 # -----------------------------------------------------------------------------
 # STEP 3: Load results
@@ -164,7 +169,6 @@ for subject in list_sub:
 features_mean = []
 
 for feature in feature_names:
-    print(feature)
     features = []
 
     for sub, subject in enumerate(list_sub):
@@ -232,8 +236,7 @@ sorted_feature_names = feature_names
 sorted_color_dict = colors
 sorted_features_mean = features_mean
 
-# Load stats for the full model 
-print(full_feature_set)
+# Load stats for the full model
 stats_results = encoding_stats[full_feature_set]["Boolean_statistical_map"]
 stats_results = stats_results[10:]  # Exclude the first 10 timepoints
 # significant_indices = np.where(stats_results)[0]
@@ -265,13 +268,24 @@ for i, feature in enumerate(sorted_features_mean):
     high_CI_nonsig = np.ma.masked_where(stats_results, high_CI)
 
     # Plot lines
-    ax.plot(timepoints, accuracy, color='lightgrey', linewidth=2, alpha = 0.5)
-    ax.plot(timepoints, accuracy_sig, color=sorted_color_dict[i], linewidth=2, label=sorted_feature_names_graph[i],
-)
+    ax.plot(timepoints, accuracy, color="lightgrey", linewidth=2, alpha=0.5)
+    ax.plot(
+        timepoints,
+        accuracy_sig,
+        color=sorted_color_dict[i],
+        linewidth=2,
+        label=sorted_feature_names_graph[i],
+    )
 
     # Plot shaded CI areas
     # ax.fill_between(timepoints, low_CI, high_CI, color='lightgrey', alpha=0.15)
-    ax.fill_between(timepoints, low_CI_sig, high_CI_sig, color=sorted_color_dict[i], alpha=0.2)
+    ax.fill_between(
+        timepoints,
+        low_CI_sig,
+        high_CI_sig,
+        color=sorted_color_dict[i],
+        alpha=0.2,
+    )
 
     # Plot peak ticks
     peak_tick_halflength = 0.017
@@ -333,10 +347,9 @@ ax.set_xlim(0, 60)
 
 plt.tight_layout(rect=[0, 0, 1, 1])
 
-legend_font_props = {"family": font, "size": 9}
-ax.legend(
-    prop=legend_font_props, frameon=False, bbox_to_anchor=[0.7, 0.6]
-)
+if plot_legend:
+    legend_font_props = {"family": font, "size": 9}
+    ax.legend(prop=legend_font_props, frameon=False, bbox_to_anchor=[0.7, 0.6])
 
 ax.tick_params(axis="both", direction="inout")
 

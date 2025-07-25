@@ -1,5 +1,7 @@
 """
-This script implements variance partitioning.
+This script implements the code for control analysis 6, i.e. variance partitioning.
+
+@author: Alexander Lenders
 """
 
 import os
@@ -12,7 +14,6 @@ from scipy.optimize import minimize
 from functools import partial
 
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 
 from EEG.Encoding.utils import (
@@ -20,15 +21,21 @@ from EEG.Encoding.utils import (
     parse_list,
 )
 
-def get_constraints_idea_1(X_hat_tp):
+
+def get_constraints_idea_1(X_hat_tp: np.ndarray):
     """
+    This function defines the constraints for idea 1 of the variance partitioning.
+
     X_hat_tp: np.ndarray, shape (n_models,) with uncorrected R^2 values for each model at a specific time point.
+
     Returns a constraint dict for the optimization problem.
     """
 
+    # This basically formulates the constraint that the corrected full model's R^2 value
+    # must be at least equal to the corrected smaller model's R^2 value
     def constraint(b, X_hat_tp, model_idx):
         return X_hat_tp[-1] + b[-1] - X_hat_tp[model_idx] - b[model_idx]
-    
+
     co_1 = partial(constraint, X_hat_tp=X_hat_tp, model_idx=0)
     co_2 = partial(constraint, X_hat_tp=X_hat_tp, model_idx=1)
     co_3 = partial(constraint, X_hat_tp=X_hat_tp, model_idx=2)
@@ -37,72 +44,87 @@ def get_constraints_idea_1(X_hat_tp):
     co_6 = partial(constraint, X_hat_tp=X_hat_tp, model_idx=5)
     co_7 = partial(constraint, X_hat_tp=X_hat_tp, model_idx=6)
 
-    constraints = [{'type': 'ineq', 'fun': c} for c in [co_1, co_2, co_3, co_4, co_5, co_6, co_7]]
+    constraints = [
+        {"type": "ineq", "fun": c}
+        for c in [co_1, co_2, co_3, co_4, co_5, co_6, co_7]
+    ]
 
     return constraints
 
+
 def get_constraints_idea_2(X_hat_tp):
     """
+    This function defines the constraints for idea 2 of the variance partitioning.
+
     X_hat_tp: np.ndarray, shape (n_models,) with uncorrected R^2 values for each model at a specific time point.
     Returns a constraint dict for the optimization problem.
     """
-    
+
     def constraint(b, X_hat_tp, model_idx):
         return X_hat_tp[model_idx] + b[model_idx] - X_hat_tp[-1] - b[-1]
-    
+
     co_1 = partial(constraint, X_hat_tp=X_hat_tp, model_idx=0)
     co_2 = partial(constraint, X_hat_tp=X_hat_tp, model_idx=1)
     co_3 = partial(constraint, X_hat_tp=X_hat_tp, model_idx=2)
     co_4 = partial(constraint, X_hat_tp=X_hat_tp, model_idx=3)
     co_5 = partial(constraint, X_hat_tp=X_hat_tp, model_idx=4)
 
-    constraints = [{'type': 'ineq', 'fun': c} for c in [co_1, co_2, co_3, co_4, co_5]]
+    constraints = [
+        {"type": "ineq", "fun": c} for c in [co_1, co_2, co_3, co_4, co_5]
+    ]
 
     return constraints
 
-def get_unbiased_vp(constraints):
+
+def get_unbiased_vp(constraints: dict):
     """
-    This function returns the unbiased variance partitioning matrix.
+    This functions estimates the bias terms for the variance partitioning
+    analysis 1 and returns the estimates.
     """
+
     def objective(b):
-        return np.sum(b ** 2) # Minimize l2 norm of the bias parameters
+        return np.sum(b**2)  # Minimize l2 norm of the bias parameters
 
     results = minimize(
         objective,
         x0=np.zeros(8),
         constraints=constraints,
-        method='SLSQP',
-        options={'disp': False, 'ftol': 1e-8, 'maxiter': 100000}
+        method="SLSQP",
+        options={"disp": False, "ftol": 1e-8, "maxiter": 100000},
     )
 
     if not results.success:
         raise ValueError("Optimization failed: " + results.message)
-    
+
     b_updated = results.x
 
     return b_updated
 
+
 def get_unbiased_vp_idea_2(constraints):
     """
-    This function returns the unbiased variance partitioning matrix for idea 2.
+    This function estimates the bias terms for the variance partitioning
+    analysis 2 and returns the estimates.
     """
+
     def objective(b):
-        return np.sum(b ** 2)  # Minimize l2 norm of the bias parameters
+        return np.sum(b**2)  # Minimize l2 norm of the bias parameters
 
     results = minimize(
         objective,
         x0=np.zeros(6),
         constraints=constraints,
-        method='SLSQP',
-        options={'disp': False, 'ftol': 1e-8, 'maxiter': 100000}
+        method="SLSQP",
+        options={"disp": False, "ftol": 1e-8, "maxiter": 100000},
     )
 
     if not results.success:
         raise ValueError("Optimization failed: " + results.message)
-    
+
     b_updated = results.x
 
     return b_updated
+
 
 def c6(
     sub: int,
@@ -121,6 +143,7 @@ def c6(
     identifierDir = f"seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
 
     fileDir = os.path.join(workDir, f"{sub}_{identifierDir}")
+
     # Load the encoding results for the variance partitioning analysis
     encoding_results = np.load(fileDir, allow_pickle=True)
 
@@ -130,18 +153,18 @@ def c6(
         for f in feature_names
     ]
 
-    X_hat_matrix = np.stack([
-        encoding_results[key]["correlation"] for key in features_keys
-    ], axis=-1)
-    # # Swap axes 1 and 2
-    # X_hat_matrix = np.swapaxes(X_hat_matrix, 1, 2)
-    # print(f"X_hat_matrix shape: {X_hat_matrix.shape}")
+    # Get the uncorrected R^2 values for each feature
+    X_hat_matrix = np.stack(
+        [encoding_results[key]["var_explained"] for key in features_keys],
+        axis=-1,
+    )
 
     # Build results dictionary
     results = {}
     for i, feature in enumerate(features_keys[:-1]):
-        results_tp = np.zeros((X_hat_matrix.shape[0], X_hat_matrix.shape[1]))  # Initialize results for each time point
-        # results_tp = np.zeros((X_hat_matrix.shape[0], X_hat_matrix.shape[2]))  # Initialize results for each time point
+        results_tp = np.zeros(
+            (X_hat_matrix.shape[0], X_hat_matrix.shape[1])
+        )  # Initialize results for each time point
         for tp in range(X_hat_matrix.shape[0]):
             for channel in range(X_hat_matrix.shape[1]):
                 X_hat_channel = X_hat_matrix[tp, channel, :]
@@ -149,17 +172,23 @@ def c6(
                 if idea == 1:
                     constraints = get_constraints_idea_1(X_hat_channel)
                     b = get_unbiased_vp(constraints)
-                    partial_variance = X_hat_channel[-1] + b[-1] - X_hat_channel[i] - b[i]
+                    partial_variance = (
+                        X_hat_channel[-1] + b[-1] - X_hat_channel[i] - b[i]
+                    )
                 elif idea == 2:
                     constraints = get_constraints_idea_2(X_hat_channel)
                     b = get_unbiased_vp_idea_2(constraints)
-                    partial_variance = X_hat_channel[i] + b[i] - X_hat_channel[-1] - b[-1]
+                    partial_variance = (
+                        X_hat_channel[i] + b[i] - X_hat_channel[-1] - b[-1]
+                    )
                 else:
-                    raise ValueError("Unsupported idea version (must be 1 or 2)")
-                
+                    raise ValueError(
+                        "Unsupported idea version (must be 1 or 2)"
+                    )
+
                 results_tp[tp, channel] = partial_variance
-                
-        # Check if any results more negative than 1e-5 from 0
+
+        # Check if any results more negative than 1e-3 from 0
         if np.any(results_tp < -1e-3):
             raise ValueError(
                 f"Partial variance for feature {feature} at some time points is negative: {results_tp[results_tp < -1e-3]}"
@@ -173,7 +202,9 @@ def c6(
             partial_correlation = np.sqrt(partial_variance)
 
         results[feature] = {
-            "correlation": partial_correlation if partial_corr else partial_variance
+            "correlation": (
+                partial_correlation if partial_corr else partial_variance
+            )
         }
 
     # Save the results
@@ -258,4 +289,3 @@ if __name__ == "__main__":
     for sub in list_sub:
         print(f"Running variance partitioning for subject {sub}...")
         c6(sub, workDir, input_type, feature_names, idea, PARTIAL_CORR)
-        print(f"Variance partitioning for subject {sub} completed.")

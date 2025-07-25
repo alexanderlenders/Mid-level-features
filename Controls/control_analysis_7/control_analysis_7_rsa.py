@@ -1,6 +1,5 @@
 """
-Control analysis 7: Representational Similarity Analysis (RSA)
-Computes Kendall's τ between Kriegeskorte-style RDMs of different features.
+This script contains the code for control analysis 7, which creates a dissimilarity matrix between different feature representations across the whole stimulus set using Kriegeskorte-style (Kriegeskorte et al., 2008) Representational Similarity Analysis (RSA) based on Kendall's τ.
 """
 
 import numpy as np
@@ -21,15 +20,19 @@ from EEG.Encoding.utils import (
     load_features,
 )
 
+
 def compute_rdm_kriegeskorte(X: np.ndarray) -> np.ndarray:
-    """Computes Kriegeskorte-style RDM: J - X @ X.T"""
+    """Computes RDM: J - X @ X.T"""
+    REWORK this...
     S = X @ X.T
     J = np.ones_like(S)
     return J - S
 
+
 def rdm_to_vector_upper(rdm: np.ndarray) -> np.ndarray:
-    """Extract upper triangle (without diagonal) from a square matrix."""
+    """Extract upper triangle (without diagonal) from a matrix."""
     return rdm[np.triu_indices(rdm.shape[0], k=1)]
+
 
 def rsa_kriegeskorte(X: np.ndarray, Y: np.ndarray) -> float:
     """Computes RSA(X, Y) = τ(J - X Xᵗ, J - Y Yᵗ)"""
@@ -41,6 +44,7 @@ def rsa_kriegeskorte(X: np.ndarray, Y: np.ndarray) -> float:
 
     tau, _ = kendalltau(vec_X, vec_Y)
     return tau
+
 
 def c7(
     feat_dir,
@@ -66,13 +70,12 @@ def c7(
         )
 
     # Sort feature names and display names together
-    sorted_lists = sorted(zip(feature_names, feature_graphs), key=lambda x: x[0])
+    sorted_lists = sorted(
+        zip(feature_names, feature_graphs), key=lambda x: x[0]
+    )
     feature_names, feature_graphs = zip(*sorted_lists)
     feature_names = list(feature_names)
     feature_graphs = list(feature_graphs)
-
-    print("Sorted Features:", feature_names)
-    print("Sorted Graph Labels:", feature_graphs)
 
     # Load features
     feature_arrays = []
@@ -98,11 +101,12 @@ def c7(
     heatmap = sns.heatmap(
         rsa_matrix,
         ax=ax_corr,
-        cmap="jet",
+        cmap="viridis",
         square=True,
         cbar_kws={"label": "Kendall's τ (RSA)"},
         xticklabels=feature_graphs,
         yticklabels=feature_graphs,
+        mask=np.isnan(rsa_matrix),
     )
 
     cbar = heatmap.collections[0].colorbar
@@ -112,7 +116,7 @@ def c7(
     for spine in ax_corr.spines.values():
         spine.set_visible(True)
         spine.set_linewidth(1.5)
-        spine.set_edgecolor('black')
+        spine.set_edgecolor("black")
 
     ax_corr.set_xticklabels(
         feature_graphs,
@@ -121,7 +125,9 @@ def c7(
         fontsize=12,
         fontname=font,
     )
-    ax_corr.set_yticklabels(feature_graphs, fontsize=12, rotation=45, fontname=font)
+    ax_corr.set_yticklabels(
+        feature_graphs, fontsize=12, rotation=45, fontname=font
+    )
 
     plt.tight_layout()
     plt.show()
@@ -162,15 +168,23 @@ if __name__ == "__main__":
         help="Specify input type: 'images' or 'videos'",
     )
     parser.add_argument(
-        "-f", "--font", default="Arial", type=str, metavar="", help="Font for plots"
+        "-f",
+        "--font",
+        default="Arial",
+        type=str,
+        metavar="",
+        help="Font for plots",
     )
 
     args = parser.parse_args()
     config = load_config(args.config_dir, args.config)
 
     input_type = args.input_type
-    feat_dir = config.get(args.config, "save_dir_feat_img") if input_type == "images" \
+    feat_dir = (
+        config.get(args.config, "save_dir_feat_img")
+        if input_type == "images"
         else config.get(args.config, "save_dir_feat_video")
+    )
 
     frame = config.getint(args.config, "img_frame")
 

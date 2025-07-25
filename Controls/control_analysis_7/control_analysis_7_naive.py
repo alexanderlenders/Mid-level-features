@@ -1,5 +1,5 @@
 """
-This script contains the code for control analysis 7, which creates a correlation matrix between the different features.
+This script contains the code for control analysis 7, which creates a correlation matrix between the different features. In this script, a "naive correlation" approach is used, i.e. Pearson's r is computed between the features across the whole stimulus set.
 
 @author: Alexander Lenders
 """
@@ -13,23 +13,21 @@ from pathlib import Path
 import argparse
 
 project_root = Path(__file__).resolve().parents[2]
-print(project_root)
 sys.path.append(str(project_root))
 from EEG.Encoding.utils import (
     vectorized_correlation,
     load_config,
     load_features,
-    parse_list,
 )
 
 
 def c7(
-    feat_dir,
-    input_type,
+    feat_dir: str,
+    input_type: str,
+    feature_names: list,
     save_dir: str,
-    feature_names,
-    frame,
-    feature_graphs,
+    frame: int,
+    feature_graphs: list,
     font: str = "Arial",
 ):
     """
@@ -49,22 +47,19 @@ def c7(
 
     feature_arrays = []
 
-    sorted_lists = sorted(zip(feature_names, feature_graphs), key=lambda x: x[0])
+    sorted_lists = sorted(
+        zip(feature_names, feature_graphs), key=lambda x: x[0]
+    )
 
     # Unzip the sorted pairs back into two lists
     feature_names, feature_graphs = zip(*sorted_lists)
     feature_names = list(feature_names)
     feature_graphs = list(feature_graphs)
 
-    # Print the sorted lists
-    print(feature_names)
-    print(feature_graphs)
-    
     # First step: Load all the features for images and videos
     for feature in feature_names:
         X_train, X_val, X_test = load_features(feature, featuresDir)
         X_concat = np.concatenate((X_train, X_val, X_test), axis=0)
-
         feature_arrays.append(X_concat)
 
     # Create correlation matrix
@@ -76,13 +71,9 @@ def c7(
             if i == j:
                 correlation_matrix[i, j] = np.nan  # Diagonal elements are NaN
             else:
-                print(feature_arrays[i].shape, feature_arrays[j].shape)
                 corr = vectorized_correlation(
                     feature_arrays[i], feature_arrays[j]
                 )
-                print(corr)
-                print(corr.shape)
-                raise ValueError
                 corr = np.mean(corr)
                 # Make sure that maximum correlation is 1
                 if corr > 1:
@@ -98,22 +89,23 @@ def c7(
     heatmap = sns.heatmap(
         correlation_matrix,
         ax=ax_corr,
-        cmap="jet",
+        cmap="viridis",
         square=True,
         cbar_kws={"label": "Pearson's r"},
         xticklabels=feature_graphs,
         yticklabels=feature_graphs,
+        mask=np.isnan(correlation_matrix),
     )
 
     # Increase colorbar label font size
     cbar = heatmap.collections[0].colorbar
-    cbar.ax.yaxis.label.set_size(14)   # Label font size
+    cbar.ax.yaxis.label.set_size(14)  # Label font size
     cbar.ax.tick_params(labelsize=12)  # Tick font size
 
     for spine in ax_corr.spines.values():
         spine.set_visible(True)
         spine.set_linewidth(1.5)
-        spine.set_edgecolor('black')
+        spine.set_edgecolor("black")
 
     ax_corr.set_xticklabels(
         feature_graphs,
@@ -122,7 +114,9 @@ def c7(
         fontsize=12,
         fontname=font,
     )
-    ax_corr.set_yticklabels(feature_graphs, fontsize=12, rotation=45, fontname=font)
+    ax_corr.set_yticklabels(
+        feature_graphs, fontsize=12, rotation=45, fontname=font
+    )
 
     # Layout and save
     plt.tight_layout()
@@ -194,13 +188,13 @@ if __name__ == "__main__":
         "Depth",
     ]
 
-    SAVE_DIR = "/scratch/alexandel91/mid_level_features/results/c7"
+    SAVE_DIR = "/scratch/alexandel91/mid_level_features/results/c7_1"
 
     c7(
         feat_dir,
         input_type,
-        SAVE_DIR,
         feature_names,
+        SAVE_DIR,
         frame,
         feature_names_graph,
         font=args.font,

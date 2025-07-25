@@ -1,5 +1,5 @@
 #!/bin/bash
-# Standard encoding analysis with all features for miniclips
+# Control analysis 7 with naive correlation
 
 source /home/alexandel91/.bashrc
 conda activate encoding

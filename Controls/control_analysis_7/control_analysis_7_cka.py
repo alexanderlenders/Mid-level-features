@@ -1,8 +1,5 @@
 """
-Control Analysis 7 (CKA):
-Computes similarity between feature representations using
-Linear Centered Kernel Alignment (CKA) as defined in:
-Kornblith et al. (2019), Gretton et al. (2005)
+This script contains the code for control analysis 7, which creates a similarity matrix between different feature representations across the whole stimulus set using Linear Centered Kernel Alignment (CKA), as defined in Kornblith et al. (2019).
 
 @author: Alexander Lenders
 """
@@ -25,27 +22,21 @@ from EEG.Encoding.utils import (
 )
 
 
-# ----------------------------- CKA Functions -----------------------------
-
 def center_gram_matrix(K: np.ndarray) -> np.ndarray:
     """Centers a kernel (Gram) matrix."""
     n = K.shape[0]
     H = np.eye(n) - np.ones((n, n)) / n
     return H @ K @ H
 
+
 def hsic(Kc: np.ndarray, Lc: np.ndarray) -> float:
     """Hilbert-Schmidt Independence Criterion (HSIC)"""
     return np.sum(Kc * Lc)
 
+
 def linear_cka(X: np.ndarray, Y: np.ndarray) -> float:
     """
     Computes linear CKA between two feature matrices.
-    
-    Args:
-        X: [M x NX]
-        Y: [M x NY]
-    Returns:
-        Scalar CKA similarity score
     """
     X = X - X.mean(0, keepdims=True)
     Y = Y - Y.mean(0, keepdims=True)
@@ -62,8 +53,6 @@ def linear_cka(X: np.ndarray, Y: np.ndarray) -> float:
 
     return hsic_xy / (np.sqrt(hsic_xx * hsic_yy) + 1e-10)
 
-
-# ----------------------------- Main Function -----------------------------
 
 def c7_cka(
     feat_dir: str,
@@ -88,7 +77,9 @@ def c7_cka(
         )
 
     # Sort features alphabetically for consistent layout
-    feature_names, feature_labels = zip(*sorted(zip(feature_names, feature_labels)))
+    feature_names, feature_labels = zip(
+        *sorted(zip(feature_names, feature_labels))
+    )
     feature_names, feature_labels = list(feature_names), list(feature_labels)
 
     # Load all feature matrices
@@ -131,9 +122,11 @@ def c7_cka(
     for spine in ax.spines.values():
         spine.set_visible(True)
         spine.set_linewidth(1.5)
-        spine.set_edgecolor('black')
+        spine.set_edgecolor("black")
 
-    ax.set_xticklabels(feature_labels, rotation=45, ha="right", fontsize=12, fontname=font)
+    ax.set_xticklabels(
+        feature_labels, rotation=45, ha="right", fontsize=12, fontname=font
+    )
     ax.set_yticklabels(feature_labels, rotation=45, fontsize=12, fontname=font)
 
     plt.tight_layout()
@@ -142,7 +135,9 @@ def c7_cka(
     # Save
     os.makedirs(save_dir, exist_ok=True)
     for ext in ["svg", "png"]:
-        out_path = os.path.join(save_dir, f"cka_feature_similarity_matrix_{input_type}.{ext}")
+        out_path = os.path.join(
+            save_dir, f"cka_feature_similarity_matrix_{input_type}.{ext}"
+        )
         fig.savefig(out_path, dpi=300, format=ext, transparent=True)
 
 
@@ -151,10 +146,31 @@ def c7_cka(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--config_dir", type=str, required=True, help="Path to config file directory.")
-    parser.add_argument("--config", type=str, required=True, help="Config name.")
-    parser.add_argument("-i", "--input_type", default="images", type=str, metavar="", help="Input type: images or video.")
-    parser.add_argument("-f", "--font", default="Arial", type=str, metavar="", help="Font for plot.")
+    parser.add_argument(
+        "--config_dir",
+        type=str,
+        required=True,
+        help="Path to config file directory.",
+    )
+    parser.add_argument(
+        "--config", type=str, required=True, help="Config name."
+    )
+    parser.add_argument(
+        "-i",
+        "--input_type",
+        default="images",
+        type=str,
+        metavar="",
+        help="Input type: images or video.",
+    )
+    parser.add_argument(
+        "-f",
+        "--font",
+        default="Arial",
+        type=str,
+        metavar="",
+        help="Font for plot.",
+    )
 
     args = parser.parse_args()
 
