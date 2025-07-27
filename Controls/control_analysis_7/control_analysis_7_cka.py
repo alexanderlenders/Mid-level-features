@@ -22,6 +22,7 @@ from EEG.Encoding.utils import (
 )
 
 
+# See equations 3 and 4 in Kornblith et al. (2019) for the linear CKA definition.
 def center_gram_matrix(K: np.ndarray) -> np.ndarray:
     """Centers a kernel (Gram) matrix."""
     n = K.shape[0]
@@ -30,8 +31,9 @@ def center_gram_matrix(K: np.ndarray) -> np.ndarray:
 
 
 def hsic(Kc: np.ndarray, Lc: np.ndarray) -> float:
-    """Hilbert-Schmidt Independence Criterion (HSIC)"""
-    return np.sum(Kc * Lc)
+    """Computes the Hilbert-Schmidt Independence Criterion (HSIC) between two centered kernel matrices."""
+    n = Kc.shape[0]
+    return np.sum(Kc * Lc) / ((n - 1) ** 2)
 
 
 def linear_cka(X: np.ndarray, Y: np.ndarray) -> float:
@@ -41,6 +43,7 @@ def linear_cka(X: np.ndarray, Y: np.ndarray) -> float:
     X = X - X.mean(0, keepdims=True)
     Y = Y - Y.mean(0, keepdims=True)
 
+    # This corresponds to a linear kernel
     K = X @ X.T
     L = Y @ Y.T
 

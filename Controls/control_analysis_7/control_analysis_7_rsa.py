@@ -1,5 +1,5 @@
 """
-This script contains the code for control analysis 7, which creates a dissimilarity matrix between different feature representations across the whole stimulus set using Kriegeskorte-style (Kriegeskorte et al., 2008) Representational Similarity Analysis (RSA) based on Kendall's τ.
+This script contains the code for control analysis 7, which creates a dissimilarity matrix between different feature representations across the whole stimulus set using Kriegeskorte-style (Kriegeskorte et al., 2008) Representational Similarity Analysis (RSA).
 """
 
 import numpy as np
@@ -9,7 +9,7 @@ import seaborn as sns
 import sys
 from pathlib import Path
 import argparse
-from scipy.stats import kendalltau
+from scipy.stats import kendalltau, pearsonr, rankdata, spearmanr
 
 # Project root and path setup
 project_root = Path(__file__).resolve().parents[2]
@@ -21,12 +21,44 @@ from EEG.Encoding.utils import (
 )
 
 
-def compute_rdm_kriegeskorte(X: np.ndarray) -> np.ndarray:
-    """Computes RDM: J - X @ X.T"""
-    REWORK this...
-    S = X @ X.T
-    J = np.ones_like(S)
-    return J - S
+def compute_rdm_kriegeskorte(
+    X: np.ndarray, strategy: str = "spearman"
+) -> np.ndarray:
+    """
+    For different approaches/strategies on how to compute the RDM, see:
+    - https://arxiv.org/abs/2411.14633 - Bo et al. (2024)
+    - Kriegeskorte et al. (2008)
+
+    """
+    if strategy == "khosla":
+        S = X @ X.T
+        J = np.ones_like(S)
+        return J - S
+    elif strategy == "spearman":
+        X_ranked = np.apply_along_axis(rankdata, 1, X)
+        n = X.shape[0]
+        RDM = np.zeros(
+            (n, n)
+        )  # Dissimilarity of 0 for diagonal (as identical)
+        for i in range(n):
+            for j in range(i + 1, n):
+                rho, _ = pearsonr(X_ranked[i], X_ranked[j])
+                dist = 1 - rho
+                RDM[i, j] = RDM[j, i] = dist
+        return RDM
+    elif strategy == "pearson":
+        n = X.shape[0]
+        RDM = np.zeros((n, n))
+        for i in range(n):
+            for j in range(i + 1, n):
+                r, _ = pearsonr(X[i], X[j])
+                dist = 1 - r
+                RDM[i, j] = RDM[j, i] = dist
+        return RDM
+    else:
+        raise ValueError(
+            f"Unknown strategy '{strategy}'. Supported strategies: 'khosla', 'spearman', 'pearson'."
+        )
 
 
 def rdm_to_vector_upper(rdm: np.ndarray) -> np.ndarray:
@@ -34,16 +66,26 @@ def rdm_to_vector_upper(rdm: np.ndarray) -> np.ndarray:
     return rdm[np.triu_indices(rdm.shape[0], k=1)]
 
 
-def rsa_kriegeskorte(X: np.ndarray, Y: np.ndarray) -> float:
+def rsa_kriegeskorte(
+    X: np.ndarray, Y: np.ndarray, strategy: str = "spearman"
+) -> float:
     """Computes RSA(X, Y) = τ(J - X Xᵗ, J - Y Yᵗ)"""
-    RDM_X = compute_rdm_kriegeskorte(X)
-    RDM_Y = compute_rdm_kriegeskorte(Y)
+    RDM_X = compute_rdm_kriegeskorte(X, strategy=strategy)
+    RDM_Y = compute_rdm_kriegeskorte(Y, strategy=strategy)
 
     vec_X = rdm_to_vector_upper(RDM_X)
     vec_Y = rdm_to_vector_upper(RDM_Y)
 
-    tau, _ = kendalltau(vec_X, vec_Y)
-    return tau
+    if strategy == "spearman":
+        # Use Spearman's rank correlation for RSA
+        corr, _ = spearmanr(vec_X, vec_Y)
+    elif strategy == "pearson":
+        # Use Pearson correlation for RSA
+        corr, _ = pearsonr(vec_X, vec_Y)
+    elif strategy == "kendall":
+        # Use Kendall's tau for RSA
+        corr, _ = kendalltau(vec_X, vec_Y)
+    return corr
 
 
 def c7(
@@ -54,6 +96,7 @@ def c7(
     frame,
     feature_graphs,
     font: str = "Arial",
+    strategy: str = "spearman",
 ):
     """
     Perform RSA analysis between mid-level features using Kendall's τ.
@@ -93,17 +136,26 @@ def c7(
             if i == j:
                 rsa_matrix[i, j] = np.nan
             else:
-                tau = rsa_kriegeskorte(feature_arrays[i], feature_arrays[j])
-                rsa_matrix[i, j] = tau
+                corr = rsa_kriegeskorte(
+                    feature_arrays[i], feature_arrays[j], strategy=strategy
+                )
+                rsa_matrix[i, j] = corr
 
     # Plot matrix
     fig_corr, ax_corr = plt.subplots(figsize=(6, 5))
+    if strategy == "spearman":
+        label = "Spearman's ρ (RSA)"
+    elif strategy == "pearson":
+        label = "Pearson's r (RSA)"
+    elif strategy == "kendall":
+        label = "Kendall's τ (RSA)"
+
     heatmap = sns.heatmap(
         rsa_matrix,
         ax=ax_corr,
         cmap="viridis",
         square=True,
-        cbar_kws={"label": "Kendall's τ (RSA)"},
+        cbar_kws={"label": label},
         xticklabels=feature_graphs,
         yticklabels=feature_graphs,
         mask=np.isnan(rsa_matrix),
