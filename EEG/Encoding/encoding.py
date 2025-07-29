@@ -35,7 +35,7 @@ def encoding(
     eeg_dir: str,
     frame: int,
     feature_names: list,
-    exclude: list,
+    exclude: bool,
     full_feat: bool = False,
     alpha_tp: bool = True,
 ):

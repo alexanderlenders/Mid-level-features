@@ -19,6 +19,7 @@ import pickle
 
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
 
@@ -28,7 +29,15 @@ from EEG.Encoding.utils import (
 )
 import argparse
 
-def bootstrapping_CI(list_sub: list, n_perm: int, timepoints: int, input_type: str, workDir: str, feature_names: list):
+
+def bootstrapping_CI(
+    list_sub: list,
+    n_perm: int,
+    timepoints: int,
+    input_type: str,
+    workDir: str,
+    feature_names: list,
+):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and
     each feature.
@@ -94,7 +103,7 @@ def bootstrapping_CI(list_sub: list, n_perm: int, timepoints: int, input_type: s
     # define matrix where to save the values
     temp_list = [
         f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
-        for f in feature_names  
+        for f in feature_names
     ]
     feature_names = temp_list
 
@@ -168,8 +177,8 @@ def bootstrapping_CI(list_sub: list, n_perm: int, timepoints: int, input_type: s
         # ---------------------------------------------------------------------
         # STEP 2.6 Calculate 95%-CI
         # ---------------------------------------------------------------------
-        upper = round(n_perm * 0.975) - 1
-        lower = round(n_perm * 0.025) - 1
+        upper = int(np.ceil(n_perm * 0.975)) - 1
+        lower = int(np.ceil(n_perm * 0.025)) - 1
 
         ci_dict = {}
 
@@ -368,4 +377,6 @@ if __name__ == "__main__":
     elif input_type == "images":
         list_sub = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
 
-    bootstrapping_CI(list_sub, n_perm, timepoints, input_type, workDir, feature_names)
+    bootstrapping_CI(
+        list_sub, n_perm, timepoints, input_type, workDir, feature_names
+    )

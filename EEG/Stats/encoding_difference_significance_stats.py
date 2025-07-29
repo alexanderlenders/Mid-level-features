@@ -10,9 +10,6 @@ alpha-level of .05. The statistical tests are two-sided per default.
 Chance-level of pairwise decoding is 0.5.
 
 @author: Alexander Lenders, Agnessa Karapetian
-
-Anaconda Environment on local machine: mne
-
 """
 import os
 import numpy as np
@@ -21,6 +18,7 @@ from statsmodels.stats.multitest import fdrcorrection
 import pickle
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
 
@@ -39,7 +37,7 @@ def permutation_test(
     alpha: float,
     timepoints: int,
     workDir: str,
-    feature_names: list
+    feature_names: list,
 ):
     """
     Inputs:
@@ -99,7 +97,7 @@ def permutation_test(
 
     temp_list = [
         f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
-        for f in feature_names  
+        for f in feature_names
     ]
     feature_names = temp_list
     # -------------------------------------------------------------------------
@@ -151,7 +149,9 @@ def permutation_test(
 
         # stack all data
         all_results = np.vstack((results_f_vid, results_f_img))
-        labels = np.array([0] * n_sub_vid + [1] * n_sub_img)  # 0=video, 1=image
+        labels = np.array(
+            [0] * n_sub_vid + [1] * n_sub_img
+        )  # 0=video, 1=image
 
         # create mean for each timepoint over all participants
         # this is our "original data" and permutation 1 in the stat_map
@@ -214,11 +214,7 @@ def permutation_test(
     # -------------------------------------------------------------------------
 
     # Save the dictionary
-    fileDir = (
-        "encoding_stats_{}_nonstd.pkl".format(
-            tail
-        )
-    )
+    fileDir = "encoding_stats_{}_nonstd.pkl".format(tail)
 
     savefileDir = os.path.join(saveDir, fileDir)
 
@@ -327,5 +323,5 @@ if __name__ == "__main__":
         alpha,
         timepoints,
         workDir,
-        feature_names
+        feature_names,
     )
