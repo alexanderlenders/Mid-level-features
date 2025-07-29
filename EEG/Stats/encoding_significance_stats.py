@@ -263,10 +263,7 @@ if __name__ == "__main__":
     alpha = args.alpha
     input_type = args.input_type
 
-    if args.config == "control_6_1" or args.config == "control_6_2":
-        var_part = True
-    else:
-        var_part = False
+    VAR_PART = False
 
     if input_type == "miniclips":
         list_sub = [
@@ -294,4 +291,7 @@ if __name__ == "__main__":
     elif input_type == "images":
         list_sub = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
 
-    permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type, workDir, feature_names, var_part=var_part)
+    if args.config == "control_6_1" or args.config == "control_6_2":
+        feature_names = feature_names[:-1]  # remove the full feature set
+
+    permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type, workDir, feature_names, var_part=VAR_PART)

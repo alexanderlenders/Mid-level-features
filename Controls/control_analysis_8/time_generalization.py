@@ -115,7 +115,7 @@ def time_gen(
                     feature,
                     input_type,
                     feat_dir=save_dir,
-                    timepoint=tp,
+                    tp=tp,
                     feat_len=len(feature_names),
                 )
 

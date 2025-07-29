@@ -140,12 +140,37 @@ for feature in feature_names:
 
     fig, ax = plt.subplots()
 
-    heatmap = ax.imshow(
-        reduced_time_gen,
-        cmap="jet",
-        vmin=0,
-        extent=[0, reduced_time_gen.shape[1], 60, 0],
-    )
+    if feature == "action":
+        vmax_value = 0.18
+    elif feature == "edges":
+        vmax_value = 0.35
+    elif feature == "reflectance":
+        vmax_value = 0.12
+    elif feature == "lighting":
+        vmax_value = 0.16
+    elif feature == "depth":
+        vmax_value = 0.16
+    elif feature == "skeleton":
+        vmax_value = 0.22
+    elif feature == "world_normal":
+        vmax_value = 0.14
+
+    if input_type == "images" or input_type == "miniclips":
+        heatmap = ax.imshow(
+            reduced_time_gen,
+            cmap="jet",
+            vmin=0,
+            vmax=vmax_value,
+            extent=[0, reduced_time_gen.shape[1], 60, 0],
+        )
+    else:
+        print("Difference")
+        heatmap = ax.imshow(
+            reduced_time_gen,
+            cmap="jet",
+            extent=[0, reduced_time_gen.shape[1], 60, 0],
+        )
+
 
     # Add colorbar
     cbar = plt.colorbar(

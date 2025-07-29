@@ -159,53 +159,49 @@ def c6(
         axis=-1,
     )
 
-    # Build results dictionary
-    results = {}
-    for i, feature in enumerate(features_keys[:-1]):
-        results_tp = np.zeros(
-            (X_hat_matrix.shape[0], X_hat_matrix.shape[1])
-        )  # Initialize results for each time point
-        for tp in range(X_hat_matrix.shape[0]):
-            for channel in range(X_hat_matrix.shape[1]):
-                X_hat_channel = X_hat_matrix[tp, channel, :]
+    results = {feature: np.zeros((X_hat_matrix.shape[0], X_hat_matrix.shape[1]))
+           for feature in features_keys[:-1]}
 
+    for tp in range(X_hat_matrix.shape[0]):
+        for channel in range(X_hat_matrix.shape[1]):
+            X_hat_channel = X_hat_matrix[tp, channel, :]
+
+            if idea == 1:
+                constraints = get_constraints_idea_1(X_hat_channel)
+                b = get_unbiased_vp(constraints)
+            elif idea == 2:
+                constraints = get_constraints_idea_2(X_hat_channel)
+                b = get_unbiased_vp_idea_2(constraints)
+            else:
+                raise ValueError("Unsupported idea version (must be 1 or 2)")
+
+            for i, feature in enumerate(features_keys[:-1]):
                 if idea == 1:
-                    constraints = get_constraints_idea_1(X_hat_channel)
-                    b = get_unbiased_vp(constraints)
-                    partial_variance = (
-                        X_hat_channel[-1] + b[-1] - X_hat_channel[i] - b[i]
-                    )
+                    pv = X_hat_channel[-1] + b[-1] - X_hat_channel[i] - b[i]
                 elif idea == 2:
-                    constraints = get_constraints_idea_2(X_hat_channel)
-                    b = get_unbiased_vp_idea_2(constraints)
-                    partial_variance = (
-                        X_hat_channel[i] + b[i] - X_hat_channel[-1] - b[-1]
-                    )
-                else:
+                    pv = X_hat_channel[i] + b[i] - X_hat_channel[-1] - b[-1]
+
+                if np.any(pv < -1e-5):
                     raise ValueError(
-                        "Unsupported idea version (must be 1 or 2)"
+                        f"Partial variance for feature {feature} at time point {tp} and channel {channel} is negative: {pv}"
                     )
-
-                results_tp[tp, channel] = partial_variance
-
-        # Check if any results more negative than 1e-3 from 0
-        if np.any(results_tp < -1e-3):
-            raise ValueError(
-                f"Partial variance for feature {feature} at some time points is negative: {results_tp[results_tp < -1e-3]}"
-            )
-        # Set all results to zero if they are negative
-        partial_variance = np.maximum(results_tp, 0)
-
-        print(f"Feature: {feature}, Partial Variance: {partial_variance}")
-
-        if partial_corr:
-            partial_correlation = np.sqrt(partial_variance)
-
-        results[feature] = {
-            "correlation": (
-                partial_correlation if partial_corr else partial_variance
-            )
-        }
+                
+                pv = max(pv, 0)  # Ensure non-negative partial variance
+                
+                results[feature][tp, channel] = pv
+        
+    if partial_corr:
+        for feature in results:
+            results[feature] = {
+                "correlation": np.sqrt(results[feature]), 
+                "r_2_full": encoding_results[feature]["var_explained"]
+            }
+    else:
+        for feature in results:
+            results[feature] = {
+                "correlation": results[feature], 
+                "r_2_full": encoding_results[feature]["var_explained"]
+            }
 
     # Save the results
     feature_names = feature_names[:-1]  # Exclude the full feature set

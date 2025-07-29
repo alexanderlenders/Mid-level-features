@@ -16,23 +16,22 @@ export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
 #     --config control_6_2 \
 #     --input_type "miniclips"
 
-# python ./control_analysis_6.py \
-#     --config_dir ../config.ini \
-#     --config control_6_2 \
-#     --input_type "miniclips" \
-#     --idea 2
+python ./control_analysis_6_part_corr.py \
+    --config_dir ../config.ini \
+    --config control_6_2 \
+    --input_type "miniclips"
 
-# python ../../EEG/Stats/encoding_bootstrapping.py \
-#     --config_dir ../config.ini \
-#     --config control_6_2 \
-#     --input_type "miniclips"
+python ../../EEG/Stats/encoding_bootstrapping.py \
+    --config_dir ../config.ini \
+    --config control_6_2 \
+    --input_type "miniclips"
 
-# python ../../EEG/Stats/encoding_significance_stats.py \
-#     --config_dir ../config.ini \
-#     --config control_6_2 \
-#     --input_type "miniclips"
+python ../../EEG/Stats/encoding_significance_stats.py \
+    --config_dir ../config.ini \
+    --config control_6_2 \
+    --input_type "miniclips"
 
-python ./control_analysis_6_plotting.py \
+python ./control_analysis_6_plotting_part_corr.py \
     --config_dir ../config.ini \
     --config control_6_2 \
     --input_type "miniclips"

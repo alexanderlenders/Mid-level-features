@@ -5,6 +5,7 @@ __pycache__/
 slurm*.out
 *.tar
 *.txt
+*.png
 
 # C extensions
 *.so

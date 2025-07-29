@@ -23,5 +23,5 @@ conda activate encoding
 num_workers=${SLURM_CPUS_PER_TASK}
 num_gpus=2
 
-./train.sh $num_workers $num_gpus > train_final_smaller_lr.txt 2>&1
+./train_weight_decay.sh $num_workers $num_gpus > train_weight_decay.txt 2>&1
 

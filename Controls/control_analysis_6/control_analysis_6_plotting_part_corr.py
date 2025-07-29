@@ -66,10 +66,6 @@ plot_legend = args.legend
 noise_ceiling_dir = config.get(args.config, "noise_ceiling_dir")
 feature_names = parse_list(config.get(args.config, "feature_names"))
 
-full_feature_set = feature_names[-1]
-full_feature_set = ", ".join(
-    full_feature_set
-)  # Convert to string for printing
 feature_names = feature_names[:-1]  # remove the full feature set
 
 temp_list = [
@@ -170,33 +166,18 @@ features_mean = []
 
 for feature in feature_names:
     features = []
-    # For the full model also save R^2
-    if feature == feature_names[-1]:
-        r2_features_full = []
 
     for sub, subject in enumerate(list_sub):
         f = results[sub][feature]["correlation"]
         f_averaged = np.mean(f, axis=1)  # avg over channels
         features.append(f_averaged)
-
-        if feature == feature_names[-1]:
-            r2 = results[sub][feature]["r_2_full"]
-            r2_features_full.append(r2.mean(axis=1))
     
     mean_feature = np.zeros((num_timepoints_og,), dtype=float)
 
-    if feature == feature_names[-1]:
-        r2_mean_feature = np.zeros((num_timepoints_og,), dtype=float)
-
     for sub, subject in enumerate(list_sub):
         mean_feature = np.add(mean_feature, features[sub])
-        if feature == feature_names[-1]:
-            r2_mean_feature = np.add(r2_mean_feature, r2_features_full[sub])
             
     mean_feature = np.divide(mean_feature, len(list_sub))
-
-    if feature == feature_names[-1]:
-        r2_mean_feature = np.divide(r2_mean_feature, len(list_sub))
 
     features_mean.append(mean_feature)
 
@@ -252,11 +233,6 @@ sorted_feature_names = feature_names
 sorted_color_dict = colors
 sorted_features_mean = features_mean
 
-# Load stats for the full model
-stats_results = encoding_stats[full_feature_set]["Boolean_statistical_map"]
-stats_results = stats_results[10:]  # Exclude the first 10 timepoints
-# significant_indices = np.where(stats_results)[0]
-
 for i, feature in enumerate(sorted_features_mean):
     # accuracy
     f_name = sorted_feature_names[i]
@@ -270,24 +246,22 @@ for i, feature in enumerate(sorted_features_mean):
     high_CI = np.array([ci_feature[key][1] for key in (ci_feature)])
     high_CI = high_CI[10:]
 
-    # To get variance explained in %
-    accuracy = accuracy
-    low_CI = low_CI
-    high_CI = high_CI
+    # Load stats for the full model
+    stats_results = encoding_stats[f_name]["Boolean_statistical_map"]
+    stats_results = stats_results[10:]
 
-    # Mask arrays for significant and non-significant parts
-    accuracy_sig = np.ma.masked_where(~stats_results, accuracy)
-    accuracy_nonsig = np.ma.masked_where(stats_results, accuracy)
-    low_CI_sig = np.ma.masked_where(~stats_results, low_CI)
-    high_CI_sig = np.ma.masked_where(~stats_results, high_CI)
-    low_CI_nonsig = np.ma.masked_where(stats_results, low_CI)
-    high_CI_nonsig = np.ma.masked_where(stats_results, high_CI)
+    starting_value = -0.15
+    plot_value = starting_value + (i / 50)
+
+    test = np.full((60, 1), np.nan, dtype=float)
+    significant_indices = np.where(stats_results)[0]
+    test[significant_indices] = plot_value
+    plot_accuracies = test
 
     # Plot lines
-    ax.plot(timepoints, accuracy, color="lightgrey", linewidth=2, alpha=0.5)
     ax.plot(
         timepoints,
-        accuracy_sig,
+        accuracy,
         color=sorted_color_dict[i],
         linewidth=2,
         label=sorted_feature_names_graph[i],
@@ -297,10 +271,18 @@ for i, feature in enumerate(sorted_features_mean):
     # ax.fill_between(timepoints, low_CI, high_CI, color='lightgrey', alpha=0.15)
     ax.fill_between(
         timepoints,
-        low_CI_sig,
-        high_CI_sig,
+        low_CI,
+        high_CI,
         color=sorted_color_dict[i],
         alpha=0.2,
+    )
+
+    ax.plot(
+        timepoints,
+        plot_accuracies,
+        "*",
+        color=sorted_color_dict[i],
+        markersize=4,
     )
 
     # Plot peak ticks
@@ -317,32 +299,27 @@ for i, feature in enumerate(sorted_features_mean):
         linewidth=2,
     )
 
-print(r2_mean_feature)
-
-ax.plot(timepoints, r2_mean_feature[10:], color="black", ls="--", linewidth=2, alpha=0.5)
-
 ### Set plotting parameters ###
 ax.set_xlabel("Time (ms)", fontdict={"family": font, "size": 11})
 ax.set_ylabel(
-    "Unique variance explained (%)", fontdict={"family": font, "size": 11}
+    "Partial correlation (Pearson's r)", fontdict={"family": font, "size": 11}
 )
 
 # yticks and labels
 if args.config == "control_6_1":
     ax.set_yticks(
-        ticks=[0, 1, 2, 3, 4, 5],
-        labels=[0, 1, 2, 3, 4, 5],
+        ticks=[-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5],
+        labels=[-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5],
         fontsize=9,
         fontname=font,
     )
 else:
     ax.set_yticks(
-        ticks=[0, 1, 2, 3, 4, 5],
-        labels=[0, 1, 2, 3, 4, 5],
+        ticks=[-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5],
+        labels=[-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5],
         fontsize=9,
         fontname=font,
     )
-ax.set_ylim(bottom=0)
 
 ax.set_xticks(
     ticks=x_tick_values_curves,

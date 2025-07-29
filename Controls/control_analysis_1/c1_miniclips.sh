@@ -28,29 +28,29 @@ export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
 #     --config control_1 \
 #     --input_type "miniclips" 
 
-# echo "Hyperparameter optimization for miniclips completed"
-# echo "Starting encoding analysis for miniclips"
-# # Fourth step: Encoding
-# python ../../EEG/Encoding/encoding.py \
-#     --config_dir ../config.ini \
-#     --config control_1 \
-#     --input_type "miniclips"
+echo "Hyperparameter optimization for miniclips completed"
+echo "Starting encoding analysis for miniclips"
+# Fourth step: Encoding
+python ../../EEG/Encoding/encoding.py \
+    --config_dir ../config.ini \
+    --config control_1 \
+    --input_type "miniclips"
 
-# echo "Encoding analysis for miniclips completed"
-# echo "Starting bootstrapping for miniclips"
-# # Fifth step: Bootstrapping
-# python ../../EEG/Stats/encoding_bootstrapping.py \
-#     --config_dir ../config.ini \
-#     --config control_1 \
-#     --input_type "miniclips"
+echo "Encoding analysis for miniclips completed"
+echo "Starting bootstrapping for miniclips"
+# Fifth step: Bootstrapping
+python ../../EEG/Stats/encoding_bootstrapping.py \
+    --config_dir ../config.ini \
+    --config control_1 \
+    --input_type "miniclips"
 
-# echo "Bootstrapping for miniclips completed"
-# echo "Starting stats for miniclips"
-# # Sixth step: Stats
-# python ../../EEG/Stats/encoding_significance_stats.py \
-#     --config_dir ../config.ini \
-#     --config control_1 \
-#     --input_type "miniclips"
+echo "Bootstrapping for miniclips completed"
+echo "Starting stats for miniclips"
+# Sixth step: Stats
+python ../../EEG/Stats/encoding_significance_stats.py \
+    --config_dir ../config.ini \
+    --config control_1 \
+    --input_type "miniclips"
 
 # echo "Stats for miniclips completed"
 echo "Starting plotting for miniclips"

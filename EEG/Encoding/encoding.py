@@ -194,6 +194,7 @@ def encoding(
         rmse = np.zeros((timepoints, n_channels))
         corr = np.zeros((timepoints, n_channels))
         var_explained = np.zeros((timepoints, n_channels))
+        residuals = np.zeros((timepoints, 180, n_channels))
 
         for tp in range(timepoints):
             if alpha_tp is True:
@@ -223,10 +224,13 @@ def encoding(
             var_explained[tp, :] = r2_score(
                 y_test_tp, prediction, multioutput="raw_values"
             )
+            residuals[tp, :] = y_test_tp - prediction
 
         output["rmse_score"] = rmse
         output["correlation"] = corr
         output["var_explained"] = var_explained
+        output["residuals"] = residuals
+        output["y_true"] = y_test
 
         if isinstance(feature, list):
             regression_features[", ".join(feature)] = output

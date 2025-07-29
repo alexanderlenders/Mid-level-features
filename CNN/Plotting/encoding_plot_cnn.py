@@ -67,8 +67,12 @@ weighted = args.weighted
 plt.rcParams["svg.fonttype"] = "none"
 
 original_workDir = workDir
-statsDir = os.path.join(workDir, input_type, "stats")
-saveDir = os.path.join(workDir, input_type, "plots")
+if input_type == "difference":
+    statsDir = os.path.join(workDir, input_type, "stats")
+    saveDir = os.path.join(workDir, input_type, "plots")
+else:
+    statsDir = os.path.join(workDir, input_type, "weighted", "stats")
+    saveDir = os.path.join(workDir, input_type, "weighted", "plots")
 
 if weighted:
     workDir = os.path.join(workDir, input_type, "weighted")

@@ -1,72 +1,83 @@
-6
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-7
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-8
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-9
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-10
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-11
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-17
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-18
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-20
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-21
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-23
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-25
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-27
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-28
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-29
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-30
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-31
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-32
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-34
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-36
 Using device: cpu
 Excluding guitar trials from the analysis (control analysis 9).
-/home/alexandel91/Mid-level-features
-Processing feature: edges
-Processing feature: reflectance
-Processing feature: lighting
-Processing feature: world_normal
-Processing feature: scene_depth
-Processing feature: skeleton
-Processing feature: action
-/home/alexandel91/Mid-level-features
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
 findfont: Font family 'Arial' not found.
 findfont: Font family 'Arial' not found.
 findfont: Font family 'Arial' not found.
@@ -369,12 +380,3 @@ findfont: Font family 'Arial' not found.
 findfont: Font family 'Arial' not found.
 findfont: Font family 'Arial' not found.
 findfont: Font family 'Arial' not found.
-/home/alexandel91/Mid-level-features
-Test 2
-edges
-reflectance
-lighting
-world_normal
-scene_depth
-skeleton
-action

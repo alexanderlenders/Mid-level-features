@@ -132,7 +132,9 @@ def hyperparameter_tuning(
     print(f"Using device: {device}")
 
     # Hyperparameter space
-    alpha_space = np.logspace(-5, 10, 20)
+    # CHANGE AGAIN
+    # alpha_space = np.logspace(-5, 10, 20)
+    alpha_space = np.logspace(-2, 20, 80)
 
     if input_type == "miniclips":
         y_train, timepoints = load_eeg(

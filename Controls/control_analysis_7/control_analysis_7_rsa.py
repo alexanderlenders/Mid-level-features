@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 import argparse
 from scipy.stats import kendalltau, pearsonr, rankdata, spearmanr
+from tqdm import tqdm
 
 # Project root and path setup
 project_root = Path(__file__).resolve().parents[2]
@@ -127,19 +128,28 @@ def c7(
         X_concat = np.concatenate((X_train, X_val, X_test), axis=0)
         feature_arrays.append(X_concat)
 
-    # Compute RSA matrix
-    num_features = len(feature_arrays)
-    rsa_matrix = np.zeros((num_features, num_features))
+    # Precompute RDMs
+    rdm_dict = {}
+    for i, feat in tqdm(enumerate(feature_names)):
+        rdm_dict[feat] = compute_rdm_kriegeskorte(feature_arrays[i], strategy=strategy)
 
-    for i in range(num_features):
-        for j in range(num_features):
-            if i == j:
-                rsa_matrix[i, j] = np.nan
-            else:
-                corr = rsa_kriegeskorte(
-                    feature_arrays[i], feature_arrays[j], strategy=strategy
-                )
-                rsa_matrix[i, j] = corr
+    # Compute RSA matrix using precomputed RDMs
+    num_features = len(feature_names)
+    rsa_matrix = np.full((num_features, num_features), np.nan)
+
+    for i in tqdm(range(num_features)):
+        for j in range(i + 1, num_features):
+            vec_i = rdm_to_vector_upper(rdm_dict[feature_names[i]])
+            vec_j = rdm_to_vector_upper(rdm_dict[feature_names[j]])
+
+            if strategy == "spearman":
+                corr, _ = spearmanr(vec_i, vec_j)
+            elif strategy == "pearson":
+                corr, _ = pearsonr(vec_i, vec_j)
+            elif strategy == "kendall":
+                corr, _ = kendalltau(vec_i, vec_j)
+
+            rsa_matrix[i, j] = rsa_matrix[j, i] = corr  # fill both halves
 
     # Plot matrix
     fig_corr, ax_corr = plt.subplots(figsize=(6, 5))
