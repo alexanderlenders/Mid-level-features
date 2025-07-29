@@ -181,7 +181,9 @@ def bootstrapping_CI(n_perm: int, encoding_dir: str, weighted: bool):
 # ------------------------------------------------------------------------------
 
 
-def bootstrapping_CI_peak_layer(n_perm: int, encoding_dir: str, weighted: bool):
+def bootstrapping_CI_peak_layer(
+    n_perm: int, encoding_dir: str, weighted: bool
+):
     """
     Bootstrapped 95%-CIs for the layer of the largest encoding peak
     for each feature.

@@ -27,7 +27,9 @@ from EEG.Encoding.utils import (
 )
 
 
-def hyperparameter_tuning(input_type: str, feat_dir: str, save_dir: str, cnn_dir: str, frame: int):
+def hyperparameter_tuning(
+    input_type: str, feat_dir: str, save_dir: str, cnn_dir: str, frame: int
+):
     """
     Performs hyperparameter tuning for encoding unit activations in deep neural networks
     (e.g., ResNet) from mid-level features extracted from images or video clips. For each feature
@@ -263,7 +265,7 @@ if __name__ == "__main__":
     else:
         feat_dir = config.get(args.config, "save_dir_feat_video")
         cnn_dir = config.get(args.config, "save_dir_cnn_video")
-    
+
     hyperparameter_tuning(
         input_type=input_type,
         feat_dir=feat_dir,

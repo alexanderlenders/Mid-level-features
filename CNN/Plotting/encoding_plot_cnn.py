@@ -15,6 +15,7 @@ import os
 import argparse
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
 
@@ -48,10 +49,7 @@ parser.add_argument(
     metavar="",
     help="images, miniclips or difference",
 )
-parser.add_argument(
-    '--weighted', 
-    action='store_true'
-)
+parser.add_argument("--weighted", action="store_true")
 
 args = parser.parse_args()  # to get values for the arguments
 
@@ -87,9 +85,11 @@ if input_type == "images" or input_type == "miniclips":
     peakDir = os.path.join(
         statsDir, "encoding_layers_CI95_peak.pkl"
     )  # CI 95% peaks
-    ci_stats_peak = os.path.join(statsDir, "encoding_layers_stats_peak_latency_diff.pkl")  # CI 95% peaks
+    ci_stats_peak = os.path.join(
+        statsDir, "encoding_layers_stats_peak_latency_diff.pkl"
+    )  # CI 95% peaks
     ci_dir = os.path.join(
-    statsDir, "encoding_layers_CI95_accuracy.pkl"
+        statsDir, "encoding_layers_CI95_accuracy.pkl"
     )  # CI 95% encoding curve
     stats_dir = os.path.join(
         statsDir, "encoding_stats_layers_both.pkl"
@@ -101,9 +101,7 @@ elif input_type == "difference":
     ci_dir = os.path.join(
         statsDir, "encoding_layers_CI95_accuracy_difference.pkl"
     )
-    peakDir = os.path.join(
-        statsDir, "encoding_difference_in_peak.pkl"
-    )
+    peakDir = os.path.join(statsDir, "encoding_difference_in_peak.pkl")
 
 feature_names = (
     "edges",
@@ -148,11 +146,31 @@ colors = [colormap(i) for i in range(num_features)]
 # -----------------------------------------------------------------------------
 if input_type == "difference":
     if weighted:
-        fileDir_img = os.path.join(original_workDir, "images", "weighted", "encoding_layers_resnet.pkl")
-        fileDir_vid = os.path.join(original_workDir, "miniclips", "weighted", "encoding_layers_resnet.pkl")
+        fileDir_img = os.path.join(
+            original_workDir,
+            "images",
+            "weighted",
+            "encoding_layers_resnet.pkl",
+        )
+        fileDir_vid = os.path.join(
+            original_workDir,
+            "miniclips",
+            "weighted",
+            "encoding_layers_resnet.pkl",
+        )
     else:
-        fileDir_img = os.path.join(original_workDir, "images", "unweighted", "encoding_layers_resnet.pkl")
-        fileDir_vid = os.path.join(original_workDir, "miniclips", "unweighted", "encoding_layers_resnet.pkl")
+        fileDir_img = os.path.join(
+            original_workDir,
+            "images",
+            "unweighted",
+            "encoding_layers_resnet.pkl",
+        )
+        fileDir_vid = os.path.join(
+            original_workDir,
+            "miniclips",
+            "unweighted",
+            "encoding_layers_resnet.pkl",
+        )
 
     encoding_results_img = np.load(fileDir_img, allow_pickle=True)
     encoding_results_vid = np.load(fileDir_vid, allow_pickle=True)

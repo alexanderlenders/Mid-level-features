@@ -17,6 +17,7 @@ from scipy.stats import rankdata
 from statsmodels.stats.multitest import fdrcorrection
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
 
@@ -24,7 +25,14 @@ from EEG.Encoding.utils import (
     load_config,
 )
 
-def encoding_stats(n_perm: int, alpha_value: float, tail: str, weighted: bool, encoding_dir: str):
+
+def encoding_stats(
+    n_perm: int,
+    alpha_value: float,
+    tail: str,
+    weighted: bool,
+    encoding_dir: str,
+):
     """
     Input:
     ----------
@@ -122,7 +130,7 @@ def encoding_stats(n_perm: int, alpha_value: float, tail: str, weighted: bool, e
             corr_vid = encoding_results_vid[feature]["weighted_correlation"][
                 layer
             ]
-            
+
             # Add a new axis (such that v_stack later on works)
             corr_img = corr_img[:, np.newaxis]
             corr_vid = corr_vid[:, np.newaxis]
@@ -130,10 +138,10 @@ def encoding_stats(n_perm: int, alpha_value: float, tail: str, weighted: bool, e
             num_comp_layer_img = corr_img.shape[0]
             num_comp_layer_vid = corr_vid.shape[0]
 
-            all_results = np.vstack(
-                (corr_vid, corr_img))
+            all_results = np.vstack((corr_vid, corr_img))
             labels = np.array(
-                [0] * num_comp_layer_vid + [1] * num_comp_layer_img)
+                [0] * num_comp_layer_vid + [1] * num_comp_layer_img
+            )
             # 0 for video, 1 for image
 
             # create sum for each layer (this is equivalent to the mean for weighted corrs)
@@ -200,6 +208,7 @@ def encoding_stats(n_perm: int, alpha_value: float, tail: str, weighted: bool, e
     with open(savefileDir, "wb") as f:
         pickle.dump(regression_features, f)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
@@ -248,10 +257,7 @@ if __name__ == "__main__":
         metavar="",
         help="One-sided: right, two-sided: both",
     )
-    parser.add_argument(
-        '--weighted', 
-        action='store_true'
-    )
+    parser.add_argument("--weighted", action="store_true")
 
     args = parser.parse_args()  # to get values for the arguments
 
@@ -270,4 +276,3 @@ if __name__ == "__main__":
     # STEP 3 Run function
     # -----------------------------------------------------------------------------
     encoding_stats(n_perm, alpha_value, tail, weighted, encoding_dir)
-

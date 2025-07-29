@@ -142,5 +142,5 @@ if __name__ == "__main__":
         layer_dir = config.get(args.config, "save_dir_cnn_img")
     elif input_type == "miniclips":
         layer_dir = config.get(args.config, "save_dir_cnn_video")
-    
+
     prepare_layers(layer_dir)

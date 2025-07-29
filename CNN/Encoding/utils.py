@@ -1,6 +1,7 @@
 """
 Utility functions for loading and processing CNN activations.
 """
+
 import os
 import numpy as np
 

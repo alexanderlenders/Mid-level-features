@@ -3,6 +3,7 @@ Script to extract CNN activations from images and save them in a specified direc
 
 @author: Alexander Lenders, Agnessa Karapetian
 """
+
 from torchvision import models
 from torchvision import transforms
 from torchvision.models.feature_extraction import get_graph_node_names
@@ -18,6 +19,7 @@ import pickle
 import argparse
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
 
@@ -25,7 +27,14 @@ from EEG.Encoding.utils import (
     load_config,
 )
 
-def extract_activations(images_dir: str, save_dir: str, seed: int = 42, init: bool = True, transform: str = "vid"):
+
+def extract_activations(
+    images_dir: str,
+    save_dir: str,
+    seed: int = 42,
+    init: bool = True,
+    transform: str = "vid",
+):
     """
     Extracts activations from specified layers of a ResNet18 model for a set of images,
     and saves the extracted features for each layer as .pkl files.
@@ -108,23 +117,36 @@ def extract_activations(images_dir: str, save_dir: str, seed: int = 42, init: bo
                 transforms.Resize(128),
                 transforms.CenterCrop((112, 112)),
                 transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                transforms.Normalize(
+                    [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+                ),
             ]
         )
     else:
         centre_crop = transforms.Compose(
             [
-                transforms.Resize(256), # Keep the aspect ratio
+                transforms.Resize(256),  # Keep the aspect ratio
                 transforms.CenterCrop((224, 224)),
                 transforms.ToTensor(),
-                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                transforms.Normalize(
+                    [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+                ),
             ]
         )
 
     # --------------------------------------
     # STEP 3: EXTRACT UNIT ACTIVATIONS #
     # --------------------------------------
-    return_layers = ["layer1.0.relu_1", "layer1.1.relu_1", "layer2.0.relu_1", "layer2.1.relu_1", "layer3.0.relu_1", "layer3.1.relu_1", "layer4.0.relu_1", "layer4.1.relu_1"]
+    return_layers = [
+        "layer1.0.relu_1",
+        "layer1.1.relu_1",
+        "layer2.0.relu_1",
+        "layer2.1.relu_1",
+        "layer3.0.relu_1",
+        "layer3.1.relu_1",
+        "layer4.0.relu_1",
+        "layer4.1.relu_1",
+    ]
 
     # Extract features
     train_nodes, eval_nodes = get_graph_node_names(model)
@@ -154,7 +176,9 @@ def extract_activations(images_dir: str, save_dir: str, seed: int = 42, init: bo
         num_units = np.prod(shape)
 
         # Create a 2D array for this layer's features
-        feature_arrays[layer] = np.zeros((num_videos, num_units), dtype=np.float32)
+        feature_arrays[layer] = np.zeros(
+            (num_videos, num_units), dtype=np.float32
+        )
 
     # Loop through all images
     print("Extracting features...")
@@ -175,7 +199,7 @@ def extract_activations(images_dir: str, save_dir: str, seed: int = 42, init: bo
 
         for layer in return_layers:
             feature_map = out[layer].squeeze(0).numpy()  # shape (C, H, W)
-            flattened = feature_map.flatten()            # shape (C*H*W,)
+            flattened = feature_map.flatten()  # shape (C*H*W,)
             feature_arrays[layer][idx, :] = flattened
 
     # --------------------------------------
@@ -184,12 +208,13 @@ def extract_activations(images_dir: str, save_dir: str, seed: int = 42, init: bo
 
     for layer in feature_arrays.keys():
         features_dir = os.path.join(save_dir, f"features_resnet_{layer}.pkl")
-        
+
         if not os.path.isdir(save_dir):
             os.makedirs(save_dir)
 
         with open(features_dir, "wb") as f:
             pickle.dump(feature_arrays[layer], f)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -207,15 +232,15 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
-        '--init', 
-        action='store_true', 
-        help='Whether to use pretrained weights or not.'
+        "--init",
+        action="store_true",
+        help="Whether to use pretrained weights or not.",
     )
     parser.add_argument(
-        '--transform',
+        "--transform",
         type=str,
         default="img",
-        help="Transformation to apply 'img' or 'vid'."
+        help="Transformation to apply 'img' or 'vid'.",
     )
 
     args = parser.parse_args()
@@ -239,5 +264,5 @@ if __name__ == "__main__":
         save_dir=save_dir,
         seed=seed,
         init=init,
-        transform=transform
+        transform=transform,
     )

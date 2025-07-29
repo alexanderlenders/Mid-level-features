@@ -30,7 +30,12 @@ from EEG.Encoding.utils import (
 
 
 def encoding(
-    input_type: str, feat_dir: str, cnn_dir: str, save_dir: str, frame: int, alpha_tp: bool = True
+    input_type: str,
+    feat_dir: str,
+    cnn_dir: str,
+    save_dir: str,
+    frame: int,
+    alpha_tp: bool = True,
 ):
     """
     Performs encoding using ridge regression to predict unit activations in deep neural networks
@@ -279,6 +284,7 @@ if __name__ == "__main__":
     else:
         feat_dir = config.get(args.config, "save_dir_feat_video")
         cnn_dir = config.get(args.config, "save_dir_cnn_video")
-    
 
-    encoding(input_type, feat_dir, cnn_dir, save_dir, frame, alpha_tp=ALPHA_PER_TP)
+    encoding(
+        input_type, feat_dir, cnn_dir, save_dir, frame, alpha_tp=ALPHA_PER_TP
+    )

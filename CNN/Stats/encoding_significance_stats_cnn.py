@@ -20,6 +20,7 @@ from scipy.stats import rankdata
 from statsmodels.stats.multitest import fdrcorrection
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
 
@@ -29,7 +30,12 @@ from EEG.Encoding.utils import (
 
 
 def encoding_stats(
-    n_perm: int, alpha_value: float, tail: str, input_type: str, encoding_dir: str, weighted: bool
+    n_perm: int,
+    alpha_value: float,
+    tail: str,
+    input_type: str,
+    encoding_dir: str,
+    weighted: bool,
 ):
     """
     Input:
@@ -99,7 +105,7 @@ def encoding_stats(
     else:
         workDir = os.path.join(encoding_dir, input_type, "unweighted")
         saveDir = os.path.join(workDir, "stats")
-        
+
     if not os.path.exists(saveDir):
         os.makedirs(saveDir)
 
@@ -164,10 +170,8 @@ def encoding_stats(
         # ---------------------------------------------------------------------
         # Benjamini-Hochberg correction
         # ---------------------------------------------------------------------
-        rejected, p_values_corr = (
-            fdrcorrection(
-                p_values, alpha=alpha_value, is_sorted=False
-            )
+        rejected, p_values_corr = fdrcorrection(
+            p_values, alpha=alpha_value, is_sorted=False
         )
 
         stats_results = {}
@@ -236,10 +240,7 @@ if __name__ == "__main__":
         metavar="",
         help="Font",
     )
-    parser.add_argument(
-        '--weighted', 
-        action='store_true'
-    )
+    parser.add_argument("--weighted", action="store_true")
 
     args = parser.parse_args()  # to get values for the arguments
 
@@ -249,11 +250,12 @@ if __name__ == "__main__":
     input_type = args.input_type
     alpha_value = args.alpha
     tail = args.tail
-    
+
     if args.weighted:
         weighted = True
     else:
         weighted = False
 
     encoding_stats(
-    n_perm, alpha_value, tail, input_type, encoding_dir, weighted)
+        n_perm, alpha_value, tail, input_type, encoding_dir, weighted
+    )

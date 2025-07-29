@@ -27,7 +27,11 @@ from EEG.Encoding.utils import (
 
 
 def bootstrapping_CI(
-    n_perm: int, n_layers: int, input_type: str, encoding_dir: str, weighted: bool
+    n_perm: int,
+    n_layers: int,
+    input_type: str,
+    encoding_dir: str,
+    weighted: bool,
 ):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and
@@ -105,7 +109,9 @@ def bootstrapping_CI(
     regression_features = dict.fromkeys(feature_names)
 
     for feature in feature_names:
-        regression_features[feature] = encoding_results[feature]["weighted_correlation"]
+        regression_features[feature] = encoding_results[feature][
+            "weighted_correlation"
+        ]
 
     features_results = {}
 
@@ -250,7 +256,9 @@ def bootstrapping_CI_peak_layer(
 
     ### Bootstrapping peak layers ###
     for feature in feature_names:
-        regression_features[feature] = encoding_results[feature]["weighted_correlation"]
+        regression_features[feature] = encoding_results[feature][
+            "weighted_correlation"
+        ]
 
     # features_results = {}
     for i, feature in enumerate(feature_names):
@@ -303,7 +311,11 @@ def bootstrapping_CI_peak_layer(
 
 # -----------------------------------------------------------------------------
 def bootstrapping_stats_diff_btw_features(
-    n_perm: int, n_layers: int, input_type: str, encoding_dir: str, weighted: bool
+    n_perm: int,
+    n_layers: int,
+    input_type: str,
+    encoding_dir: str,
+    weighted: bool,
 ):
     """
     Bootstrapped 95%-CIs for the timepoint (in ms) of the largest encoding peak
@@ -383,7 +395,9 @@ def bootstrapping_stats_diff_btw_features(
     correlation_avg = dict.fromkeys(feature_names)
 
     for feature in feature_names:
-        regression_features[feature] = encoding_results[feature]["weighted_correlation"]
+        regression_features[feature] = encoding_results[feature][
+            "weighted_correlation"
+        ]
         correlation_avg[feature] = encoding_results[feature][
             "correlation_average"
         ]
@@ -430,12 +444,8 @@ def bootstrapping_stats_diff_btw_features(
                     perm_peak_data_A = layer_data_A[perm_peak_data_idx]
                     perm_peak_data_B = layer_data_B[perm_peak_data_idx]
 
-                    perm_sum_data_A[l, perm] = (
-                        np.sum(perm_peak_data_A)
-                    )
-                    perm_sum_data_B[l, perm] = (
-                        np.sum(perm_peak_data_B)
-                    )
+                    perm_sum_data_A[l, perm] = np.sum(perm_peak_data_A)
+                    perm_sum_data_B[l, perm] = np.sum(perm_peak_data_B)
 
             peak_A_perm = np.argmax(perm_sum_data_A, axis=0)
             peak_B_perm = np.argmax(perm_sum_data_B, axis=0)
@@ -550,12 +560,8 @@ if __name__ == "__main__":
     else:
         weighted = False
 
-    bootstrapping_CI(
-        n_perm, n_layers, input_type, encoding_dir, weighted
-    )
-    bootstrapping_CI_peak_layer(
-        n_perm, input_type, encoding_dir, weighted
-    )
+    bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, weighted)
+    bootstrapping_CI_peak_layer(n_perm, input_type, encoding_dir, weighted)
     bootstrapping_stats_diff_btw_features(
         n_perm, n_layers, input_type, encoding_dir, weighted
     )

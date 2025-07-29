@@ -3,6 +3,7 @@ Script to extract CNN activations from videos and save them in a specified direc
 
 @author: Alexander Lenders, Agnessa Karapetian
 """
+
 from torchvision.models.feature_extraction import get_graph_node_names
 from torchvision.models.feature_extraction import create_feature_extractor
 from torchvision.io.video import read_video
@@ -27,7 +28,9 @@ from EEG.Encoding.utils import (
 )
 
 
-def extract_activations(miniclips_dir: str, save_dir: str, seed: int, init: bool):
+def extract_activations(
+    miniclips_dir: str, save_dir: str, seed: int, init: bool
+):
     """
     Extracts activations from specified layers of a ResNet3D-18 model for a set of videos,
     and saves the extracted features for each layer as .pkl files.
