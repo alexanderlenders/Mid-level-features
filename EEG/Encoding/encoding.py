@@ -189,9 +189,9 @@ def encoding(
                 feat_dir=save_dir,
                 feat_len=len(feature_names),
             )
-        
+
             print(alpha)
-            
+
         output = dict.fromkeys(output_names)
 
         rmse = np.zeros((timepoints, n_channels))

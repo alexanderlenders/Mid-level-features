@@ -9,8 +9,6 @@ scaler is used. The removal of the mean pattern (cocktail-blank removal) is not
 implemented in the script, see Guggenmos et al. (2018) for discussion.
 
 @author: Alexander Lenders, Agnessa Karapetian
-
-Anaconda Environment on local machine: MNE
 """
 import argparse
 import os
@@ -33,7 +31,7 @@ from EEG.Encoding.utils import load_config
 
 
 # -----------------------------------------------------------------------------
-# STEP 2: Define Decoding Function
+# STEP 1: Define Decoding Function
 # -----------------------------------------------------------------------------
 def decoding_single_subject_func(
     sub: int,
@@ -83,17 +81,22 @@ def decoding_single_subject_func(
           Downsampling frequency (default is 50)
     region : str
         The region for which the EEG data should be analyzed.
-    workdir : str
-        Type of directory storing the data ('scratch', 'trove', 'scratch-trove' or 'OSF-download')
+    eeg_dir: str
+        Directory to the EEG data.
+    save_dir: str
+        Directory to save the results.
     input_type: str
         Performing analysis on images (default) or miniclips
     it: int
         Iteration (for parallelizing the computations on remote server and setting the random seed)
+    action_dir: str, optional
+        Directory to the action data, which is used to exclude guitar trials from the analysis.
+        If None, no guitar trials are excluded (default is None).
     -------
 
     """
     # -------------------------------------------------------------------------
-    # STEP 2.1 Define Variables, Define Transformer
+    # STEP 1.1 Define Variables, Define Transformer
     # -------------------------------------------------------------------------
     # Define the number of channels:
     if region == "posterior":
@@ -158,7 +161,7 @@ def decoding_single_subject_func(
             return X
 
     # -------------------------------------------------------------------------
-    # STEP 2.2 Define Variables and Directory
+    # STEP 1.2 Define Variables and Directory
     # -------------------------------------------------------------------------
     # In this version, the decoding analysis is only done on the test data:
     img_type = "test"
@@ -172,7 +175,7 @@ def decoding_single_subject_func(
         % (mvnn_dim, freq, sub, region)
     )
     # -------------------------------------------------------------------------
-    # STEP 2.3 Load the EEG Data + Define Futher Variables
+    # STEP 1.3 Load the EEG Data + Define Futher Variables
     # -------------------------------------------------------------------------
     eeg_data, img_cat, time = load_eeg(
         sub, img_type, region, freq, input_type, eeg_dir
@@ -185,15 +188,15 @@ def decoding_single_subject_func(
 
     #     action_data = pd.read_csv(action_dir, header=None)
 
-    #     # Action indices 
+    #     # Action indices
     #     indices = action_data.index[action_data[1] == 30].tolist()
 
     #     # Create a set of indices to exclude
     #     exclude_indices = set(indices)
 
-    #     # Filter out exclude_indices from img_cat 
+    #     # Filter out exclude_indices from img_cat
     #     img_cat = np.array([cat for i, cat in enumerate(img_cat) if i not in exclude_indices])
-        
+
     # Check if there are NA's within the EEG data
     num_nan = np.isnan(eeg_data).sum()
     print(f"There are {num_nan} NAN values in the input data")
@@ -236,7 +239,7 @@ def decoding_single_subject_func(
         print("Not all stimuli have the same number of presentations")
 
     # -------------------------------------------------------------------------
-    # STEP 2.4 Decoding Analysis
+    # STEP 1.4 Decoding Analysis
     # -------------------------------------------------------------------------
     # Following the proposed preprocessing order in Guggenmos et al. (2018).
     # For each stimulus combination (180*180/2) or in other words pairwise
@@ -292,7 +295,7 @@ def decoding_single_subject_func(
             scores_mean = np.zeros((timepoints), dtype=float)
 
             # -------------------------------------------------------------
-            # STEP 2.4.1 Shuffle the Data
+            # STEP 1.4.1 Shuffle the Data
             # -------------------------------------------------------------
 
             # Shuffle the data for condition A and condition B
@@ -300,7 +303,7 @@ def decoding_single_subject_func(
             ran_eeg_con_B = rng.permutation(eeg_con_B, axis=0)
 
             # -------------------------------------------------------------
-            # STEP 2.4.2 Create Pseudo-Trials
+            # STEP 1.4.2 Create Pseudo-Trials
             # -------------------------------------------------------------
             # Condition A
             for p in range(n_pseudo):
@@ -321,7 +324,7 @@ def decoding_single_subject_func(
                 ) / n_original_trial_pseudo
 
             # -------------------------------------------------------------
-            # STEP 2.4.3 Create Full Dataset and Labels
+            # STEP 1.4.3 Create Full Dataset and Labels
             # -------------------------------------------------------------
             # Concatenate pseudo-trials for condition A and condition B
             full_data = np.concatenate(
@@ -339,7 +342,7 @@ def decoding_single_subject_func(
             full_data_label[n_pseudo:] = 0
 
             # -------------------------------------------------------------
-            # STEP 2.4.4 Create Cross-validation Pipeline Parameter
+            # STEP 1.4.4 Create Cross-validation Pipeline Parameter
             # -------------------------------------------------------------
             # Stratified k-fold CV guarantees that the number of trials
             # for each condition is equal in the test set (see also King et al., 2014)
@@ -350,7 +353,7 @@ def decoding_single_subject_func(
             svm_def = svm.SVC(kernel="linear", C=1, random_state=42)
 
             # -------------------------------------------------------------
-            # STEP 2.4.5 Cross Validation (for each time-point)
+            # STEP 1.4.5 Cross Validation (for each time-point)
             # -------------------------------------------------------------
 
             dummy_data = full_data[0, :, :]
@@ -415,7 +418,7 @@ def decoding_single_subject_func(
             triangle_mean[conA, conB, :] = scores_mean
 
     # -------------------------------------------------------------------------
-    # STEP 2.5 Vectorize Results and Prepare Outputs
+    # STEP 1.5 Vectorize Results and Prepare Outputs
     # -------------------------------------------------------------------------
     # Vectorized results (no time generalization)
     triangle_mean_3 = np.zeros((180, 180, timepoints))
@@ -441,7 +444,7 @@ def decoding_single_subject_func(
     mean_accuracy = final_results_mean.mean(axis=1)
 
     # -------------------------------------------------------------------------
-    # STEP 2.6 Save Results
+    # STEP 1.6 Save Results
     # -------------------------------------------------------------------------
     # Putting the results into a dictionary
     decoding_single_subject = {

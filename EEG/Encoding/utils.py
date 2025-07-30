@@ -16,7 +16,13 @@ from configparser import ConfigParser
 import pandas as pd
 
 
-def canny_edge(image: int, images_dir: str, frame: int, openCV: bool = True, gaussian_filter_size: int = 3):
+def canny_edge(
+    image: int,
+    images_dir: str,
+    frame: int,
+    openCV: bool = True,
+    gaussian_filter_size: int = 3,
+):
     """
     Parameters
     ----------
@@ -301,7 +307,12 @@ def pca(
 
 
 def load_eeg(
-    sub: int, img_type: str, region: str, freq: int, input_type: str, eeg_dir: str,
+    sub: int,
+    img_type: str,
+    region: str,
+    freq: int,
+    input_type: str,
+    eeg_dir: str,
 ):
     """
     Utility function to load the EEG data for a given subject and input type (video or image).
@@ -461,7 +472,14 @@ def load_feature_set(feature_set: str, featuresDir: str):
 
 
 def load_alpha(
-    sub: int, freq: int, region: str, feature: str, input_type: str, feat_dir: str, tp: int = None, feat_len: int = 7
+    sub: int,
+    freq: int,
+    region: str,
+    feature: str,
+    input_type: str,
+    feat_dir: str,
+    tp: int = None,
+    feat_len: int = 7,
 ):
     """
     Utility function to load the optimized alpha value for a given subject.

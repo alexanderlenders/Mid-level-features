@@ -19,6 +19,7 @@ import pickle
 from statsmodels.stats.multitest import fdrcorrection
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
 
@@ -28,7 +29,15 @@ from EEG.Encoding.utils import (
 )
 import argparse
 
-def bootstrapping_CI(list_sub_vid: list, list_sub_img: list, n_perm: int, timepoints: int, workDir: str, feature_names: list):
+
+def bootstrapping_CI(
+    list_sub_vid: list,
+    list_sub_img: list,
+    n_perm: int,
+    timepoints: int,
+    workDir: str,
+    feature_names: list,
+):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and
     each feature.
@@ -84,7 +93,7 @@ def bootstrapping_CI(list_sub_vid: list, list_sub_img: list, n_perm: int, timepo
 
     temp_list = [
         f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
-        for f in feature_names  
+        for f in feature_names
     ]
     feature_names = temp_list
 
@@ -488,7 +497,7 @@ if __name__ == "__main__":
 
     if args.config == "control_6_1" or args.config == "control_6_2":
         feature_names = feature_names[:-1]  # remove the full feature set
-        
+
     n_perm = args.num_perm
     timepoints = args.num_tp
 
@@ -516,4 +525,6 @@ if __name__ == "__main__":
     ]
     list_sub_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
 
-    bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints, workDir, feature_names)
+    bootstrapping_CI(
+        list_sub_vid, list_sub_img, n_perm, timepoints, workDir, feature_names
+    )

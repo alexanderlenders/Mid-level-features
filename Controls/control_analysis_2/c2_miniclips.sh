@@ -21,12 +21,12 @@ export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
 #     --config control_2 
     
 # echo "Preprocessing features for miniclips completed"
-# echo "Starting hyperparam optimization for miniclips"
-# # Third step: Hyperparameter optimization
-# python ../../EEG/Encoding/hyperparameter_optimization.py \
-#     --config_dir ../config.ini \
-#     --config control_2 \
-#     --input_type "miniclips" 
+echo "Starting hyperparam optimization for miniclips"
+# Third step: Hyperparameter optimization
+python ../../EEG/Encoding/hyperparameter_optimization.py \
+    --config_dir ../config.ini \
+    --config control_2 \
+    --input_type "miniclips" 
 
 echo "Hyperparameter optimization for miniclips completed"
 echo "Starting encoding analysis for miniclips"

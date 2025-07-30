@@ -105,7 +105,7 @@ def hyperparameter_tuning(
     print(f"Using device: {device}")
 
     # Hyperparameter space
-    alpha_space = np.logspace(-5, 10, 20)
+    alpha_space = np.logspace(-5, 15, 30)
 
     output_names = (
         "rmse_score",

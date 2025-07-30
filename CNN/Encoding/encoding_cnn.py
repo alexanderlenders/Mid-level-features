@@ -35,7 +35,7 @@ def encoding(
     cnn_dir: str,
     save_dir: str,
     frame: int,
-    alpha_tp: bool = True,
+    alpha_tp: bool = False,
 ):
     """
     Performs encoding using ridge regression to predict unit activations in deep neural networks

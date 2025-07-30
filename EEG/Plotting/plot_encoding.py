@@ -360,7 +360,13 @@ upper_ci = [item[2] for item in peaks.values()]
 ### Rearrange the accuracies, lower CIs, and upper CIs based on the sorted indices ###
 # sorted_indices = sorted(range(len(accuracies)), key=lambda k: accuracies[k])
 
-if args.config == "default" or args.config == "control_3" or args.config == "control_1" or args.config == "control_2" or args.config == "control_9":
+if (
+    args.config == "default"
+    or args.config == "control_3"
+    or args.config == "control_1"
+    or args.config == "control_2"
+    or args.config == "control_9"
+):
     sorted_indices = [
         0,
         4,
@@ -369,7 +375,7 @@ if args.config == "default" or args.config == "control_3" or args.config == "con
         2,
         5,
         6,
-    ] 
+    ]
     sorted_color_dict = [colors[i] for i in sorted_indices]
 else:
     sorted_color_dict = colors

@@ -6,4 +6,3 @@ python ../../CNN/Activation_extraction_and_prep/activation_extraction_cnn_images
     --config control_11 \
     --init \
     --transform "vid"
-    # --transform "vid" for control analysis 11

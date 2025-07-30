@@ -121,7 +121,7 @@ def hyperparameter_tuning(
     print(f"Using device: {device}")
 
     # Hyperparameter space
-    alpha_space = np.logspace(-5, 10, 20)
+    alpha_space = np.logspace(-5, 15, 30)
 
     y_train, timepoints = load_eeg(
         sub, "training", region, freq, input_type, eeg_dir=eeg_dir

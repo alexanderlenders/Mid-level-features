@@ -77,7 +77,7 @@ def extract_activations(
         resnet_video = r3d_18(weights="KINETICS400_V1")
     else:
         resnet_video = r3d_18(weights=None, progress=True)
-    
+
     resnet_video = resnet_video.to(device)
 
     # define transformation procedure for images (aka preprocessing)

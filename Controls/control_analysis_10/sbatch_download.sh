@@ -1,8 +1,4 @@
 #!/bin/bash
-# ==============================================================================
-# SLURM job script to perform encoding with JOBLIB (Single Node)
-# ==============================================================================
-
 #SBATCH --mail-user=alexandel91@zedat.fu-berlin.de   
 #SBATCH --job-name=download_kinetics
 #SBATCH --mail-type=ALL                              

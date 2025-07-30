@@ -65,6 +65,9 @@ def extract_activations(
     transform : str, optional
         Transformation type for preprocessing images. If "vid", uses 112x112 crop;
         otherwise uses 224x224 crop (default: "vid").
+    kinetics_weights_dir : str, optional
+        Directory containing pre-trained Kinetics-400 weights. If None, uses
+        pre-trained weights from Places365 (default: None).
     """
     # --------------------------------------
     # STEP 1: LOAD RESNET2D MODEL #
@@ -108,7 +111,7 @@ def extract_activations(
             model = ResNetClassifier.load_from_checkpoint(kinetics_weights_dir)
         else:
             model = ResNetClassifier()
-        
+
         model = model.model
 
     model = model.to(device)
@@ -117,7 +120,6 @@ def extract_activations(
     # --------------------------------------
     # STEP 2: DEFINE DATA VARIABLES #
     # --------------------------------------
-
     # number of images
     num_videos = 1440
 
@@ -213,7 +215,9 @@ def extract_activations(
             out = feature_extractor(batch_t)
 
         for layer in return_layers:
-            feature_map = out[layer].detach().cpu().squeeze(0).numpy()  # shape (C, H, W)
+            feature_map = (
+                out[layer].detach().cpu().squeeze(0).numpy()
+            )  # shape (C, H, W)
             flattened = feature_map.flatten()  # shape (C*H*W,)
             feature_arrays[layer][idx, :] = flattened
 

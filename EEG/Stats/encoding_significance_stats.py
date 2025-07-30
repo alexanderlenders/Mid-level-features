@@ -18,6 +18,7 @@ import pickle
 import argparse
 import sys
 from pathlib import Path
+
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
 
@@ -26,7 +27,18 @@ from EEG.Encoding.utils import (
     parse_list,
 )
 
-def permutation_test(list_sub: list, n_perm: int, tail: str, alpha: float, timepoints: int, input_type: str, workDir: str, feature_names: list, var_part: bool = False):
+
+def permutation_test(
+    list_sub: list,
+    n_perm: int,
+    tail: str,
+    alpha: float,
+    timepoints: int,
+    input_type: str,
+    workDir: str,
+    feature_names: list,
+    var_part: bool = False,
+):
     """
     Input:
     ----------
@@ -75,7 +87,7 @@ def permutation_test(list_sub: list, n_perm: int, tail: str, alpha: float, timep
     saveDir = os.path.join(workDir, "stats")
     if not os.path.exists(saveDir):
         os.makedirs(saveDir)
-    
+
     if var_part:
         identifierDir = f"seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_{len(feature_names)-1}_features_onehot.pkl"
     else:
@@ -91,7 +103,7 @@ def permutation_test(list_sub: list, n_perm: int, tail: str, alpha: float, timep
 
     temp_list = [
         f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
-        for f in feature_names  
+        for f in feature_names
     ]
 
     feature_names = temp_list
@@ -298,4 +310,14 @@ if __name__ == "__main__":
         if not VAR_PART:
             feature_names = feature_names[:-1]  # remove the full feature set
 
-    permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type, workDir, feature_names, var_part=VAR_PART)
+    permutation_test(
+        list_sub,
+        n_perm,
+        tail,
+        alpha,
+        timepoints,
+        input_type,
+        workDir,
+        feature_names,
+        var_part=VAR_PART,
+    )

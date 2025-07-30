@@ -65,7 +65,7 @@ def time_gen(
     elif region == "posterior":
         n_channels = 19
 
-    alpha_tp = True  # maybe add to function as a parameter above
+    alpha_tp = False  # maybe add to function as a parameter above
 
     if input_type == "miniclips":
         y_train, timepoints = load_eeg(

@@ -113,7 +113,7 @@ def encoding(
     elif region == "posterior":
         n_channels = 19
 
-    alpha_tp = True  # Hardcoded
+    alpha_tp = False  # Hardcoded
 
     print("training")
     y_train, timepoints = load_eeg(

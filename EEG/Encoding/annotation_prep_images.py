@@ -7,8 +7,6 @@ This script prepares the annotations from the Unreal Engine by extracting the lo
 high-level features from them. For the low-level feature, canny edges, the canny algorithm is applied.
 Lastly, a PCA is performed on all features which have more than n=100 components.
 
-Anaconda-environment on local machine: opencv_env
-
 @author: Alexander Lenders, Agnessa Karapetian
 """
 import argparse

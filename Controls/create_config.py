@@ -7,9 +7,12 @@ import os
 
 config = ConfigParser()
 
-# Please adapt
+# ADAPT ROOT_DIR!
 root_dir = "/scratch/alexandel91/mid_level_features"
 
+# =============================================================================
+# The following directories are shared across all configurations
+# =============================================================================
 # Where the video frames are stored
 videos_dir = os.path.join(root_dir, "stimuli", "miniclips", "frames")
 # Where the mp4 videos are stored
@@ -32,10 +35,8 @@ img_annotations_dir = os.path.join(
 )
 # Where the EEG data is stored
 eeg_dir = os.path.join(root_dir, "data", "EEG")
-
 # Where the noise ceiling is stored
 noise_ceiling_dir = os.path.join(root_dir, "results", "noise_ceiling")
-
 
 # =============================================================================
 # Default encoding analysis
