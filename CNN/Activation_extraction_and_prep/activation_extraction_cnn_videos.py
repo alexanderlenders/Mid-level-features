@@ -68,12 +68,17 @@ def extract_activations(
     np.random.seed(seed)
     random.seed(seed)
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}", flush=True)
+
     # Load pretrained weights
     if init:
         # save_dir = save_dir + "_pretrained"
         resnet_video = r3d_18(weights="KINETICS400_V1")
     else:
         resnet_video = r3d_18(weights=None, progress=True)
+    
+    resnet_video = resnet_video.to(device)
 
     # define transformation procedure for images (aka preprocessing)
     # preprocess = R3D_18_Weights.DEFAULT.transforms()
@@ -182,7 +187,7 @@ def extract_activations(
 
         video_preprocessed = preprocess(video)
 
-        batch_t = video_preprocessed.unsqueeze(0)
+        batch_t = video_preprocessed.unsqueeze(0).to(device)
 
         # Activate the evaluation mode of the DNN
         resnet_video.eval()
@@ -193,13 +198,14 @@ def extract_activations(
 
         for _, layer in enumerate(return_layers):
             # pick layer
-            feat_maps = out[layer].numpy().squeeze(0)
+            feat_maps = out[layer].squeeze(0).detach().cpu().numpy()
 
             if layer == "layer1.0.relu":
                 for fm in range(len(list(feat_maps))):
 
                     flatten_fm_final = np.zeros((1, num_col_1_0))
-                    for frame in range(9):
+                    num_frames = feat_maps.shape[1]
+                    for frame in range(num_frames):
                         flatten_fm = feat_maps[fm, frame, :, :].flatten()
                         flatten_fm_final = np.add(flatten_fm_final, flatten_fm)
 
@@ -212,7 +218,8 @@ def extract_activations(
                 for fm in range(len(list(feat_maps))):
 
                     flatten_fm_final = np.zeros((1, num_col_1_1))
-                    for frame in range(9):
+                    num_frames = feat_maps.shape[1]
+                    for frame in range(num_frames):
                         flatten_fm = feat_maps[fm, frame, :, :].flatten()
                         flatten_fm_final = np.add(flatten_fm_final, flatten_fm)
 
@@ -225,7 +232,8 @@ def extract_activations(
                 for fm in range(len(list(feat_maps))):
 
                     flatten_fm_final = np.zeros((1, num_col_2_0))
-                    for frame in range(5):
+                    num_frames = feat_maps.shape[1]
+                    for frame in range(num_frames):
                         flatten_fm = feat_maps[fm, frame, :, :].flatten()
                         flatten_fm_final = np.add(flatten_fm_final, flatten_fm)
 
@@ -238,7 +246,8 @@ def extract_activations(
                 for fm in range(len(list(feat_maps))):
 
                     flatten_fm_final = np.zeros((1, num_col_2_1))
-                    for frame in range(5):
+                    num_frames = feat_maps.shape[1]
+                    for frame in range(num_frames):
                         flatten_fm = feat_maps[fm, frame, :, :].flatten()
                         flatten_fm_final = np.add(flatten_fm_final, flatten_fm)
 
@@ -251,7 +260,8 @@ def extract_activations(
                 for fm in range(len(list(feat_maps))):
 
                     flatten_fm_final = np.zeros((1, num_col_3_0))
-                    for frame in range(3):
+                    num_frames = feat_maps.shape[1]
+                    for frame in range(num_frames):
                         flatten_fm = feat_maps[fm, frame, :, :].flatten()
                         flatten_fm_final = np.add(flatten_fm_final, flatten_fm)
 
@@ -264,7 +274,8 @@ def extract_activations(
                 for fm in range(len(list(feat_maps))):
 
                     flatten_fm_final = np.zeros((1, num_col_3_1))
-                    for frame in range(3):
+                    num_frames = feat_maps.shape[1]
+                    for frame in range(num_frames):
                         flatten_fm = feat_maps[fm, frame, :, :].flatten()
                         flatten_fm_final = np.add(flatten_fm_final, flatten_fm)
 
@@ -277,7 +288,8 @@ def extract_activations(
                 for fm in range(len(list(feat_maps))):
 
                     flatten_fm_final = np.zeros((1, num_col_4_0))
-                    for frame in range(2):
+                    num_frames = feat_maps.shape[1]
+                    for frame in range(num_frames):
                         flatten_fm = feat_maps[fm, frame, :, :].flatten()
                         flatten_fm_final = np.add(flatten_fm_final, flatten_fm)
 
@@ -290,7 +302,8 @@ def extract_activations(
                 for fm in range(len(list(feat_maps))):
 
                     flatten_fm_final = np.zeros((1, num_col_4_1))
-                    for frame in range(2):
+                    num_frames = feat_maps.shape[1]
+                    for frame in range(num_frames):
                         flatten_fm = feat_maps[fm, frame, :, :].flatten()
                         flatten_fm_final = np.add(flatten_fm_final, flatten_fm)
 
@@ -301,12 +314,6 @@ def extract_activations(
     # --------------------------------------
     # STEP 4: SAVE FEATURES WITHOUT PCA #
     # --------------------------------------
-    try:
-        print(layer1_0_features)
-        contains_only_zeros = np.all(layer1_0_features == 0)
-    except:
-        pass
-
     # Save each layer separately
     features = {
         "layer1.0.relu_1": layer1_0_features,

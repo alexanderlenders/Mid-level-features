@@ -116,15 +116,15 @@ def permutation_test(
             abs_values_tg = np.absolute(stat_map_tg)
             ranks_tg = np.apply_along_axis(rankdata, 0, abs_values_tg)
 
-        ranks_tg_2 = np.zeros((n_perm, timepoints, timepoints))
-        for tp in range(timepoints):
-            ranks_tg_2[:, tp, :] = np.apply_along_axis(
-                rankdata, 0, stat_map_tg[:, tp, :]
-            )
+        # ranks_tg_2 = np.zeros((n_perm, timepoints, timepoints))
+        # for tp in range(timepoints):
+        #     ranks_tg_2[:, tp, :] = np.apply_along_axis(
+        #         rankdata, 0, stat_map_tg[:, tp, :]
+        #     )
 
         sub_matrix_tg = np.full((n_perm, timepoints, timepoints), (n_perm + 1))
 
-        p_map_tg = (sub_matrix_tg - ranks_tg_2) / n_perm
+        p_map_tg = (sub_matrix_tg - ranks_tg) / n_perm
         p_values_tg = p_map_tg[0, :]
 
         # -------------------------------------------------------------------------
@@ -198,7 +198,7 @@ if __name__ == "__main__":
         "-a",
         "--alpha",
         default=0.05,
-        type=int,
+        type=float,
         metavar="",
         help="Significance level (alpha)",
     )

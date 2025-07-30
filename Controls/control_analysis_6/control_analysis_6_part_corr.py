@@ -89,7 +89,7 @@ def c6(
     # Plot true values, full model predictions and mean prediction
     import matplotlib.pyplot as plt
 
-    for i in range(20):
+    for i in range(2):
         plt.figure(figsize=(10, 5))
         plt.plot(y_true_mean, label='Mean True Values', color='blue')
         plt.plot(predictions[i], label='Predictions', color='green')
@@ -99,45 +99,45 @@ def c6(
         plt.ylabel('Values')
         plt.legend()
         # Save in current directory
-        plt.savefig(os.path.join(f"./partial_correlation_subject_{i}.png"))
+        plt.savefig(os.path.join(f"./partial_correlation_subject_{sub}_{i}.png"))
     
-    raise ValueError
+    # raise ValueError
 
-    results = {feature: None for feature in features_keys[:-1]}
+    # results = {feature: None for feature in features_keys[:-1]}
 
-    for feature in features_keys[:-1]:
-        res = np.zeros((full_model_res.shape[0], full_model_res.shape[2]))
-        for tp in range(full_model_res.shape[0]):
-            for channel in range(full_model_res.shape[2]):
+    # for feature in features_keys[:-1]:
+    #     res = np.zeros((full_model_res.shape[0], full_model_res.shape[2]))
+    #     for tp in range(full_model_res.shape[0]):
+    #         for channel in range(full_model_res.shape[2]):
 
-                feat_res = encoding_results[feature]["residuals"]
+    #             feat_res = encoding_results[feature]["residuals"]
 
-                # Regress the residuals of the full model on the residuals of the feature
-                res_model = regress_out_ols(full_model_res[tp, :, channel], y_true[:, channel, tp] - feat_res[tp, :, channel])
-                # Regress the true values on the residuals of the feature
-                y_true_res = regress_out_ols(y_true[:, channel, tp], y_true[:, channel, tp] - feat_res[tp, :, channel])
+    #             # Regress the residuals of the full model on the residuals of the feature
+    #             res_model = regress_out_ols(full_model_res[tp, :, channel], y_true[:, channel, tp] - feat_res[tp, :, channel])
+    #             # Regress the true values on the residuals of the feature
+    #             y_true_res = regress_out_ols(y_true[:, channel, tp], y_true[:, channel, tp] - feat_res[tp, :, channel])
 
-                # Compute the Pearson correlation between the residuals
-                corr, _ = pearsonr(res_model, y_true_res)
+    #             # Compute the Pearson correlation between the residuals
+    #             corr, _ = pearsonr(res_model, y_true_res)
 
-                res[tp, channel] = corr
+    #             res[tp, channel] = corr
 
         
-        print(np.mean(res, axis=1))
+    #     print(np.mean(res, axis=1))
         
-        results[feature] = {
-            "correlation": res
-        }
+    #     results[feature] = {
+    #         "correlation": res
+    #     }
 
 
-    # Save the results
-    feature_names = feature_names[:-1]  # Exclude the full feature set
-    identifierDir = f"seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
+    # # Save the results
+    # feature_names = feature_names[:-1]  # Exclude the full feature set
+    # identifierDir = f"seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
 
-    fileDir = os.path.join(workDir, f"{sub}_{identifierDir}")
+    # fileDir = os.path.join(workDir, f"{sub}_{identifierDir}")
 
-    with open(fileDir, "wb") as f:
-        pickle.dump(results, f)
+    # with open(fileDir, "wb") as f:
+    #     pickle.dump(results, f)
 
 
 if __name__ == "__main__":

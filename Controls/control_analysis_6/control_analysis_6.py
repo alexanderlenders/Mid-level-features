@@ -132,6 +132,7 @@ def c6(
     input_type: str,
     feature_names: list,
     idea: int,
+    alt_r2: bool = True,
     partial_corr: bool = True,
 ):
     """
@@ -154,13 +155,18 @@ def c6(
     ]
 
     # Get the uncorrected R^2 values for each feature
-    X_hat_matrix = np.stack(
-        [encoding_results[key]["var_explained"] for key in features_keys],
-        axis=-1,
-    )
+    if alt_r2:
+        X_hat_matrix = np.stack(
+            [encoding_results[key]["correlation"] for key in features_keys],
+            axis=-1,
+        )
+        X_hat_matrix = X_hat_matrix ** 2  # Convert correlation to R^2
+    else:
+        X_hat_matrix = np.stack(
+            [encoding_results[key]["var_explained"] for key in features_keys], axis=-1
+        )
 
-    results = {feature: np.zeros((X_hat_matrix.shape[0], X_hat_matrix.shape[1]))
-           for feature in features_keys[:-1]}
+    results = {feature: {"correlation": np.zeros((X_hat_matrix.shape[0], X_hat_matrix.shape[1]))} for feature in features_keys[:-1]}
 
     for tp in range(X_hat_matrix.shape[0]):
         for channel in range(X_hat_matrix.shape[1]):
@@ -186,22 +192,9 @@ def c6(
                         f"Partial variance for feature {feature} at time point {tp} and channel {channel} is negative: {pv}"
                     )
                 
-                pv = max(pv, 0)  # Ensure non-negative partial variance
-                
-                results[feature][tp, channel] = pv
-        
-    if partial_corr:
-        for feature in results:
-            results[feature] = {
-                "correlation": np.sqrt(results[feature]), 
-                "r_2_full": encoding_results[feature]["var_explained"]
-            }
-    else:
-        for feature in results:
-            results[feature] = {
-                "correlation": results[feature], 
-                "r_2_full": encoding_results[feature]["var_explained"]
-            }
+                pv = max(pv, 0)  # For values smaller than -1e-5, set to 0
+
+                results[feature]["correlation"][tp, channel] = pv
 
     # Save the results
     feature_names = feature_names[:-1]  # Exclude the full feature set

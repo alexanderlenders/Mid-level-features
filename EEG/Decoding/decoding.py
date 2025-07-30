@@ -24,8 +24,10 @@ import scipy
 from utils import load_eeg
 import sys
 from pathlib import Path
+import pandas as pd
+from tqdm import tqdm
 
-project_root = Path(__file__).resolve().parents[1]
+project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
 from EEG.Encoding.utils import load_config
 
@@ -42,7 +44,7 @@ def decoding_single_subject_func(
     save_dir: str,
     input_type: str,
     it: int,
-    exclude: bool = False,
+    action_dir: str = None,
 ):
     """
     Preprocessing (MVNN, standardization) is fitted on the training data, as
@@ -176,18 +178,22 @@ def decoding_single_subject_func(
         sub, img_type, region, freq, input_type, eeg_dir
     )
 
-    if exclude:
-        print(
-            "Excluding guitar trials from the analysis (control analysis 9)."
-        )
-        # HARDCODED FOR NOW
-        featuresDir = "..."
-        X_train, _, X_test = load_feature_set("action", featuresDir)
+    # if action_dir:
+    #     print(
+    #         "Excluding guitar trials from the analysis (control analysis 9)."
+    #     )
 
-        guitar_trials_train = np.where(X_train[:, 5] == 1)[0]
-        guitar_trials_test = np.where(X_test[:, 5] == 1)[0]
-        ...
+    #     action_data = pd.read_csv(action_dir, header=None)
 
+    #     # Action indices 
+    #     indices = action_data.index[action_data[1] == 30].tolist()
+
+    #     # Create a set of indices to exclude
+    #     exclude_indices = set(indices)
+
+    #     # Filter out exclude_indices from img_cat 
+    #     img_cat = np.array([cat for i, cat in enumerate(img_cat) if i not in exclude_indices])
+        
     # Check if there are NA's within the EEG data
     num_nan = np.isnan(eeg_data).sum()
     print(f"There are {num_nan} NAN values in the input data")
@@ -248,7 +254,7 @@ def decoding_single_subject_func(
     # count variable
     count_total = 0
 
-    for conA in range(n_conditions):
+    for conA in tqdm(range(n_conditions)):
         num_of_comparisons = conA + 1
 
         # For videos: need to find the idx of the condition A and B stimuli
@@ -380,6 +386,8 @@ def decoding_single_subject_func(
                     pipe = Pipeline(estimators)
 
                     # Fit
+                    pipe.fit(X_train_mvnn, y_train)
+
                     data_time_gen = data_tp
                     X_test = data_time_gen[test_index, :]
                     y_test = full_data_label[test_index]

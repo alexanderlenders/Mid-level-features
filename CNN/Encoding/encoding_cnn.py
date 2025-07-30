@@ -276,7 +276,7 @@ if __name__ == "__main__":
     save_dir = config.get(args.config, "save_dir_cnn")
 
     # Hardcoded for now
-    ALPHA_PER_TP = True
+    ALPHA_PER_TP = False
 
     if input_type == "images":
         feat_dir = config.get(args.config, "save_dir_feat_img")

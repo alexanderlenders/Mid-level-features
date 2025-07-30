@@ -262,7 +262,7 @@ if __name__ == "__main__":
         "-a",
         "--alpha",
         default=0.05,
-        type=int,
+        type=float,
         metavar="",
         help="Signifance level (alpha)",
     )

@@ -10,7 +10,7 @@
 #SBATCH --ntasks=1                                   
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=32000 # specifies the maximum amount of memory in MB per node!                           
-#SBATCH --time=01:00:00 # maximum time                           
+#SBATCH --time=00:20:00 # maximum time                           
 #SBATCH --qos=standard
 #SBATCH --partition=agcichy
 #SBATCH --gres=gpu:1
@@ -20,6 +20,6 @@ cd ./
 source /home/alexandel91/.bashrc
 conda activate encoding
 
-./ex_miniclips_cnn.sh > ex_miniclips.txt 2>&1
+./ex_images_cnn.sh > ex_images.txt 2>&1
 
 

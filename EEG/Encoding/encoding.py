@@ -189,6 +189,9 @@ def encoding(
                 feat_dir=save_dir,
                 feat_len=len(feature_names),
             )
+        
+            print(alpha)
+            
         output = dict.fromkeys(output_names)
 
         rmse = np.zeros((timepoints, n_channels))
@@ -330,7 +333,7 @@ if __name__ == "__main__":
     eeg_dir = config.get(args.config, "eeg_dir")
 
     # Hardcoded for now
-    ALPHA_PER_TP = True
+    ALPHA_PER_TP = False
 
     # -------------------------------------------------------------------------
     # STEP 3 Run function

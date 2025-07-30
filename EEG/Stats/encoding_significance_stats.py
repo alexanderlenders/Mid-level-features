@@ -76,7 +76,10 @@ def permutation_test(list_sub: list, n_perm: int, tail: str, alpha: float, timep
     if not os.path.exists(saveDir):
         os.makedirs(saveDir)
     
-    identifierDir = f"seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
+    if var_part:
+        identifierDir = f"seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_{len(feature_names)-1}_features_onehot.pkl"
+    else:
+        identifierDir = f"seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
 
     n_sub = len(list_sub)
 
@@ -263,7 +266,7 @@ if __name__ == "__main__":
     alpha = args.alpha
     input_type = args.input_type
 
-    VAR_PART = False
+    VAR_PART = True
 
     if input_type == "miniclips":
         list_sub = [
@@ -292,6 +295,7 @@ if __name__ == "__main__":
         list_sub = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
 
     if args.config == "control_6_1" or args.config == "control_6_2":
-        feature_names = feature_names[:-1]  # remove the full feature set
+        if not VAR_PART:
+            feature_names = feature_names[:-1]  # remove the full feature set
 
     permutation_test(list_sub, n_perm, tail, alpha, timepoints, input_type, workDir, feature_names, var_part=VAR_PART)

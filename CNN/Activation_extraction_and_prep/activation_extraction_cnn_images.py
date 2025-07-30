@@ -26,6 +26,7 @@ sys.path.append(str(project_root))
 from EEG.Encoding.utils import (
     load_config,
 )
+from Controls.control_analysis_10.model import ResNetClassifier
 
 
 def extract_activations(
@@ -34,6 +35,7 @@ def extract_activations(
     seed: int = 42,
     init: bool = True,
     transform: str = "vid",
+    kinetics_weights_dir: str = None,
 ):
     """
     Extracts activations from specified layers of a ResNet18 model for a set of images,
@@ -73,30 +75,43 @@ def extract_activations(
     np.random.seed(seed)
     random.seed(seed)
 
-    # Set the architecture to use
-    arch = "resnet18"
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}", flush=True)
 
-    model_file = "%s_places365.pth.tar" % arch
+    if not kinetics_weights_dir:
+        # Set the architecture to use
+        arch = "resnet18"
 
-    if not os.access(model_file, os.W_OK):
-        weight_url = (
-            "http://places2.csail.mit.edu/models_places365/" + model_file
-        )
-        os.system("wget " + weight_url)
+        model_file = "%s_places365.pth.tar" % arch
 
-    # New syntax
-    model = models.resnet18(num_classes=365, weights=None)
-    if init:  # Initialize model with pre-trained weights
-        save_dir = save_dir + "_pretrained"
-        checkpoint = torch.load(
-            model_file, map_location=lambda storage, loc: storage
-        )
-        state_dict = {
-            str.replace(k, "module.", ""): v
-            for k, v in checkpoint["state_dict"].items()
-        }
-        model.load_state_dict(state_dict)
+        if not os.access(model_file, os.W_OK):
+            weight_url = (
+                "http://places2.csail.mit.edu/models_places365/" + model_file
+            )
+            os.system("wget " + weight_url)
 
+        # New syntax
+        model = models.resnet18(num_classes=365, weights=None)
+        if init:  # Initialize model with pre-trained weights
+            save_dir = save_dir + "_pretrained"
+            checkpoint = torch.load(
+                model_file, map_location=lambda storage, loc: storage
+            )
+            state_dict = {
+                str.replace(k, "module.", ""): v
+                for k, v in checkpoint["state_dict"].items()
+            }
+            model.load_state_dict(state_dict)
+    else:
+        print("Using Kinetics-400 pre-trained model.")
+        if init:
+            model = ResNetClassifier.load_from_checkpoint(kinetics_weights_dir)
+        else:
+            model = ResNetClassifier()
+        
+        model = model.model
+
+    model = model.to(device)
     model.eval()
 
     # --------------------------------------
@@ -164,16 +179,16 @@ def extract_activations(
 
     example_path = os.path.join(images_dir, f"{1:04}_frame_20.jpg")
     image = Image.open(example_path)
-    input_tensor = V(centre_crop(image).unsqueeze(0))
+    input_tensor = V(centre_crop(image).unsqueeze(0)).to(device)
 
     with torch.no_grad():
         out = feature_extractor(input_tensor)
 
     for layer in return_layers:
-        shape = out[layer].squeeze(0).numpy().shape  # (C, H, W)
+        shape_arr = out[layer].squeeze(0).detach().cpu().numpy()
 
         # Total number of units for this layer
-        num_units = np.prod(shape)
+        num_units = np.prod(shape_arr.shape)
 
         # Create a 2D array for this layer's features
         feature_arrays[layer] = np.zeros(
@@ -191,14 +206,14 @@ def extract_activations(
         image = Image.open(image_dir)
 
         # Preprocess image
-        batch_t = V(centre_crop(image).unsqueeze(0))
+        batch_t = V(centre_crop(image).unsqueeze(0)).to(device)
 
         # apply those features on image
         with torch.no_grad():
             out = feature_extractor(batch_t)
 
         for layer in return_layers:
-            feature_map = out[layer].squeeze(0).numpy()  # shape (C, H, W)
+            feature_map = out[layer].detach().cpu().squeeze(0).numpy()  # shape (C, H, W)
             flattened = feature_map.flatten()  # shape (C*H*W,)
             feature_arrays[layer][idx, :] = flattened
 
@@ -258,6 +273,11 @@ if __name__ == "__main__":
     # Hardcoded seed for reproducibility
     seed = 42
 
+    if args.config == "control_10":
+        kinetics_weights_dir = config.get(args.config, "kinetics_weights_dir")
+    else:
+        kinetics_weights_dir = None
+
     # Run feature extraction
     extract_activations(
         images_dir=img_dir,
@@ -265,4 +285,5 @@ if __name__ == "__main__":
         seed=seed,
         init=init,
         transform=transform,
+        kinetics_weights_dir=kinetics_weights_dir,
     )

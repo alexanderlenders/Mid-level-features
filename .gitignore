@@ -6,6 +6,7 @@ slurm*.out
 *.tar
 *.txt
 *.png
+*.ipynb
 
 # C extensions
 *.so

@@ -378,6 +378,69 @@ config.set("control_9", "noise_ceiling_dir", noise_ceiling_dir)
 
 
 # =============================================================================
+# Control analysis 10
+# =============================================================================
+feature_names_default = [
+    "edges",
+    "reflectance",
+    "lighting",
+    "world_normal",
+    "scene_depth",
+    "skeleton",
+    "action",
+]
+feature_names_graph_default = [
+    "Edges",
+    "Reflectance",
+    "Lighting",
+    "Normals",
+    "Depth",
+    "Skeleton",
+    "Action",
+]
+
+save_dir_default = os.path.join(root_dir, "results", "EEG", "control_10")
+save_dir_default_cnn = os.path.join(root_dir, "results", "CNN", "control_10")
+
+save_dir_cnn_img = os.path.join(
+    root_dir, "data", "CNN", "2dresnet18_pretrained", "control_10"
+)
+save_dir_cnn_video = os.path.join(
+    root_dir, "data", "CNN", "3dresnet18", "control_10"
+)
+weights_dir = "/scratch/alexandel91/mid_level_features/results/CNN/training/ResNet18/checkpoints/resnet18-epoch=06-val_loss=3.42.ckpt"
+
+config.add_section("control_10")
+config.set("control_10", "feature_names", json.dumps(feature_names_default))
+config.set(
+    "control_10",
+    "feature_names_graph",
+    json.dumps(feature_names_graph_default),
+)
+config.set("control_10", "n_components", "100")
+config.set("control_10", "pca_method", "linear")
+config.set("control_10", "videos_dir", videos_dir)
+config.set("control_10", "video_annotations_dir", video_annotations_dir)
+config.set("control_10", "action_metadata_dir", action_metadata_dir)
+config.set("control_10", "character_metadata_dir", character_metadata_dir)
+config.set("control_10", "save_dir", save_dir_default)
+config.set("control_10", "start_frame", "10")
+config.set("control_10", "end_frame", "19")
+config.set("control_10", "img_frame", "20")
+config.set("control_10", "images_dir", img_dir)
+config.set("control_10", "img_annotations_dir", img_annotations_dir)
+config.set("control_10", "save_dir_feat_img", save_dir_feat_img)
+config.set("control_10", "save_dir_feat_video", save_dir_feat_video)
+config.set("control_10", "eeg_dir", eeg_dir)
+config.set("control_10", "noise_ceiling_dir", noise_ceiling_dir)
+config.set("control_10", "save_dir_cnn_img", save_dir_cnn_img)
+config.set("control_10", "save_dir_cnn_video", save_dir_cnn_video)
+config.set("control_10", "save_dir_cnn", save_dir_default_cnn)
+config.set("control_10", "mp4_dir", mp4_dir)
+config.set("control_10", "kinetics_weights_dir", weights_dir)
+
+
+# =============================================================================
 # Control analysis 11
 # =============================================================================
 feature_names_default = [

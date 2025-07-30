@@ -28,14 +28,14 @@ from EEG.Encoding.utils import (
 
 
 def permutation_test(
-    list_sub_vid,
-    list_sub_img,
-    workDir,
-    n_perm,
-    tail,
-    alpha,
-    timepoints,
-    feature_names,
+    list_sub_vid: list,
+    list_sub_img: list,
+    workDir: str,
+    n_perm: int,
+    tail: str,
+    alpha: float,
+    timepoints: int,
+    feature_names: list,
 ):
     """
     Statistical test on encoding time generalization matrix.
@@ -145,9 +145,14 @@ def permutation_test(
         # STEP 2.5 Benjamini-Hochberg correction
         # -------------------------------------------------------------------------
         flattened_p_values = p_values_tg.flatten()
+        # Count how many values are below the alpha level
+        print(f"Number of p-values below alpha ({alpha}): {np.sum(flattened_p_values < alpha)}")
+
         rejected, p_values_corr = fdrcorrection(
-            flattened_p_values, alpha=alpha
+            flattened_p_values, alpha=alpha, is_sorted=False
         )
+
+        print(f"Number of rejected hypotheses: {np.sum(rejected)}")
 
         final_p_val = rejected.reshape((timepoints, timepoints))
 
@@ -212,7 +217,7 @@ if __name__ == "__main__":
         "-a",
         "--alpha",
         default=0.05,
-        type=int,
+        type=float,
         metavar="",
         help="Significance level (alpha)",
     )
