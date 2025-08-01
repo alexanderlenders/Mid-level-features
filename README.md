@@ -1,6 +1,5 @@
 # Mid-level feature representations 
 
-----
 **If you want to use the updated version of the code, first edit the root dir in `Controls/create_config.py`, then create the `config.ini`file by running `python create_config.py`. If you used the same folder structure as me (see below), you should be able to easily reproduce all main and control analyses without any problems.**
 ---
 This repository contains code for the paper "Investigating the temporal dynamics and modelling of mid-level feature representations in humans" (Karapetian et al., 2025). 
