@@ -73,7 +73,6 @@ def extract_activations(
 
     # Load pretrained weights
     if init:
-        # save_dir = save_dir + "_pretrained"
         resnet_video = r3d_18(weights="KINETICS400_V1")
     else:
         resnet_video = r3d_18(weights=None, progress=True)

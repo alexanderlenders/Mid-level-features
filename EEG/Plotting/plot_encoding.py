@@ -366,6 +366,7 @@ if (
     or args.config == "control_1"
     or args.config == "control_2"
     or args.config == "control_9"
+    or args.config == "control_12"
 ):
     sorted_indices = [
         0,

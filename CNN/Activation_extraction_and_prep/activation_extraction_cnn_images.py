@@ -96,7 +96,7 @@ def extract_activations(
         # New syntax
         model = models.resnet18(num_classes=365, weights=None)
         if init:  # Initialize model with pre-trained weights
-            save_dir = save_dir + "_pretrained"
+            save_dir = save_dir
             checkpoint = torch.load(
                 model_file, map_location=lambda storage, loc: storage
             )
@@ -198,7 +198,7 @@ def extract_activations(
         )
 
     # Loop through all images
-    print("Extracting features...")
+    print("Extracting features...") 
     for img in tqdm(range(1, (num_videos + 1))):
         idx = img - 1
 

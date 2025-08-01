@@ -57,12 +57,18 @@ parser.add_argument(
     action="store_true",
     help="Show legend in plots",
 )
+parser.add_argument(
+    "--zoom_in",
+    action="store_true",
+    help="Zoom in on plots",
+)
 
 args = parser.parse_args()  # to get values for the arguments
 
 config = load_config(args.config_dir, args.config)
 workDir = config.get(args.config, "save_dir")
 plot_legend = args.legend
+zoom_in = args.zoom_in
 noise_ceiling_dir = config.get(args.config, "noise_ceiling_dir")
 feature_names = parse_list(config.get(args.config, "feature_names"))
 
@@ -170,35 +176,29 @@ features_mean = []
 
 for feature in feature_names:
     features = []
-    # For the full model also save R^2
-    if feature == feature_names[-1]:
-        r2_features_full = []
-
     for sub, subject in enumerate(list_sub):
         f = results[sub][feature]["correlation"]
         f_averaged = np.mean(f, axis=1)  # avg over channels
         features.append(f_averaged)
-
-        if feature == feature_names[-1]:
-            r2 = results[sub][feature]["r_2_full"]
-            r2_features_full.append(r2.mean(axis=1))
     
     mean_feature = np.zeros((num_timepoints_og,), dtype=float)
 
-    if feature == feature_names[-1]:
-        r2_mean_feature = np.zeros((num_timepoints_og,), dtype=float)
-
     for sub, subject in enumerate(list_sub):
         mean_feature = np.add(mean_feature, features[sub])
-        if feature == feature_names[-1]:
-            r2_mean_feature = np.add(r2_mean_feature, r2_features_full[sub])
-            
+
     mean_feature = np.divide(mean_feature, len(list_sub))
 
-    if feature == feature_names[-1]:
-        r2_mean_feature = np.divide(r2_mean_feature, len(list_sub))
-
     features_mean.append(mean_feature)
+
+# Collect full model data (last feature set)
+full_model_mean = []
+
+for sub, subject in enumerate(list_sub):
+    full_model_corr = results[sub][full_feature_set]["correlation"]
+    full_model_averaged = np.mean(full_model_corr, axis=1)  # avg over channels
+    full_model_mean.append(full_model_averaged)
+
+full_model_mean = np.mean(full_model_mean, axis=0)  # Average across subjects
 
 # -----------------------------------------------------------------------------
 # STEP 4: Subplot 1 -> Encoding curve
@@ -271,9 +271,9 @@ for i, feature in enumerate(sorted_features_mean):
     high_CI = high_CI[10:]
 
     # To get variance explained in %
-    accuracy = accuracy
-    low_CI = low_CI
-    high_CI = high_CI
+    accuracy = accuracy * 100
+    low_CI = low_CI * 100
+    high_CI = high_CI * 100
 
     # Mask arrays for significant and non-significant parts
     accuracy_sig = np.ma.masked_where(~stats_results, accuracy)
@@ -317,9 +317,17 @@ for i, feature in enumerate(sorted_features_mean):
         linewidth=2,
     )
 
-print(r2_mean_feature)
-
-ax.plot(timepoints, r2_mean_feature[10:], color="black", ls="--", linewidth=2, alpha=0.5)
+if args.config == "control_6_1" and not zoom_in:
+    # Plot the full feature model curve
+    full_model_accuracy = full_model_mean[10:] * 100  # Convert to percentage
+    ax.plot(
+        timepoints,
+        full_model_accuracy,
+        color="grey",
+        linestyle="--",
+        linewidth=2,
+        label="Full Model",
+    )
 
 ### Set plotting parameters ###
 ax.set_xlabel("Time (ms)", fontdict={"family": font, "size": 11})
@@ -328,17 +336,24 @@ ax.set_ylabel(
 )
 
 # yticks and labels
-if args.config == "control_6_1":
+if args.config == "control_6_1" and not zoom_in:
     ax.set_yticks(
-        ticks=[0, 1, 2, 3, 4, 5],
-        labels=[0, 1, 2, 3, 4, 5],
+        ticks=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        labels=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        fontsize=9,
+        fontname=font,
+    )
+elif args.config == "control_6_1" and zoom_in:
+    ax.set_yticks(
+        ticks=[0, 1, 2, 3, 4],
+        labels=[0, 1, 2, 3, 4],
         fontsize=9,
         fontname=font,
     )
 else:
     ax.set_yticks(
-        ticks=[0, 1, 2, 3, 4, 5],
-        labels=[0, 1, 2, 3, 4, 5],
+        ticks=[0, 1, 2, 3, 4, 5, 6],
+        labels=[0, 1, 2, 3, 4, 5, 6],
         fontsize=9,
         fontname=font,
     )
@@ -377,13 +392,25 @@ ax.tick_params(axis="both", direction="inout")
 # STEP 6: Saving the plot
 # -----------------------------------------------------------------------------
 plt.show()
-plotDir = os.path.join(
-    saveDir,
-    f"plot_encoding_{len(feature_names)}_features_{input_type}_nonstd.svg",
-)
+if zoom_in:
+    plotDir = os.path.join(
+        saveDir,
+        f"plot_encoding_{len(feature_names)}_features_{input_type}_zoomed.svg",
+    )
+else:
+    plotDir = os.path.join(
+        saveDir,
+        f"plot_encoding_{len(feature_names)}_features_{input_type}_nonstd.svg",
+    )
 plt.savefig(plotDir, dpi=300, format="svg", transparent=True)
-plotDir = os.path.join(
-    saveDir,
-    f"plot_encoding_full_{len(feature_names)}_features_{input_type}_nonstd.png",
-)
+if zoom_in:
+    plotDir = os.path.join(
+        saveDir,
+        f"plot_encoding_full_{len(feature_names)}_features_{input_type}_zoomed.png",
+    )
+else:
+    plotDir = os.path.join(
+        saveDir,
+        f"plot_encoding_full_{len(feature_names)}_features_{input_type}_nonstd.png",
+    )
 plt.savefig(plotDir, dpi=300, format="png", transparent=True)

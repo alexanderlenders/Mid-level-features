@@ -146,7 +146,8 @@ def permutation_test(
         # -------------------------------------------------------------------------
         flattened_p_values = p_values_tg.flatten()
         # Count how many values are below the alpha level
-        print(f"Number of p-values below alpha ({alpha}): {np.sum(flattened_p_values < alpha)}")
+        print(f"Number of p-values below alpha ({alpha}): {np.sum(flattened_p_values < 0.00001)}")
+        print(f"Number of p-values: {len(flattened_p_values)}")
 
         rejected, p_values_corr = fdrcorrection(
             flattened_p_values, alpha=alpha, is_sorted=False

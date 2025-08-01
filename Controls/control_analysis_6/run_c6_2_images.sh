@@ -1,5 +1,4 @@
 #!/bin/bash
-# Standard encoding analysis with all features for miniclips
 
 source /home/alexandel91/.bashrc
 conda activate encoding
@@ -16,22 +15,23 @@ export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
 #     --config control_6_2 \
 #     --input_type "images"
 
-python ./control_analysis_6_part_corr.py \
-    --config_dir ../config.ini \
-    --config control_6_2 \
-    --input_type "images"
+# python ./control_analysis_6.py \
+#     --config_dir ../config.ini \
+#     --config control_6_2 \
+#     --input_type "images" \
+#     --idea 2
     
-python ../../EEG/Stats/encoding_bootstrapping.py \
-    --config_dir ../config.ini \
-    --config control_6_2 \
-    --input_type "images"
+# python ../../EEG/Stats/encoding_bootstrapping.py \
+#     --config_dir ../config.ini \
+#     --config control_6_2 \
+#     --input_type "images"
 
-python ../../EEG/Stats/encoding_significance_stats.py \
-    --config_dir ../config.ini \
-    --config control_6_2 \
-    --input_type "images"
+# python ../../EEG/Stats/encoding_significance_stats.py \
+#     --config_dir ../config.ini \
+#     --config control_6_2 \
+#     --input_type "images"
 
-python ./control_analysis_6_plotting_part_corr.py \
+python ./control_analysis_6_plotting.py \
     --config_dir ../config.ini \
     --config control_6_2 \
     --input_type "images" \

@@ -276,7 +276,11 @@ if __name__ == "__main__":
     save_dir = config.get(args.config, "save_dir_cnn")
 
     # Hardcoded for now
-    ALPHA_PER_TP = False
+    if args.config == "control_12":
+        ALPHA_PER_TP = True
+        print("Using alpha per timepoint for control_12")
+    else:   
+        ALPHA_PER_TP = False
 
     if input_type == "images":
         feat_dir = config.get(args.config, "save_dir_feat_img")

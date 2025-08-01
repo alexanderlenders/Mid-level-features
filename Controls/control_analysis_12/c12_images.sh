@@ -1,49 +1,45 @@
 #!/bin/bash
+# Control analysis 12
 
 source /home/alexandel91/.bashrc
 conda activate encoding
 
 export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
 
-# echo "Hyperparam tuning"
 # python ../../EEG/Encoding/hyperparameter_optimization.py \
 #     --config_dir ../config.ini \
-#     --config control_6_1 \
+#     --config control_12 \
 #     --input_type "images" 
 
-# echo "Encoding"
+# echo "Starting encoding analysis for images"
+# # Fourth step: Encoding
 # python ../../EEG/Encoding/encoding.py \
 #     --config_dir ../config.ini \
-#     --config control_6_1 \
+#     --config control_12 \
 #     --input_type "images"
 
-# echo "Variance partitioning"
-# python ./control_analysis_6.py \
-#     --config_dir ../config.ini \
-#     --config control_6_1 \
-#     --input_type "images" \
-#     --idea 1
-    
-# echo "Encoding with significance stats"
+# echo "Encoding analysis for images completed"
+# echo "Starting bootstrapping for images"
+# # Fifth step: Bootstrapping
 # python ../../EEG/Stats/encoding_bootstrapping.py \
 #     --config_dir ../config.ini \
-#     --config control_6_1 \
+#     --config control_12 \
 #     --input_type "images"
 
+# echo "Bootstrapping for images completed"
+# echo "Starting stats for images"
+# # Sixth step: Stats
 # python ../../EEG/Stats/encoding_significance_stats.py \
 #     --config_dir ../config.ini \
-#     --config control_6_1 \
+#     --config control_12 \
 #     --input_type "images"
 
-python ./control_analysis_6_plotting.py \
+# echo "Stats for images completed"
+echo "Starting plotting for images"
+# Seventh step: Plotting
+python ../../EEG/Plotting/plot_encoding.py \
     --config_dir ../config.ini \
-    --config control_6_1 \
+    --config control_12 \
     --input_type "images" \
     --legend
-
-python ./control_analysis_6_plotting.py \
-    --config_dir ../config.ini \
-    --config control_6_1 \
-    --input_type "images" \
-    --legend \
-    --zoom_in
+echo "Plotting for images completed"

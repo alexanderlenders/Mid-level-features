@@ -141,7 +141,7 @@ def bootstrapping_CI(
             mean_p_tp_img = np.mean(perm_tp_data_img, axis=0)
             mean_p_tp_vid = np.mean(perm_tp_data_vid, axis=0)
 
-            bt_data[tp, perm] = mean_p_tp_img - mean_p_tp_vid
+            bt_data[tp, perm] = mean_p_tp_img.item() - mean_p_tp_vid.item()
 
     # peaks
     for perm in range(n_perm):

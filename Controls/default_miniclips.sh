@@ -16,22 +16,22 @@ conda activate encoding
 #     --config default 
     
 # Third step: Hyperparameter optimization
-python ../EEG/Encoding/hyperparameter_optimization.py \
-    --config_dir ./config.ini \
-    --config default \
-    --input_type "miniclips" 
+# python ../EEG/Encoding/hyperparameter_optimization.py \
+#     --config_dir ./config.ini \
+#     --config default \
+#     --input_type "miniclips" 
 
-# Fourth step: Encoding
-python ../EEG/Encoding/encoding.py \
-    --config_dir ./config.ini \
-    --config default \
-    --input_type "miniclips"
+# # Fourth step: Encoding
+# python ../EEG/Encoding/encoding.py \
+#     --config_dir ./config.ini \
+#     --config default \
+#     --input_type "miniclips"
 
-# Fifth step: Bootstrapping
-python ../EEG/Stats/encoding_bootstrapping.py \
-    --config_dir ./config.ini \
-    --config default \
-    --input_type "miniclips"
+# # Fifth step: Bootstrapping
+# python ../EEG/Stats/encoding_bootstrapping.py \
+#     --config_dir ./config.ini \
+#     --config default \
+#     --input_type "miniclips"
 
 # Sixth step: Stats
 python ../EEG/Stats/encoding_significance_stats.py \

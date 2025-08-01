@@ -1,5 +1,6 @@
 """
 This script implements the code for control analysis 6, i.e. variance partitioning.
+For further details, cf. De Heer et al. (2017).
 
 @author: Alexander Lenders
 """
@@ -156,6 +157,7 @@ def c6(
 
     # Get the uncorrected R^2 values for each feature
     if alt_r2:
+        print("Using alternative R^2 values for variance partitioning.")
         X_hat_matrix = np.stack(
             [encoding_results[key]["correlation"] for key in features_keys],
             axis=-1,
@@ -166,7 +168,7 @@ def c6(
             [encoding_results[key]["var_explained"] for key in features_keys], axis=-1
         )
 
-    results = {feature: {"correlation": np.zeros((X_hat_matrix.shape[0], X_hat_matrix.shape[1]))} for feature in features_keys[:-1]}
+    results = {feature: {"correlation": np.zeros((X_hat_matrix.shape[0], X_hat_matrix.shape[1]))} for feature in features_keys}
 
     for tp in range(X_hat_matrix.shape[0]):
         for channel in range(X_hat_matrix.shape[1]):
@@ -195,6 +197,16 @@ def c6(
                 pv = max(pv, 0)  # For values smaller than -1e-5, set to 0
 
                 results[feature]["correlation"][tp, channel] = pv
+            
+            # Calculate the corrected R^2 for the full model (last element in list)
+            if idea == 1:
+                results[features_keys[-1]]["correlation"][tp, channel] = (
+                    X_hat_channel[-1] + b[-1]
+                )
+            elif idea == 2:
+                results[features_keys[-1]]["correlation"][tp, channel] = (
+                    X_hat_channel[-1] + b[-1]
+                )
 
     # Save the results
     feature_names = feature_names[:-1]  # Exclude the full feature set
@@ -248,6 +260,7 @@ if __name__ == "__main__":
     input_type = args.input_type
 
     PARTIAL_CORR = False
+    ALT_R2 = True
 
     if input_type == "miniclips":
         list_sub = [
@@ -277,4 +290,4 @@ if __name__ == "__main__":
 
     for sub in list_sub:
         print(f"Running variance partitioning for subject {sub}...")
-        c6(sub, workDir, input_type, feature_names, idea, PARTIAL_CORR)
+        c6(sub, workDir, input_type, feature_names, idea, alt_r2=ALT_R2, partial_corr=PARTIAL_CORR)

@@ -36,12 +36,12 @@ export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
 #     --config default \
 #     --input_type "images"
 
-# # Sixth step: Stats
-# echo "Running significance stats..."
-# python ../EEG/Stats/encoding_significance_stats.py \
-#     --config_dir ./config.ini \
-#     --config default \
-#     --input_type "images"
+# Sixth step: Stats
+echo "Running significance stats..."
+python ../EEG/Stats/encoding_significance_stats.py \
+    --config_dir ./config.ini \
+    --config default \
+    --input_type "images"
 
 # Seventh step: Plotting 
 echo "Plotting results..."

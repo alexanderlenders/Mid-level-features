@@ -89,11 +89,12 @@ decoding_mean_vid = []
 
 for subject in list_sub_vid:
     if subject < 10:
-        fileDir = workDir_vid + "decoding_miniclips_sub-0{}_redone.npy".format(
-            subject
+        fileDir = (
+            workDir_vid
+            + "/decoding_miniclips_sub-0{}_redone.npy".format(subject)
         )
     else:
-        fileDir = workDir_vid + "decoding_miniclips_sub-{}_redone.npy".format(
+        fileDir = workDir_vid + "/decoding_miniclips_sub-{}_redone.npy".format(
             subject
         )
 
@@ -113,11 +114,11 @@ plot_timepoints = 60
 
 for subject in list_sub_img:
     if subject < 10:
-        fileDir = workDir_img + "decoding_images_sub-0{}_redone.npy".format(
+        fileDir = workDir_img + "/decoding_images_sub-0{}_redone.npy".format(
             subject
         )
     else:
-        fileDir = workDir_img + "decoding_images_sub-{}_redone.npy".format(
+        fileDir = workDir_img + "/decoding_images_sub-{}_redone.npy".format(
             subject
         )
 
@@ -130,6 +131,8 @@ for subject in list_sub_img:
 # -----------------------------------------------------------------------------
 # STEP 4: Create decoding plot (Figure 3A)
 # -----------------------------------------------------------------------------
+if not os.path.exists(saveDir):
+    os.makedirs(saveDir)
 plotDir_svg = saveDir + "/plot_comparison_mean_accuracy_nonstd.svg"
 plotDir_png = saveDir + "/plot_comparison_mean_accuracy_nonstd.png"
 chance = 0.5
@@ -196,7 +199,7 @@ ci_dir_diff = os.path.join(
     "decoding",
     "difference",
     "stats",
-    "CI_95_accuracy_diff_redone.pkl",
+    "diff_CI_95_accuracy_redone.pkl",
 )
 
 with open(ci_dir_diff, "rb") as file:
@@ -240,7 +243,7 @@ decoding_stats_dir_diff = os.path.join(
     "decoding",
     "difference",
     "stats",
-    "decoding_stats_both_nonstd.pkl",
+    "diff_decoding_stats_both_nonstd.pkl",
 )
 
 with open(decoding_stats_dir_diff, "rb") as file:
@@ -452,6 +455,7 @@ ax.spines["top"].set_visible(False)
 ax.spines["right"].set_visible(False)
 
 # final params
+
 plt.tight_layout()
 plt.show()
 plt.savefig(plotDir_svg, format="svg", dpi=300, transparent=True)

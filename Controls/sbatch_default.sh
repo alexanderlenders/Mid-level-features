@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --mail-user=alexandel91@zedat.fu-berlin.de   
-#SBATCH --job-name=default_miniclips
+#SBATCH --job-name=miniclips_cnn
 #SBATCH --mail-type=ALL                              
 #SBATCH --nodes=1                                    
 #SBATCH --ntasks=1                                   
@@ -15,6 +15,6 @@ cd ./
 source /home/alexandel91/.bashrc
 conda activate encoding
 
-./default_differences_cnn.sh > default_differences_cnn.txt 2>&1
+./default_miniclips.sh > default_miniclips.txt 2>&1
 
 

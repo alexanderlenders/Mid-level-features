@@ -190,8 +190,6 @@ def encoding(
                 feat_len=len(feature_names),
             )
 
-            print(alpha)
-
         output = dict.fromkeys(output_names)
 
         rmse = np.zeros((timepoints, n_channels))
@@ -333,7 +331,11 @@ if __name__ == "__main__":
     eeg_dir = config.get(args.config, "eeg_dir")
 
     # Hardcoded for now
-    ALPHA_PER_TP = False
+    if args.config == "control_12":
+        ALPHA_PER_TP = True
+        print("Using alpha per timepoint for control_12")
+    else:
+        ALPHA_PER_TP = False
 
     # -------------------------------------------------------------------------
     # STEP 3 Run function

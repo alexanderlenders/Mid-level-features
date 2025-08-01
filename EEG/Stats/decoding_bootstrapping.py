@@ -108,7 +108,7 @@ def bootstrapping_CI(
                 tp_data, size=(n_sub, 1), replace=True
             )
             mean_p_tp = np.mean(perm_tp_data, axis=0)
-            bt_data[tp, perm] = mean_p_tp
+            bt_data[tp, perm] = mean_p_tp.item()
 
     # -------------------------------------------------------------------------
     # STEP 2.4 Calculate 95%-CI
@@ -330,11 +330,8 @@ if __name__ == "__main__":
 
     config = load_config(args.config_dir, args.config)
     workDir = config.get(args.config, "save_dir")
-    list_sub = args.list_sub
     n_perm = args.num_perm
     timepoints = args.num_tp
-    plot_hist = args.plot
-    method = args.method
     input_type = args.input_type
 
 if input_type == "miniclips":
