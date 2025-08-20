@@ -10,11 +10,11 @@ import matplotlib.pyplot as plt
 import sys
 from pathlib import Path
 import argparse
+from scipy.stats import pearsonr, PermutationMethod
 
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
 from EEG.Encoding.utils import (
-    vectorized_correlation,
     load_config,
     load_features,
     parse_list,
@@ -50,21 +50,28 @@ def c5(
         X_train_img, X_val_img, X_test_img = load_features(
             feature, featuresDir_img
         )
-        X_test_vid, X_val_vid, X_test_vid = load_features(
+        X_train_vid, X_val_vid, X_test_vid = load_features(
             feature, featuresDir_vid
         )
 
         X_img = np.concatenate((X_train_img, X_val_img, X_test_img), axis=0)
-        X_vid = np.concatenate((X_train_img, X_val_vid, X_test_vid), axis=0)
+        X_vid = np.concatenate((X_train_vid, X_val_vid, X_test_vid), axis=0)
 
-        corr = np.mean(vectorized_correlation(X_img, X_vid))
+        # Using permutation tests 
+        method = PermutationMethod(
+            n_resamples=1000,
+            batch=None,
+            rng=42
+        )
+
+        corr, pval = pearsonr(X_img.flatten(), X_vid.flatten(), method=method)
         # Make sure that maximum correlation is 1
         if corr > 1:
             corr = 1.0
         elif corr < -1:
             corr = -1.0
 
-        features_dict[feature] = corr
+        features_dict[feature] = (corr, pval)
 
     # Sort features alphabetically (optional)
     features = sorted(features_dict.keys())
@@ -77,7 +84,7 @@ def c5(
         "Skeleton",
         "Normals",
     ]
-    correlations = [features_dict[feature] for feature in features]
+    correlations = [features_dict[feature][0] for feature in features]
 
     plt.close()
     fig, ax = plt.subplots(figsize=(6, 4.5))  # Adjust size as needed
@@ -96,6 +103,27 @@ def c5(
     ax.bar(
         features, correlations, color=colors, edgecolor="black"
     )  # Or use a bar plot instead
+
+    for i, feature in enumerate(features):
+        corr, pval = features_dict[feature]
+        
+        if pval < 0.001:
+            star = "***"
+        elif pval < 0.01:
+            star = "**"
+        elif pval < 0.05:
+            star = "*"
+        else:
+            star = ""
+        
+        if star:
+            ax.text(
+                i, correlations[i] + 0.02,  # slightly above the bar
+                star,
+                ha='center',
+                fontsize=14,
+                color='black'
+            )
 
     # Labels and ticks
     ax.set_ylabel("Pearson's r", fontdict={"family": font, "size": 11})
