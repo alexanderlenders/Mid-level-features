@@ -97,11 +97,19 @@ def c5(
     colors = [colormap(i) for i in range(len(features))]
 
     # Sort colors manually
-    sort_indices = [6, 0, 3, 4, 2, 5, 1]
-    colors = [colors[i] for i in sort_indices]
+    sorted_indices = [
+        6,
+        0,
+        3,
+        4,
+        2,
+        5,
+        1
+    ]
+    sorted_color_dict = [colors[i] for i in sorted_indices]
 
     ax.bar(
-        features, correlations, color=colors, edgecolor="black"
+        features, correlations, color=sorted_color_dict, edgecolor="black"
     )  # Or use a bar plot instead
 
     for i, feature in enumerate(features):

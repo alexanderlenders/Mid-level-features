@@ -152,12 +152,16 @@ time_ms = np.arange(-400, 1000, 20)
 timepoints = np.arange(60)  # for plotting
 num_features = len(feature_names)
 colormap = plt.colormaps["Set2"]
+colors = [colormap(i) for i in range(7)]
 
 if args.config == "control_6_1":
-    colors = [colormap(i) for i in range(num_features)]
+    sorted_indices = [0, 4, 3, 1, 2, 5, 6]
+    sorted_colors = [colors[i] for i in sorted_indices]
 else:
-    # To have the same colour scheme
-    colors = [colormap(i + 1) for i in range(num_features)]
+    sorted_indices = [4, 3, 1, 2, 5]
+    sorted_colors = [colors[i] for i in sorted_indices]
+
+colors = sorted_colors
 
 # -----------------------------------------------------------------------------
 # STEP 3: Load results
