@@ -9,60 +9,30 @@ they are more informative than empirical standard errors.
 
 @author: AlexanderLenders, Agnessa Karapetian
 """
-if __name__ == "__main__":
-    import argparse
+# Import modules
+import numpy as np
+import os
+import pickle
+import argparse
+from statsmodels.stats.multitest import fdrcorrection
+import sys
+from pathlib import Path
 
-    parser = argparse.ArgumentParser()
+project_root = Path(__file__).resolve().parents[2]
+sys.path.append(str(project_root))
 
-    # add arguments / inputs
-    parser.add_argument(
-        "-np",
-        "--num_perm",
-        default=10000,
-        type=int,
-        metavar="",
-        help="Number of permutations",
-    )
-    parser.add_argument(
-        "-l",
-        "--num_layers",
-        default=8,
-        type=int,
-        metavar="",
-        help="Number of layers",
-    )
-    parser.add_argument(
-        "-i",
-        "--input_type",
-        default="images",
-        type=str,
-        metavar="",
-        help="images or miniclips",
-    )
-    parser.add_argument(
-        "-ed",
-        "--encoding_dir",
-        help="Directory with encoding results",
-        default="Z:/Unreal/Results/Encoding/CNN_redone/",
-    )
-    parser.add_argument(
-        "-tv",
-        "--total_var",
-        help="Total variance explained by all PCA components together; "
-        "for more precise results, calculate from explained_variance.pkl",
-        default=90,
-    )
-
-    args = parser.parse_args()  # to get values for the arguments
-
-    n_perm = args.num_perm
-    n_layers = args.num_layers
-    input_type = args.input_type
-    encoding_dir = args.encoding_dir
-    total_var = args.total_var
+from EEG.Encoding.utils import (
+    load_config,
+)
 
 
-def bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, total_var):
+def bootstrapping_CI(
+    n_perm: int,
+    n_layers: int,
+    input_type: str,
+    encoding_dir: str,
+    weighted: bool,
+):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and
     each feature.
@@ -90,17 +60,12 @@ def bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, total_var):
         Where encoding results are saved
     input_type : str
         Miniclips or images
-    total_var : int
-        Total variance explained by all PCA components
+    weighted : bool
+        If True, uses weighted regression results.
     """
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
     # -------------------------------------------------------------------------
-    # Import modules
-    import numpy as np
-    import os
-    import pickle
-
     layers_names = (
         "layer1.0.relu_1",
         "layer1.1.relu_1",
@@ -111,13 +76,15 @@ def bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, total_var):
         "layer4.0.relu_1",
         "layer4.1.relu_1",
     )
+    if weighted:
+        workDir = os.path.join(encoding_dir, input_type, "weighted")
+        saveDir = os.path.join(workDir, "stats")
+    else:
+        workDir = os.path.join(encoding_dir, input_type, "unweighted")
+        saveDir = os.path.join(workDir, "stats")
 
-    if input_type == "images":
-        workDir = os.path.join(encoding_dir, "2D_ResNet18/")
-    elif input_type == "miniclips":
-        workDir = os.path.join(encoding_dir, "3D_ResNet18/")
-
-    saveDir = os.path.join(workDir, "stats/")
+    if not os.path.exists(saveDir):
+        os.makedirs(saveDir)
 
     feature_names = (
         "edges",
@@ -143,7 +110,7 @@ def bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, total_var):
 
     for feature in feature_names:
         regression_features[feature] = encoding_results[feature][
-            "weighted_correlations"
+            "weighted_correlation"
         ]
 
     features_results = {}
@@ -163,14 +130,14 @@ def bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, total_var):
                 perm_l_data = np.random.choice(
                     layer_data, size=(num_comp_layer, 1), replace=True
                 )
-                layer_weighted_sum = np.sum(perm_l_data) / total_var
+                layer_weighted_sum = np.sum(perm_l_data)
                 bt_data[l, perm] = layer_weighted_sum
 
         # ---------------------------------------------------------------------
         # STEP 2.4 Calculate 95%-CI
         # ---------------------------------------------------------------------
-        upper = int(np.ceil(n_perm * 0.975))
-        lower = int(np.ceil(n_perm * 0.025))
+        upper = int(np.ceil(n_perm * 0.975)) - 1
+        lower = int(np.ceil(n_perm * 0.025)) - 1
 
         ci_dict = {}
 
@@ -197,7 +164,9 @@ def bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, total_var):
         pickle.dump(features_results, f)
 
 
-def bootstrapping_CI_peak_layer(n_perm, input_type, encoding_dir, total_var):
+def bootstrapping_CI_peak_layer(
+    n_perm: int, input_type: str, encoding_dir: str, weighted: bool
+):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and
     each feature.
@@ -223,18 +192,13 @@ def bootstrapping_CI_peak_layer(n_perm, input_type, encoding_dir, total_var):
         Where encoding results are saved
     input_type : str
         Miniclips or images
-    total_var : int
-        Total variance explained by all PCA components
+    weighted : bool
+        If True, uses weighted regression results.
 
     """
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
     # -------------------------------------------------------------------------
-    # Import modules
-    import numpy as np
-    import os
-    import pickle
-
     layers_names = (
         "layer1.0.relu_1",
         "layer1.1.relu_1",
@@ -246,12 +210,15 @@ def bootstrapping_CI_peak_layer(n_perm, input_type, encoding_dir, total_var):
         "layer4.1.relu_1",
     )
 
-    if input_type == "images":
-        workDir = os.path.join(encoding_dir, "2D_ResNet18/")
-    elif input_type == "miniclips":
-        workDir = os.path.join(encoding_dir, "3D_ResNet18/")
+    if weighted:
+        workDir = os.path.join(encoding_dir, input_type, "weighted")
+        saveDir = os.path.join(workDir, "stats")
+    else:
+        workDir = os.path.join(encoding_dir, input_type, "unweighted")
+        saveDir = os.path.join(workDir, "stats")
 
-    saveDir = os.path.join(workDir, "stats/")
+    if not os.path.exists(saveDir):
+        os.makedirs(saveDir)
 
     feature_names = (
         "edges",
@@ -290,7 +257,7 @@ def bootstrapping_CI_peak_layer(n_perm, input_type, encoding_dir, total_var):
     ### Bootstrapping peak layers ###
     for feature in feature_names:
         regression_features[feature] = encoding_results[feature][
-            "weighted_correlations"
+            "weighted_correlation"
         ]
 
     # features_results = {}
@@ -306,7 +273,7 @@ def bootstrapping_CI_peak_layer(n_perm, input_type, encoding_dir, total_var):
                 perm_l_data = np.random.choice(
                     layer_data, size=(num_comp_layer, 1), replace=True
                 )
-                layer_weighted_sum = np.sum(perm_l_data) / total_var
+                layer_weighted_sum = np.sum(perm_l_data)
                 layer_data_all[l, perm] = (
                     layer_weighted_sum  # correlation average for every layer
                 )
@@ -316,8 +283,8 @@ def bootstrapping_CI_peak_layer(n_perm, input_type, encoding_dir, total_var):
         # ---------------------------------------------------------------------
         # STEP 2.3 Calculate 95%-CI
         # ---------------------------------------------------------------------
-        upper = round(n_perm * 0.975)
-        lower = round(n_perm * 0.025)
+        upper = round(n_perm * 0.975) - 1
+        lower = round(n_perm * 0.025) - 1
 
         # sort and get upper and lower percentiles
         bt_data_peaks.sort()
@@ -344,7 +311,11 @@ def bootstrapping_CI_peak_layer(n_perm, input_type, encoding_dir, total_var):
 
 # -----------------------------------------------------------------------------
 def bootstrapping_stats_diff_btw_features(
-    n_perm, n_layers, input_type, encoding_dir, total_var
+    n_perm: int,
+    n_layers: int,
+    input_type: str,
+    encoding_dir: str,
+    weighted: bool,
 ):
     """
     Bootstrapped 95%-CIs for the timepoint (in ms) of the largest encoding peak
@@ -364,8 +335,6 @@ def bootstrapping_stats_diff_btw_features(
 
     Parameters
     ----------
-    Parameters
-    ----------
     n_perm : int
         Number of permutations for bootstrapping
     n_layers : int
@@ -374,19 +343,13 @@ def bootstrapping_stats_diff_btw_features(
         Where encoding results are saved
     input_type : str
         Miniclips or images
-    total_var : int
-        Total variance explained by all PCA components
+    weighted : bool
+        If True, uses weighted regression results.
     """
 
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
     # -------------------------------------------------------------------------
-    # Import modules
-    import numpy as np
-    import os
-    import pickle
-    import statsmodels
-
     layers_names = (
         "layer1.0.relu_1",
         "layer1.1.relu_1",
@@ -398,12 +361,15 @@ def bootstrapping_stats_diff_btw_features(
         "layer4.1.relu_1",
     )
 
-    if input_type == "images":
-        workDir = os.path.join(encoding_dir, "2D_ResNet18/")
-    elif input_type == "miniclips":
-        workDir = os.path.join(encoding_dir, "3D_ResNet18/")
+    if weighted:
+        workDir = os.path.join(encoding_dir, input_type, "weighted")
+        saveDir = os.path.join(workDir, "stats")
+    else:
+        workDir = os.path.join(encoding_dir, input_type, "unweighted")
+        saveDir = os.path.join(workDir, "stats")
 
-    saveDir = os.path.join(workDir, "stats/")
+    if not os.path.exists(saveDir):
+        os.makedirs(saveDir)
 
     feature_names = (
         "edges",
@@ -430,7 +396,7 @@ def bootstrapping_stats_diff_btw_features(
 
     for feature in feature_names:
         regression_features[feature] = encoding_results[feature][
-            "weighted_correlations"
+            "weighted_correlation"
         ]
         correlation_avg[feature] = encoding_results[feature][
             "correlation_average"
@@ -478,12 +444,8 @@ def bootstrapping_stats_diff_btw_features(
                     perm_peak_data_A = layer_data_A[perm_peak_data_idx]
                     perm_peak_data_B = layer_data_B[perm_peak_data_idx]
 
-                    perm_sum_data_A[l, perm] = (
-                        np.sum(perm_peak_data_A) / total_var
-                    )
-                    perm_sum_data_B[l, perm] = (
-                        np.sum(perm_peak_data_B) / total_var
-                    )
+                    perm_sum_data_A[l, perm] = np.sum(perm_peak_data_A)
+                    perm_sum_data_B[l, perm] = np.sum(perm_peak_data_B)
 
             peak_A_perm = np.argmax(perm_sum_data_A, axis=0)
             peak_B_perm = np.argmax(perm_sum_data_B, axis=0)
@@ -494,8 +456,8 @@ def bootstrapping_stats_diff_btw_features(
             # STEP 2.4 Compute p-Value and CI
             # -----------------------------------------------------------------
             # CI
-            upper = int(np.ceil(n_perm * 0.975))
-            lower = int(np.ceil(n_perm * 0.025))
+            upper = int(np.ceil(n_perm * 0.975)) - 1
+            lower = int(np.ceil(n_perm * 0.025)) - 1
 
             feature_diff_bt_abs = np.abs(feature_diff_bt)
             feature_diff_bt_abs.sort()
@@ -525,7 +487,7 @@ def bootstrapping_stats_diff_btw_features(
     # Benjamini-Hochberg Correction
     p_values_vector = [pairwise_p[key]["p_value"] for key in pairwise_p]
 
-    rejected, p_values_corr = statsmodels.stats.multitest.fdrcorrection(
+    rejected, p_values_corr = fdrcorrection(
         p_values_vector, alpha=0.05, is_sorted=False
     )
 
@@ -542,8 +504,64 @@ def bootstrapping_stats_diff_btw_features(
         pickle.dump(pairwise_p, f)
 
 
-bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, total_var)
-bootstrapping_CI_peak_layer(n_perm, input_type, encoding_dir, total_var)
-bootstrapping_stats_diff_btw_features(
-    n_perm, n_layers, input_type, encoding_dir, total_var
-)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+
+    # add arguments / inputs
+    parser.add_argument(
+        "--config_dir",
+        type=str,
+        help="Directory to the configuration file.",
+        required=True,
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Configuration.",
+        required=True,
+    )
+    parser.add_argument(
+        "-np",
+        "--num_perm",
+        default=10000,
+        type=int,
+        metavar="",
+        help="Number of permutations",
+    )
+    parser.add_argument(
+        "-l",
+        "--num_layers",
+        default=8,
+        type=int,
+        metavar="",
+        help="Number of layers",
+    )
+    parser.add_argument(
+        "-i",
+        "--input_type",
+        default="images",
+        type=str,
+        metavar="",
+        help="images or miniclips",
+    )
+
+    parser.add_argument("--weighted", action="store_true")
+
+    args = parser.parse_args()  # to get values for the arguments
+
+    config = load_config(args.config_dir, args.config)
+    encoding_dir = config.get(args.config, "save_dir_cnn")
+    n_perm = args.num_perm
+    n_layers = args.num_layers
+    input_type = args.input_type
+
+    if args.weighted:
+        weighted = True
+    else:
+        weighted = False
+
+    bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, weighted)
+    bootstrapping_CI_peak_layer(n_perm, input_type, encoding_dir, weighted)
+    bootstrapping_stats_diff_btw_features(
+        n_perm, n_layers, input_type, encoding_dir, weighted
+    )

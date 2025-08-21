@@ -9,80 +9,40 @@ scaler is used. The removal of the mean pattern (cocktail-blank removal) is not
 implemented in the script, see Guggenmos et al. (2018) for discussion.
 
 @author: Alexander Lenders, Agnessa Karapetian
-
-Anaconda Environment on local machine: MNE
 """
-# -----------------------------------------------------------------------------
-# STEP 1: Initialize variables
-# -----------------------------------------------------------------------------
 import argparse
+import os
+import numpy as np
+from sklearn.model_selection import StratifiedKFold
+from sklearn.covariance import LedoitWolf
+from sklearn.pipeline import Pipeline
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn import svm
+import scipy
+from utils import load_eeg
+import sys
+from pathlib import Path
+import pandas as pd
+from tqdm import tqdm
 
-# parser
-parser = argparse.ArgumentParser()
-
-# add arguments / inputs
-parser.add_argument(
-    "-s",
-    "--sub",
-    default=9,
-    type=int,
-    metavar="",
-    help="subject number. images: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],"
-    "videos: [6, 7, 8, 9, 10, 11, 17, 18, 20, 21, 23, 25, 27, 28, 29, 30, 31, 32, 34, 36]",
-)
-parser.add_argument(
-    "--mvnn_dim", default="epochs", type=str, help="time vs. epochs"
-)
-parser.add_argument(
-    "-f",
-    "--freq",
-    default=50,
-    type=int,
-    metavar="",
-    help="downsampling frequency",
-)
-parser.add_argument(
-    "-r",
-    "--region",
-    default="posterior",
-    type=str,
-    metavar="",
-    help="Electrodes to be included, posterior (19) or wholebrain (64)",
-)
-parser.add_argument(
-    "-d",
-    "--workdir",
-    default="scratch",
-    type=str,
-    metavar="",
-    help="Working directory type: scratch, trove, scratch-trove, or OSF-download (based on own setup)",
-)
-parser.add_argument(
-    "-inp",
-    "--input_type",
-    default="images",
-    metavar="",
-    type=str,
-    help="miniclips or images",
-)
-parser.add_argument("--it", default=1, type=int, metavar="", help="Iteration")
-
-args = parser.parse_args()  # to get values for the arguments
-
-sub = args.sub
-freq = args.freq
-mvnn_dim = args.mvnn_dim
-region = args.region
-workDir = args.workdir
-input_type = args.input_type
-it = args.it
+project_root = Path(__file__).resolve().parents[2]
+sys.path.append(str(project_root))
+from EEG.Encoding.utils import load_config
 
 
 # -----------------------------------------------------------------------------
-# STEP 2: Define Decoding Function
+# STEP 1: Define Decoding Function
 # -----------------------------------------------------------------------------
 def decoding_single_subject_func(
-    sub, mvnn_dim, freq, region, workDir, input_type, it
+    sub: int,
+    mvnn_dim: str,
+    freq: int,
+    region: str,
+    eeg_dir: str,
+    save_dir: str,
+    input_type: str,
+    it: int,
+    action_dir: str = None,
 ):
     """
     Preprocessing (MVNN, standardization) is fitted on the training data, as
@@ -121,40 +81,29 @@ def decoding_single_subject_func(
           Downsampling frequency (default is 50)
     region : str
         The region for which the EEG data should be analyzed.
-    workdir : str
-        Type of directory storing the data ('scratch', 'trove', 'scratch-trove' or 'OSF-download')
+    eeg_dir: str
+        Directory to the EEG data.
+    save_dir: str
+        Directory to save the results.
     input_type: str
         Performing analysis on images (default) or miniclips
     it: int
         Iteration (for parallelizing the computations on remote server and setting the random seed)
+    action_dir: str, optional
+        Directory to the action data, which is used to exclude guitar trials from the analysis.
+        If None, no guitar trials are excluded (default is None).
     -------
 
     """
     # -------------------------------------------------------------------------
-    # STEP 2.1 Import Modules, Define Variables, Define Transformer
+    # STEP 1.1 Define Variables, Define Transformer
     # -------------------------------------------------------------------------
-    # -------------------------------------------------------------------------
-    # STEP 2.1.1 Import Modules
-    # -------------------------------------------------------------------------
-    # Modules
-    import os
-    import numpy as np
-    from sklearn.model_selection import StratifiedKFold
-    from sklearn.covariance import LedoitWolf
-    from sklearn.pipeline import Pipeline
-    from sklearn.base import BaseEstimator, TransformerMixin
-    from sklearn import svm
-    import scipy
-
     # Define the number of channels:
     if region == "posterior":
         n_chan = 19
     if region == "wholebrain":
         n_chan = 64
 
-    # -------------------------------------------------------------------------
-    # STEP 2.1.2 Define MVNN Transformer
-    # -------------------------------------------------------------------------
     class MVNN_Transformer(BaseEstimator, TransformerMixin):
         def __init__(
             self, F, n_chan=n_chan, timepoints=freq, mvnn_dim=mvnn_dim
@@ -212,7 +161,7 @@ def decoding_single_subject_func(
             return X
 
     # -------------------------------------------------------------------------
-    # STEP 2.2 Define Variables and Directory
+    # STEP 1.2 Define Variables and Directory
     # -------------------------------------------------------------------------
     # In this version, the decoding analysis is only done on the test data:
     img_type = "test"
@@ -220,123 +169,33 @@ def decoding_single_subject_func(
     # Define random seed (for reproduction):
     rng = np.random.default_rng(it)
 
-    # Define the directory
-    if workDir == "scratch":
-        workDirFull = "/scratch/fu2721af/"
-    elif workDir == "trove":
-        workDirFull = "Z:/Unreal/"
-    elif workDir == "scratch-trove":
-        workDirFull = "/scratch/agnek95/Unreal/"
-    elif workDir == "OSF-download":
-        workDirFull = "~/Downloads/EEG/"  # update based on your own setup
-
-    # load data
-    if workDir == "OSF-download":
-        if input_type == "images":
-            folderDir = os.path.join(workDirFull, "Images/Preprocessed/")
-        elif input_type == "miniclips":
-            folderDir = os.path.join(workDirFull, "Videos/Preprocessed/")
-        fileDir = os.path.join(
-            folderDir,
-            "sub-{}_seq_{}_{}hz_{}.npy".format(sub, img_type, freq, region),
-        )
-
-    else:
-        if input_type == "miniclips":
-            if sub < 10:
-                folderDir = os.path.join(
-                    workDirFull,
-                    "{}_data".format(input_type)
-                    + "/sub-0{}".format(sub)
-                    + "/eeg/preprocessing/ica"
-                    + "/"
-                    + img_type
-                    + "/"
-                    + region
-                    + "/",
-                )
-
-                fileDir = (
-                    ("sub-0{}".format(sub))
-                    + "_seq_"
-                    + img_type
-                    + "_"
-                    + str(freq)
-                    + "hz_"
-                    + region
-                    + ".npy"
-                )
-            else:
-                folderDir = os.path.join(
-                    workDirFull,
-                    "{}_data".format(input_type)
-                    + "/sub-{}".format(sub)
-                    + "/eeg/preprocessing/ica"
-                    + "/"
-                    + img_type
-                    + "/"
-                    + region
-                    + "/",
-                )
-
-                fileDir = (
-                    ("sub-{}".format(sub))
-                    + "_seq_"
-                    + img_type
-                    + "_"
-                    + str(freq)
-                    + "hz_"
-                    + region
-                    + ".npy"
-                )
-
-        elif input_type == "images":
-            if sub < 10:
-                folderDir = os.path.join(
-                    workDirFull,
-                    "{}_data".format(input_type)
-                    + "/prepared"
-                    + "/sub-0{}".format(sub)
-                    + "/{}/{}/{}hz/".format(img_type, region, freq),
-                )
-                fileDir = "{}_img_data_{}hz_sub_00{}.npy".format(
-                    img_type, freq, sub
-                )
-            else:
-                folderDir = os.path.join(
-                    workDirFull,
-                    "{}_data".format(input_type)
-                    + "/prepared"
-                    + "/sub-{}".format(sub)
-                    + "/{}/{}/{}hz/".format(img_type, region, freq),
-                )
-                fileDir = "{}_img_data_{}hz_sub_0{}.npy".format(
-                    img_type, freq, sub
-                )
-
-    total_dir = os.path.join(folderDir, fileDir)
-
-    # number of cross validation iterations
-    # num_iterations = 1 # when less image pairs: 100 recommended (as in Cichy et al. (2014)); here 1 is enough
-
-    # Print directory of the EEG data:
-    print(total_dir)
-
     # Print a summary of the arguments:
     print(
         "\n\n\n>>> Mvnn %s, %dhz, sub %s, brain region: %s <<<"
         % (mvnn_dim, freq, sub, region)
     )
     # -------------------------------------------------------------------------
-    # STEP 2.3 Load the EEG Data + Define Futher Variables
+    # STEP 1.3 Load the EEG Data + Define Futher Variables
     # -------------------------------------------------------------------------
-    data = np.load(total_dir, allow_pickle=True).item()
+    eeg_data, img_cat, time = load_eeg(
+        sub, img_type, region, freq, input_type, eeg_dir
+    )
 
-    eeg_data = data["eeg_data"]
-    img_cat = data["img_cat"]
-    time = data["time"]
+    # if action_dir:
+    #     print(
+    #         "Excluding guitar trials from the analysis (control analysis 9)."
+    #     )
 
-    del data
+    #     action_data = pd.read_csv(action_dir, header=None)
+
+    #     # Action indices
+    #     indices = action_data.index[action_data[1] == 30].tolist()
+
+    #     # Create a set of indices to exclude
+    #     exclude_indices = set(indices)
+
+    #     # Filter out exclude_indices from img_cat
+    #     img_cat = np.array([cat for i, cat in enumerate(img_cat) if i not in exclude_indices])
 
     # Check if there are NA's within the EEG data
     num_nan = np.isnan(eeg_data).sum()
@@ -380,7 +239,7 @@ def decoding_single_subject_func(
         print("Not all stimuli have the same number of presentations")
 
     # -------------------------------------------------------------------------
-    # STEP 2.4 Decoding Analysis
+    # STEP 1.4 Decoding Analysis
     # -------------------------------------------------------------------------
     # Following the proposed preprocessing order in Guggenmos et al. (2018).
     # For each stimulus combination (180*180/2) or in other words pairwise
@@ -398,7 +257,7 @@ def decoding_single_subject_func(
     # count variable
     count_total = 0
 
-    for conA in range(n_conditions):
+    for conA in tqdm(range(n_conditions)):
         num_of_comparisons = conA + 1
 
         # For videos: need to find the idx of the condition A and B stimuli
@@ -436,7 +295,7 @@ def decoding_single_subject_func(
             scores_mean = np.zeros((timepoints), dtype=float)
 
             # -------------------------------------------------------------
-            # STEP 2.4.1 Shuffle the Data
+            # STEP 1.4.1 Shuffle the Data
             # -------------------------------------------------------------
 
             # Shuffle the data for condition A and condition B
@@ -444,9 +303,8 @@ def decoding_single_subject_func(
             ran_eeg_con_B = rng.permutation(eeg_con_B, axis=0)
 
             # -------------------------------------------------------------
-            # STEP 2.4.2 Create Pseudo-Trials
+            # STEP 1.4.2 Create Pseudo-Trials
             # -------------------------------------------------------------
-
             # Condition A
             for p in range(n_pseudo):
                 start = 0 + pseudo_trials[p] - 5
@@ -466,7 +324,7 @@ def decoding_single_subject_func(
                 ) / n_original_trial_pseudo
 
             # -------------------------------------------------------------
-            # STEP 2.4.3 Create Full Dataset and Labels
+            # STEP 1.4.3 Create Full Dataset and Labels
             # -------------------------------------------------------------
             # Concatenate pseudo-trials for condition A and condition B
             full_data = np.concatenate(
@@ -484,7 +342,7 @@ def decoding_single_subject_func(
             full_data_label[n_pseudo:] = 0
 
             # -------------------------------------------------------------
-            # STEP 2.4.4 Create Cross-validation Pipeline Parameter
+            # STEP 1.4.4 Create Cross-validation Pipeline Parameter
             # -------------------------------------------------------------
             # Stratified k-fold CV guarantees that the number of trials
             # for each condition is equal in the test set (see also King et al., 2014)
@@ -495,7 +353,7 @@ def decoding_single_subject_func(
             svm_def = svm.SVC(kernel="linear", C=1, random_state=42)
 
             # -------------------------------------------------------------
-            # STEP 2.4.5 Cross Validation (for each time-point)
+            # STEP 1.4.5 Cross Validation (for each time-point)
             # -------------------------------------------------------------
 
             dummy_data = full_data[0, :, :]
@@ -531,6 +389,8 @@ def decoding_single_subject_func(
                     pipe = Pipeline(estimators)
 
                     # Fit
+                    pipe.fit(X_train_mvnn, y_train)
+
                     data_time_gen = data_tp
                     X_test = data_time_gen[test_index, :]
                     y_test = full_data_label[test_index]
@@ -558,9 +418,8 @@ def decoding_single_subject_func(
             triangle_mean[conA, conB, :] = scores_mean
 
     # -------------------------------------------------------------------------
-    # STEP 2.5 Vectorize Results and Prepare Outputs
+    # STEP 1.5 Vectorize Results and Prepare Outputs
     # -------------------------------------------------------------------------
-
     # Vectorized results (no time generalization)
     triangle_mean_3 = np.zeros((180, 180, timepoints))
     for i in range(n_conditions):
@@ -585,27 +444,13 @@ def decoding_single_subject_func(
     mean_accuracy = final_results_mean.mean(axis=1)
 
     # -------------------------------------------------------------------------
-    # STEP 2.6 Save Results
+    # STEP 1.6 Save Results
     # -------------------------------------------------------------------------
     # Putting the results into a dictionary
     decoding_single_subject = {
         "mean_accuracies_over_conditions": mean_accuracy,
         "final_results_mean": final_results_mean,
     }
-
-    # Save the results
-    if workDir == "scratch":
-        saveDir = "/home/agnek95/Encoding-midlevel-features/Results/Decoding/{}".format(
-            input_type
-        )
-    elif workDir == "trove":
-        saveDir = "Z:/Unreal/Results/Decoding/{}/Redone/".format(input_type)
-    elif workDir == "scratch-trove":
-        saveDir = "/home/agnek95/Encoding-midlevel-features/Results/Decoding/{}/".format(
-            input_type
-        )
-    elif workDir == "OSF-download":
-        saveDir = "~/Downloads/Results/"  # update based on your own setup
 
     if sub < 10:
         fileDir = "decoding_{}_".format(input_type) + "sub-0{}_redone".format(
@@ -616,16 +461,92 @@ def decoding_single_subject_func(
             sub
         )
 
+    save_dir = os.path.join(save_dir, "decoding", input_type)
+
     # Creating the directory if not existing
-    if not os.path.isdir(saveDir):
-        os.makedirs(saveDir)
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
 
-    np.save(os.path.join(saveDir, fileDir), decoding_single_subject)
+    np.save(os.path.join(save_dir, fileDir), decoding_single_subject)
 
 
-# -----------------------------------------------------------------------------
-# STEP 3: Run Decoding Function
-# -----------------------------------------------------------------------------
-decoding_single_subject_func(
-    sub, mvnn_dim, freq, region, workDir, input_type, it
-)
+if __name__ == "__main__":
+    # parser
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--config_dir",
+        type=str,
+        help="Directory to the configuration file.",
+        required=True,
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Configuration.",
+        required=True,
+    )
+    parser.add_argument(
+        "-s",
+        "--sub",
+        default=9,
+        type=int,
+        metavar="",
+        help="subject number. images: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],"
+        "videos: [6, 7, 8, 9, 10, 11, 17, 18, 20, 21, 23, 25, 27, 28, 29, 30, 31, 32, 34, 36]",
+    )
+    parser.add_argument(
+        "--mvnn_dim", default="epochs", type=str, help="time vs. epochs"
+    )
+    parser.add_argument(
+        "-f",
+        "--freq",
+        default=50,
+        type=int,
+        metavar="",
+        help="downsampling frequency",
+    )
+    parser.add_argument(
+        "-r",
+        "--region",
+        default="posterior",
+        type=str,
+        metavar="",
+        help="Electrodes to be included, posterior (19) or wholebrain (64)",
+    )
+    parser.add_argument(
+        "-inp",
+        "--input_type",
+        default="images",
+        metavar="",
+        type=str,
+        help="miniclips or images",
+    )
+    parser.add_argument(
+        "--it", default=1, type=int, metavar="", help="Iteration"
+    )
+    parser.add_argument(
+        "--exclude_guitar_trials",
+        action="store_true",
+        help="Exclude guitar trials from the analysis.",
+    )
+
+    args = parser.parse_args()  # to get values for the arguments
+
+    config = load_config(args.config_dir, args.config)
+    eeg_dir = config.get(args.config, "eeg_dir")
+    save_dir = config.get(args.config, "save_dir")
+
+    sub = args.sub
+    freq = args.freq
+    mvnn_dim = args.mvnn_dim
+    region = args.region
+    input_type = args.input_type
+    it = args.it
+
+    # -----------------------------------------------------------------------------
+    # STEP 3: Run Decoding Function
+    # -----------------------------------------------------------------------------
+    decoding_single_subject_func(
+        sub, mvnn_dim, freq, region, eeg_dir, save_dir, input_type, it
+    )

@@ -12,10 +12,36 @@ different architectures.
 import os
 import numpy as np
 import argparse
+import sys
+from pathlib import Path
+
+project_root = Path(__file__).resolve().parents[2]
+sys.path.append(str(project_root))
+
+from EEG.Encoding.utils import (
+    load_config,
+)
 
 
 def load_features(feature: str, featuresDir: str):
-
+    """
+    Loads preprocessed feature activations from a specified .npy file and returns
+    training, validation, and test splits for a given feature.
+    Input:
+    ----------
+    Loads a pickle file containing a dictionary of features, where each feature key
+    maps to a tuple of (train, validation, test) arrays.
+    Returns:
+    ----------
+    Returns three numpy arrays corresponding to the training, validation, and test
+    splits for the specified feature.
+    Parameters
+    ----------
+    feature : str
+        The key corresponding to the desired feature in the loaded numpy dictionary.
+    featuresDir : str
+        Path to the .pkl file containing the features dictionary.
+    """
     features = np.load(featuresDir, allow_pickle=True)
     X_prep = features[feature]
 
@@ -26,7 +52,7 @@ def load_features(feature: str, featuresDir: str):
     return X_train, X_val, X_test
 
 
-def prepare_layers(layerDir: str, resDir: str):
+def prepare_layers(layerDir: str):
     """
     Prepare the layer activations for the encoding with the DNN.
     The function loads the layer activations from the directory and splits them into
@@ -46,6 +72,9 @@ def prepare_layers(layerDir: str, resDir: str):
         "layer4.1.relu_1",
     )
 
+    resDir = os.path.join(layerDir, "prepared")
+    layerDir = os.path.join(layerDir, "pca", "features_resnet_scenes_avg.pkl")
+
     # -------------------------------------------------------------------------
     # STEP 2 Create Layer Data
     # -------------------------------------------------------------------------
@@ -56,6 +85,9 @@ def prepare_layers(layerDir: str, resDir: str):
         layer_data_train = X_train
         layer_data_test = X_test
         layer_data_val = X_val
+
+        if not os.path.exists(resDir):
+            os.makedirs(resDir)
 
         train_dir = os.path.join(
             resDir, f"{feature}_layer_activations_training.npy"
@@ -81,27 +113,34 @@ if __name__ == "__main__":
 
     # add arguments / inputs
     parser.add_argument(
-        "-d",
-        "--layerdir",
-        default="/scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/extracted/",
+        "--config_dir",
         type=str,
-        metavar="",
-        help="Directory with extracted activations; images: /scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/extracted/"
-        "videos: /scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/extracted/",
+        help="Directory to the configuration file.",
+        required=True,
     )
     parser.add_argument(
-        "-rd",
-        "--resultsdir",
-        default="",
+        "--config",
         type=str,
+        help="Configuration.",
+        required=True,
+    )
+    parser.add_argument(
+        "-inp",
+        "--input_type",
+        default="images",
         metavar="",
-        help="Where to save prepared activations; images: /scratch/agnek95/Unreal/CNN_activations_redone/2D_ResNet18/pca_90_percent/prepared/"
-        "videos: /scratch/agnek95/Unreal/CNN_activations_redone/3D_ResNet18/pca_90_percent/prepared/",
+        type=str,
+        help="miniclips or images",
     )
 
     args = parser.parse_args()  # to get values for the arguments
 
-    layerDir = args.layerdir
-    resDir = args.resultsdir
+    input_type = args.input_type
+    config = load_config(args.config_dir, args.config)
 
-    prepare_layers(layerDir, resDir)
+    if input_type == "images":
+        layer_dir = config.get(args.config, "save_dir_cnn_img")
+    elif input_type == "miniclips":
+        layer_dir = config.get(args.config, "save_dir_cnn_video")
+
+    prepare_layers(layer_dir)

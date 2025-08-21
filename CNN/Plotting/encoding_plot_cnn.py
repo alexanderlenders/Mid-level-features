@@ -1,88 +1,107 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PLOT FOR ENCODING OF DNN LAYERS
+PLOT FOR ENCODING OF DNN LAYERS.
 
 @author: AlexanderLenders, Agnessa Karapetian
 """
 # -----------------------------------------------------------------------------
 # STEP 1: Initialize variables
 # -----------------------------------------------------------------------------
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-
-    # add arguments / inputs
-    parser.add_argument(
-        "-sp",
-        "--save",
-        default=True,
-        type=bool,
-        metavar="",
-        help="Save plots in SaveDir?",
-    )
-    parser.add_argument(
-        "-f", "--font", default="Arial", type=str, metavar="", help="Font"
-    )
-    parser.add_argument(
-        "-i",
-        "--input_type",
-        default="images",
-        type=str,
-        metavar="",
-        help="images, miniclips or difference",
-    )
-
-    args = parser.parse_args()  # to get values for the arguments
-
-    save = args.save
-    font = args.font
-    input_type = args.input_type  # images, miniclips or difference
-
-# -----------------------------------------------------------------------------
-# STEP 2: Import modules & Define Variables
-# -----------------------------------------------------------------------------
-# Import modules
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import os
+import argparse
+import sys
+from pathlib import Path
 
+project_root = Path(__file__).resolve().parents[2]
+sys.path.append(str(project_root))
+
+from EEG.Encoding.utils import (
+    load_config,
+)
+
+parser = argparse.ArgumentParser()
+
+# add arguments / inputs
+parser.add_argument(
+    "--config_dir",
+    type=str,
+    help="Directory to the configuration file.",
+    required=True,
+)
+parser.add_argument(
+    "--config",
+    type=str,
+    help="Configuration.",
+    required=True,
+)
+parser.add_argument(
+    "-f", "--font", default="Arial", type=str, metavar="", help="Font"
+)
+parser.add_argument(
+    "-i",
+    "--input_type",
+    default="images",
+    type=str,
+    metavar="",
+    help="images, miniclips or difference",
+)
+parser.add_argument("--weighted", action="store_true")
+
+args = parser.parse_args()  # to get values for the arguments
+
+config = load_config(args.config_dir, args.config)
+workDir = config.get(args.config, "save_dir_cnn")
+font = args.font
+input_type = args.input_type  # images, miniclips or difference
+weighted = args.weighted
+
+# -----------------------------------------------------------------------------
+# STEP 2: Import modules & Define Variables
+# -----------------------------------------------------------------------------
 plt.rcParams["svg.fonttype"] = "none"
 
-if input_type == "miniclips":
-    workDir = "Z:/Unreal/Results/Encoding/CNN_redone/3D_ResNet18/"
-elif input_type == "images":
-    workDir = "Z:/Unreal/Results/Encoding/CNN_redone/2D_ResNet18/"
-
-elif input_type == "difference":
-    workDir_vid = "Z:/Unreal/Results/Encoding/CNN_redone/3D_ResNet18/"
-    workDir_img = "Z:/Unreal/Results/Encoding/CNN_redone/2D_ResNet18/"
-
-saveDir = "Z:/Unreal/Results/Encoding/plots_redone/"  # for all plots
-
+original_workDir = workDir
 if input_type == "difference":
-    stats_dir = os.path.join(
-        workDir_img, "stats/", "encoding_stats_layers_both_difference.pkl"
-    )
-    ci_dir = os.path.join(
-        workDir_img, "stats/", "encoding_layers_CI95_accuracy_difference.pkl"
-    )
-    peakDir = os.path.join(
-        workDir_img, "stats/", "encoding_difference_in_peak.pkl"
-    )
+    statsDir = os.path.join(workDir, input_type, "stats")
+    saveDir = os.path.join(workDir, input_type, "plots")
 else:
+    statsDir = os.path.join(workDir, input_type, "weighted", "stats")
+    saveDir = os.path.join(workDir, input_type, "weighted", "plots")
+
+if weighted:
+    workDir = os.path.join(workDir, input_type, "weighted")
+else:
+    workDir = os.path.join(workDir, input_type, "unweighted")
+
+if os.path.exists(saveDir) == False:
+    os.makedirs(saveDir)
+
+# Stats #
+if input_type == "images" or input_type == "miniclips":
+    peakDir = os.path.join(
+        statsDir, "encoding_layers_CI95_peak.pkl"
+    )  # CI 95% peaks
+    ci_stats_peak = os.path.join(
+        statsDir, "encoding_layers_stats_peak_latency_diff.pkl"
+    )  # CI 95% peaks
+    ci_dir = os.path.join(
+        statsDir, "encoding_layers_CI95_accuracy.pkl"
+    )  # CI 95% encoding curve
     stats_dir = os.path.join(
-        workDir, "stats/", "encoding_stats_layers_both.pkl"
+        statsDir, "encoding_stats_layers_both.pkl"
+    )  # Permutation tests encoding curve
+elif input_type == "difference":
+    stats_dir = os.path.join(
+        statsDir, "encoding_stats_layers_both_difference.pkl"
     )
     ci_dir = os.path.join(
-        workDir, "stats/", "encoding_layers_CI95_accuracy.pkl"
+        statsDir, "encoding_layers_CI95_accuracy_difference.pkl"
     )
-    peakDir = os.path.join(workDir, "stats/", "encoding_layers_CI95_peak.pkl")
-    ci_stats_peaks = os.path.join(
-        workDir, "stats/", "encoding_layers_stats_peak_latency_diff.pkl"
-    )
+    peakDir = os.path.join(statsDir, "encoding_difference_in_peak.pkl")
 
 feature_names = (
     "edges",
@@ -126,8 +145,32 @@ colors = [colormap(i) for i in range(num_features)]
 # STEP 3: Load results
 # -----------------------------------------------------------------------------
 if input_type == "difference":
-    fileDir_img = os.path.join(workDir_img, "encoding_layers_resnet.pkl")
-    fileDir_vid = os.path.join(workDir_vid, "encoding_layers_resnet.pkl")
+    if weighted:
+        fileDir_img = os.path.join(
+            original_workDir,
+            "images",
+            "weighted",
+            "encoding_layers_resnet.pkl",
+        )
+        fileDir_vid = os.path.join(
+            original_workDir,
+            "miniclips",
+            "weighted",
+            "encoding_layers_resnet.pkl",
+        )
+    else:
+        fileDir_img = os.path.join(
+            original_workDir,
+            "images",
+            "unweighted",
+            "encoding_layers_resnet.pkl",
+        )
+        fileDir_vid = os.path.join(
+            original_workDir,
+            "miniclips",
+            "unweighted",
+            "encoding_layers_resnet.pkl",
+        )
 
     encoding_results_img = np.load(fileDir_img, allow_pickle=True)
     encoding_results_vid = np.load(fileDir_vid, allow_pickle=True)
@@ -143,7 +186,6 @@ for feature in feature_names:
         f_vid = encoding_results_vid[feature]["correlation_average"]
         f_diff = f_img - f_vid
         features_mean.append(f_diff)
-
     else:
         f = encoding_results[feature]["correlation_average"]
         features_mean.append(f)
@@ -201,8 +243,8 @@ for i, feature in enumerate(sorted_features_mean):
 
     # Extract the CI
     low_CI = np.array([ci_feature[key][0] for key in (ci_feature)])
-    low_ins = low_CI - accuracy
-    low_ins = np.absolute(low_ins)
+    # Convert into error bar
+    low_ins = accuracy - low_CI
     high_CI = np.array([ci_feature[key][1] for key in (ci_feature)])
     high_ins = high_CI - accuracy
 
@@ -299,7 +341,7 @@ top = max(upper_ci)
 
 # pairwise significance lines
 if input_type != "difference":
-    with open(ci_stats_peaks, "rb") as file:
+    with open(ci_stats_peak, "rb") as file:
         peak_stats = pickle.load(file)
 
     significant_combinations = []

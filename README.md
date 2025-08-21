@@ -1,10 +1,12 @@
 # Mid-level feature representations 
 
+**If you want to use the updated version of the code, first edit the root dir in `Controls/create_config.py`, then create the `config.ini`file by running `python create_config.py`. If you used the same folder structure as me (see below), you should be able to easily reproduce all main and control analyses without any problems.**
+
 This repository contains code for the paper "Investigating the temporal dynamics and modelling of mid-level feature representations in humans" (Karapetian et al., 2025). 
 
 The data and stimulus set from the paper can be found at [https://osf.io/7c9bz/](https://osf.io/7c9bz/).
 
-For questions about the code or the paper, please email agnessakarapetian@gmail.com. 
+For questions about the code or the paper, please email agnessakarapetian@gmail.com or lxlenders@gmail.com. 
 
 Please cite the paper if you use any of the code or data. 
 
@@ -94,3 +96,69 @@ To calculate the CNN encoding significance statistics, use [encoding_significanc
 To plot the results and stats of the CNN encoding analyses, use [encoding_plot_cnn.py](CNN/Plotting/encoding_plot_cnn.py).
 
 To calculate and plot the correlation between EEG and CNN encoding results, use [eeg_vs_cnn_corr_peak_latencies.py](CNN/Plotting/eeg_vs_cnn_corr_peak_latencies.py).
+
+### 3. Folder structure
+*To use the same folder structure for replication, just copy `/scratch/alexandel91/mid_level_features`into your `/scratch` folder.*
+Created with: tree -L 3  -d /scratch/alexandel91/mid_level_features > ./directory_structure.txt
+```
+├── data
+│   ├── CNN
+│   │   ├── 2dresnet18_pretrained
+│   │   └── 3dresnet18
+│   └── EEG
+│       ├── images
+│       └── miniclips
+├── features
+│   ├── images
+│   │   └── default
+│   └── miniclips
+│       ├── control_1
+│       ├── control_2
+│       └── default
+├── kinetics_400
+│   ├── train
+│   │   ├── annotations
+│   │   ├── files
+│   │   ├── tars
+│   │   └── train
+│   └── val
+│       ├── annotations
+│       ├── files
+│       ├── tars
+│       └── val
+├── results
+│   ├── c4
+│   ├── c5
+│   ├── c7_1
+│   ├── c7_2
+│   ├── c7_3
+│   ├── CNN
+│   │   ├── control_10
+│   │   ├── control_11
+│   │   ├── control_12
+│   │   ├── default
+│   │   └── training
+│   ├── EEG
+│   │   ├── control_1
+│   │   ├── control_12
+│   │   ├── control_2
+│   │   ├── control_3
+│   │   ├── control_6_1
+│   │   ├── control_6_2
+│   │   ├── control_9
+│   │   └── default
+│   └── noise_ceiling
+│       ├── images
+│       └── miniclips
+└── stimuli
+    ├── images
+    │   ├── frame_annotations
+    │   └── frames
+    └── miniclips
+        ├── frame_annotations
+        ├── frames
+        └── mp4
+
+57 directories
+```
+

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-STATISTICS FOR ENCODING ANALYSIS (PERMUTATION TESTS) - DIFFERENCE: STATIC IMAGES - VIDEOS
+STATISTICS FOR ENCODING ANALYSIS (DIFFERENCE)
 
 This script implements the statistical analysis for the encoding analysis, more precisely
 it tests whether the DIFFERENCES between videos and images are significant for each tp.
@@ -10,121 +10,34 @@ alpha-level of .05. The statistical tests are two-sided per default.
 Chance-level of pairwise decoding is 0.5.
 
 @author: Alexander Lenders, Agnessa Karapetian
-
-Anaconda Environment on local machine: mne
-
 """
-# -----------------------------------------------------------------------------
-# STEP 1: Initialize variables
-# -----------------------------------------------------------------------------
+import os
+import numpy as np
+from scipy.stats import rankdata
+from statsmodels.stats.multitest import fdrcorrection
+import pickle
+import sys
+from pathlib import Path
 
-if __name__ == "__main__":
-    import argparse
+project_root = Path(__file__).resolve().parents[2]
+sys.path.append(str(project_root))
 
-    parser = argparse.ArgumentParser()
-
-    # add arguments / inputs
-    parser.add_argument(
-        "-ls_v",
-        "--list_sub_vid",
-        default=0,
-        type=int,
-        metavar="",
-        help="list of subjects for videos (see below)",
-    )
-    parser.add_argument(
-        "-ls_i",
-        "--list_sub_img",
-        default=0,
-        type=int,
-        metavar="",
-        help="list of subjects for images (see below)",
-    )
-    parser.add_argument(
-        "-d",
-        "--workdirvid",
-        default="Z:/Unreal/Results/Encoding/",
-        type=str,
-        metavar="",
-        help="Results of the decoding analysis with videos",
-    )
-    parser.add_argument(
-        "-id",
-        "--workdirimg",
-        default="Z:/Unreal/images_results/encoding/",
-        type=str,
-        metavar="",
-        help="Results of the decoding analysis with images",
-    )
-    parser.add_argument(
-        "-sd",
-        "--savedir",
-        default="Z:/Unreal/images_results/encoding/redone/stats/",
-        type=str,
-        metavar="",
-        help="Where to save results",
-    )
-    parser.add_argument(
-        "-np",
-        "--num_perm",
-        default=10000,
-        type=int,
-        metavar="",
-        help="Number of permutations",
-    )
-    parser.add_argument(
-        "-tp",
-        "--num_tp",
-        default=70,
-        type=int,
-        metavar="",
-        help="Number of timepoints",
-    )
-    parser.add_argument(
-        "-a",
-        "--alpha",
-        default=0.05,
-        type=int,
-        metavar="",
-        help="Signifance level (alpha)",
-    )
-    parser.add_argument(
-        "-t",
-        "--tail",
-        default="both",
-        type=str,
-        metavar="",
-        help="One-sided: right, two-sided: both",
-    )
-
-    args = parser.parse_args()  # to get values for the arguments
-
-    list_sub_vid = args.list_sub_vid
-    list_sub_img = args.list_sub_img
-    workDir_img = args.workdirimg
-    workDir_vid = args.workdirvid
-    saveDir = args.savedir
-    n_perm = args.num_perm
-    timepoints = args.num_tp
-    n_perm = args.num_perm
-    alpha = args.alpha
-    tail = args.tail
-
-# -----------------------------------------------------------------------------
-# STEP 2: Define Permutation Test Function
-# -----------------------------------------------------------------------------
+from EEG.Encoding.utils import (
+    load_config,
+    parse_list,
+)
+import argparse
 
 
 def permutation_test(
-    list_sub_vid,
-    list_sub_img,
-    workDir_vid,
-    workDir_img,
-    saveDir,
-    n_perm,
-    tail,
-    alpha,
-    timepoints,
+    list_sub_vid: list,
+    list_sub_img: list,
+    n_perm: int,
+    tail: str,
+    alpha: float,
+    timepoints: int,
+    workDir: str,
+    feature_names: list,
 ):
     """
     Inputs:
@@ -149,10 +62,10 @@ def permutation_test(
         List with subjects which should be included in the statistical analysis for decoding with videos
     list_sub_img : list
         List with subjects which should be included in the statistical analysis for decoding with images
-    workDir_vid : str
-        Directory with the results of the decoding analysis with videos
-    workDir_img : str
-        Directory with the results of the decoding analysis with static images
+    workDir : str
+        Working directory where the results are saved.
+    feature_names : list
+        List of feature names to be analyzed. This is used to load the results.
     saveDir : str
         Directory where to save the results of the statistical analysis.
     n_perm : int
@@ -167,14 +80,14 @@ def permutation_test(
 
     """
     # -------------------------------------------------------------------------
-    # STEP 2.1 Import Modules & Define Variables
+    # STEP 2.1 Define Variables
     # -------------------------------------------------------------------------
-    # Import modules
-    import os
-    import numpy as np
-    from scipy.stats import rankdata
-    import statsmodels
-    import pickle
+    workDir_img = os.path.join(workDir, "images")
+    workDir_vid = os.path.join(workDir, "miniclips")
+    saveDir = os.path.join(workDir, "difference", "stats")
+
+    if os.path.exists(saveDir) == False:
+        os.makedirs(saveDir)
 
     n_sub_vid = len(list_sub_vid)
     n_sub_img = len(list_sub_img)
@@ -182,38 +95,25 @@ def permutation_test(
     # set random seed (for reproduction)
     np.random.seed(42)
 
+    temp_list = [
+        f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
+        for f in feature_names
+    ]
+    feature_names = temp_list
     # -------------------------------------------------------------------------
     # STEP 2.2 Load results
     # -------------------------------------------------------------------------
-
-    identifierDir = "seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_7features_onehot.pkl"
-    feature_names = (
-        "edges",
-        "world_normal",
-        "lighting",
-        "scene_depth",
-        "reflectance",
-        "skeleton",
-        "action",
-    )
+    identifierDir = f"seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
 
     results_vid = {}
     results_img = {}
     for subject in list_sub_vid:
-        fileDir_vid = (
-            workDir_vid
-            + "redone/7_features/{}_".format(subject)
-            + identifierDir
-        )
+        fileDir_vid = os.path.join(workDir_vid, f"{subject}_{identifierDir}")
         encoding_results_vid = np.load(fileDir_vid, allow_pickle=True)
         results_vid[str(subject)] = encoding_results_vid
 
     for subject in list_sub_img:
-        fileDir_img = (
-            workDir_img
-            + "redone/7_features/{}_".format(subject)
-            + identifierDir
-        )
+        fileDir_img = os.path.join(workDir_img, f"{subject}_{identifierDir}")
         encoding_results_img = np.load(fileDir_img, allow_pickle=True)
         results_img[str(subject)] = encoding_results_img
 
@@ -247,40 +147,33 @@ def permutation_test(
         # create statistical map for all permutation
         stat_map = np.zeros((n_perm, timepoints))
 
+        # stack all data
+        all_results = np.vstack((results_f_vid, results_f_img))
+        labels = np.array(
+            [0] * n_sub_vid + [1] * n_sub_img
+        )  # 0=video, 1=image
+
         # create mean for each timepoint over all participants
         # this is our "original data" and permutation 1 in the stat_map
         mean_orig_vid = np.mean(results_f_vid, axis=0)
         mean_orig_img = np.mean(results_f_img, axis=0)
 
-        t_stat = mean_orig_vid - mean_orig_img
+        t_stat = mean_orig_img - mean_orig_vid
 
         stat_map[0, :] = t_stat
 
         for permutation in range(1, n_perm):
-            # create array with -1 and 1 (randomization)
-            perm_vid = np.expand_dims(
-                np.random.choice([-1, 1], size=(n_sub_vid,), replace=True), 1
-            )
-            perm_img = np.expand_dims(
-                np.random.choice([-1, 1], size=(n_sub_img,), replace=True), 1
-            )
+            # Shuffle the labels
+            shuffled_labels = np.random.permutation(labels)
 
-            # create randomization matrix
-            rand_matrix_vid = np.broadcast_to(
-                perm_vid, (n_sub_vid, timepoints)
-            )
-            rand_matrix_img = np.broadcast_to(
-                perm_img, (n_sub_img, timepoints)
-            )
+            # Assign to new permuted groups
+            group_1 = all_results[shuffled_labels == 0, :]
+            group_2 = all_results[shuffled_labels == 1, :]
 
-            # elementwise multiplication
-            permutation_mat_vid = np.multiply(results_f_vid, rand_matrix_vid)
-            permutation_mat_img = np.multiply(results_f_img, rand_matrix_img)
+            mean_group_1 = np.mean(group_1, axis=0)
+            mean_group_2 = np.mean(group_2, axis=0)
 
-            mean_orig_vid = np.mean(permutation_mat_vid, axis=0)
-            mean_orig_img = np.mean(permutation_mat_img, axis=0)
-
-            t_stat = mean_orig_img - mean_orig_vid
+            t_stat = mean_group_2 - mean_group_1
 
             # calculate mean and put it in stats map
             stat_map[permutation, :] = t_stat
@@ -306,11 +199,7 @@ def permutation_test(
         # -------------------------------------------------------------------------
         # STEP 2.5 Benjamini-Hochberg correction
         # -------------------------------------------------------------------------
-        """
-        Please note, that we assume a positive dependence between the different 
-        statistical tests. 
-        """
-        rejected, p_values_corr = statsmodels.stats.multitest.fdrcorrection(
+        rejected, p_values_corr = fdrcorrection(
             p_values, alpha=alpha, is_sorted=False
         )
 
@@ -325,17 +214,9 @@ def permutation_test(
     # -------------------------------------------------------------------------
 
     # Save the dictionary
-    fileDir = (
-        "encoding_unreal_before_pca_difference_stats_{}_nonstd.pkl".format(
-            tail
-        )
-    )
+    fileDir = "encoding_stats_{}_nonstd.pkl".format(tail)
 
     savefileDir = os.path.join(saveDir, fileDir)
-
-    # Creating the directory if not existing
-    if os.path.isdir(os.path.join(saveDir)) == False:  # if not a directory
-        os.makedirs(os.path.join(saveDir))
 
     with open(savefileDir, "wb") as f:
         pickle.dump(feature_results, f)
@@ -344,39 +225,103 @@ def permutation_test(
 # -----------------------------------------------------------------------------
 # STEP 3: Run function
 # -----------------------------------------------------------------------------
-list_sub_vid = [
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    17,
-    18,
-    20,
-    21,
-    23,
-    25,
-    27,
-    28,
-    29,
-    30,
-    31,
-    32,
-    34,
-    36,
-]
+if __name__ == "__main__":
 
-list_sub_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+    parser = argparse.ArgumentParser()
 
-permutation_test(
-    list_sub_vid,
-    list_sub_img,
-    workDir_vid,
-    workDir_img,
-    saveDir,
-    n_perm,
-    tail,
-    alpha,
-    timepoints,
-)
+    # add arguments / inputs
+    parser.add_argument(
+        "--config_dir",
+        type=str,
+        help="Directory to the configuration file.",
+        required=True,
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Configuration.",
+        required=True,
+    )
+    parser.add_argument(
+        "-np",
+        "--num_perm",
+        default=10000,
+        type=int,
+        metavar="",
+        help="Number of permutations",
+    )
+    parser.add_argument(
+        "-tp",
+        "--num_tp",
+        default=70,
+        type=int,
+        metavar="",
+        help="Number of timepoints",
+    )
+    parser.add_argument(
+        "-a",
+        "--alpha",
+        default=0.05,
+        type=float,
+        metavar="",
+        help="Signifance level (alpha)",
+    )
+    parser.add_argument(
+        "-t",
+        "--tail",
+        default="both",
+        type=str,
+        metavar="",
+        help="One-sided: right, two-sided: both",
+    )
+
+    args = parser.parse_args()  # to get values for the arguments
+
+    config = load_config(args.config_dir, args.config)
+    workDir = config.get(args.config, "save_dir")
+    feature_names = parse_list(config.get(args.config, "feature_names"))
+
+    if args.config == "control_6_1" or args.config == "control_6_2":
+        feature_names = feature_names[:-1]  # remove the full feature set
+
+    n_perm = args.num_perm
+    timepoints = args.num_tp
+    n_perm = args.num_perm
+    alpha = args.alpha
+    tail = args.tail
+
+    list_sub_vid = [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        17,
+        18,
+        20,
+        21,
+        23,
+        25,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        34,
+        36,
+    ]
+
+    list_sub_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+
+    permutation_test(
+        list_sub_vid,
+        list_sub_img,
+        n_perm,
+        tail,
+        alpha,
+        timepoints,
+        workDir,
+        feature_names,
+    )

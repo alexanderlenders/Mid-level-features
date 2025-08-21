@@ -12,53 +12,32 @@ of the encoding peak for each feature.
 
 @author: Alexander Lenders, Agnessa Karapetian
 """
-if __name__ == "__main__":
-    import argparse
+import numpy as np
+from scipy.stats import rankdata
+import os
+import pickle
 
-    parser = argparse.ArgumentParser()
+import sys
+from pathlib import Path
 
-    # add arguments / inputs
-    parser.add_argument(
-        "-ls",
-        "--list_sub",
-        default=[9],
-        type=int,
-        metavar="",
-        help="list of subjects",
-    )
-    parser.add_argument(
-        "-np",
-        "--num_perm",
-        default=10000,
-        type=int,
-        metavar="",
-        help="Number of permutations",
-    )
-    parser.add_argument(
-        "-tp",
-        "--num_tp",
-        default=70,
-        type=int,
-        metavar="",
-        help="Number of timepoints",
-    )
-    parser.add_argument(
-        "-i",
-        "--input_type",
-        default="images",
-        type=str,
-        metavar="",
-        help="Font",
-    )
-    args = parser.parse_args()  # to get values for the arguments
+project_root = Path(__file__).resolve().parents[2]
+sys.path.append(str(project_root))
 
-    list_sub = args.list_sub
-    n_perm = args.num_perm
-    timepoints = args.num_tp
-    input_type = args.input_type
+from EEG.Encoding.utils import (
+    load_config,
+    parse_list,
+)
+import argparse
 
 
-def bootstrapping_CI(list_sub, n_perm, timepoints, input_type):
+def bootstrapping_CI(
+    list_sub: list,
+    n_perm: int,
+    timepoints: int,
+    input_type: str,
+    workDir: str,
+    feature_names: list,
+):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and
     each feature.
@@ -85,36 +64,20 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type):
           Number of timepoints
     input_type : str
         Images or miniclips
+    workDir : str
+        Working directory where the results are saved
+    feature_names : list
+        List of feature names to be processed
     """
     # -------------------------------------------------------------------------
-    # STEP 2.1 Import Modules & Define Variables
+    # STEP 2.1 Define Variables
     # -------------------------------------------------------------------------
-    # Import modules
-    import numpy as np
-    from scipy.stats import rankdata
-    import os
-    import pickle
+    workDir = os.path.join(workDir, f"{input_type}")
+    saveDir = os.path.join(workDir, "stats")
+    if not os.path.exists(saveDir):
+        os.makedirs(saveDir)
 
-    # filenames and directories
-    if input_type == "miniclips":
-        workDir = "Z:/Unreal/Results/Encoding/"
-        saveDir = "Z:/Unreal/Results/Encoding/redone/stats"
-
-    elif input_type == "images":
-        workDir = "Z:/Unreal/images_results/encoding/"
-        saveDir = "Z:/Unreal/images_results/encoding/redone/stats"
-
-    feature_names = (
-        "edges",
-        "world_normal",
-        "scene_depth",
-        "lighting",
-        "reflectance",
-        "skeleton",
-        "action",
-    )
-
-    identifierDir = "seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_7features_onehot.pkl"
+    identifierDir = f"seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
 
     # set some vars
     n_sub = len(list_sub)
@@ -128,9 +91,7 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type):
     # -------------------------------------------------------------------------
     results_unfiltered = {}
     for index, subject in enumerate(list_sub):
-        fileDir = (
-            workDir + "redone/7_features/{}_".format(subject) + identifierDir
-        )
+        fileDir = os.path.join(workDir, f"{subject}_{identifierDir}")
         encoding_results = np.load(fileDir, allow_pickle=True)
         results_unfiltered[str(subject)] = encoding_results
 
@@ -139,7 +100,15 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type):
     results_dict = {}
     ci_dict_all = {}
 
+    # define matrix where to save the values
+    temp_list = [
+        f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
+        for f in feature_names
+    ]
+    feature_names = temp_list
+
     for feature in feature_names:
+
         results = np.zeros((n_sub, timepoints))
         for index, subject in enumerate(list_sub):
             subject_result = results_unfiltered[str(subject)][feature][
@@ -164,13 +133,13 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type):
                     tp_data, size=(n_sub, 1), replace=True
                 )
                 mean_p_tp = np.mean(perm_tp_data, axis=0)
-                bt_data[tp, perm] = mean_p_tp
+                bt_data[tp, perm] = mean_p_tp.item()
 
         # ---------------------------------------------------------------------
         # STEP 2.4 Calculate 95%-CI
         # ---------------------------------------------------------------------
-        upper = int(np.ceil(n_perm * 0.975))
-        lower = int(np.ceil(n_perm * 0.025))
+        upper = int(np.ceil(n_perm * 0.975)) - 1
+        lower = int(np.ceil(n_perm * 0.025)) - 1
 
         ci_dict = {}
 
@@ -190,7 +159,6 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type):
         # -------------------------------------------------------------------------
         # STEP 2.5 Bootstrapping: peak latency
         # -------------------------------------------------------------------------
-
         # Find ground truth peak latency (ms)
         encoding_mean = np.mean(results, axis=0)
         peak = time_ms[np.argmax(encoding_mean)]
@@ -209,8 +177,8 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type):
         # ---------------------------------------------------------------------
         # STEP 2.6 Calculate 95%-CI
         # ---------------------------------------------------------------------
-        upper = round(n_perm * 0.975)
-        lower = round(n_perm * 0.025)
+        upper = int(np.ceil(n_perm * 0.975)) - 1
+        lower = int(np.ceil(n_perm * 0.025)) - 1
 
         ci_dict = {}
 
@@ -230,13 +198,9 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type):
     # -------------------------------------------------------------------------
     # Save the dictionary
 
-    fileDir = "encoding_{}_{}_CI95_accuracy.pkl".format(input_type)
+    fileDir = "encoding_CI95_accuracy.pkl"
 
     savefileDir = os.path.join(saveDir, fileDir)
-
-    # Creating the directory if not existing
-    if os.path.isdir(os.path.join(saveDir)) == False:  # if not a directory
-        os.makedirs(os.path.join(saveDir))
 
     with open(savefileDir, "wb") as f:
         pickle.dump(feature_results, f)
@@ -245,8 +209,7 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type):
     # STEP 2.8 Save CI - peak latency
     # -------------------------------------------------------------------------
     # Save the dictionary
-
-    fileDir = "encoding_{}_{}_CI95_peak.pkl".format(input_type)
+    fileDir = "encoding_CI95_peak.pkl"
 
     savefileDir = os.path.join(saveDir, fileDir)
 
@@ -256,7 +219,6 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type):
     # -------------------------------------------------------------------------
     # STEP 2.9 Bootstrapping - peak latency differences
     # -------------------------------------------------------------------------
-
     pairwise_p = {}
 
     for feature1 in range(len(feature_names)):
@@ -309,8 +271,8 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type):
             # STEP 2.10 Compute p-Value and CI
             # -----------------------------------------------------------------
             # CI
-            upper = int(np.ceil(n_perm * 0.975))
-            lower = int(np.ceil(n_perm * 0.025))
+            upper = int(np.ceil(n_perm * 0.975)) - 1
+            lower = int(np.ceil(n_perm * 0.025)) - 1
 
             peak_data_sorted = bt_data_peaks[np.argsort(bt_data_peaks)]
             lower_CI = peak_data_sorted[lower]
@@ -325,43 +287,96 @@ def bootstrapping_CI(list_sub, n_perm, timepoints, input_type):
     # -------------------------------------------------------------------------
     # Save the dictionary
 
-    fileDir = "encoding_{}_{}_stats_peak_latency_CI_redone.pkl".format(
-        input_type
-    )
+    fileDir = "encoding_stats_peak_latency_CI.pkl"
     savefileDir = os.path.join(saveDir, fileDir)
 
     with open(savefileDir, "wb") as f:
         pickle.dump(pairwise_p, f)
 
 
-# -----------------------------------------------------------------------------
-# STEP 3: Run functions
-# -----------------------------------------------------------------------------
-if input_type == "miniclips":
-    list_sub = [
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        17,
-        18,
-        20,
-        21,
-        23,
-        25,
-        27,
-        28,
-        29,
-        30,
-        31,
-        32,
-        34,
-        36,
-    ]
-elif input_type == "images":
-    list_sub = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser()
 
-bootstrapping_CI(list_sub, n_perm, timepoints, input_type)
+    # add arguments / inputs
+    parser.add_argument(
+        "--config_dir",
+        type=str,
+        help="Directory to the configuration file.",
+        required=True,
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Configuration.",
+        required=True,
+    )
+    parser.add_argument(
+        "-np",
+        "--num_perm",
+        default=10000,
+        type=int,
+        metavar="",
+        help="Number of permutations",
+    )
+    parser.add_argument(
+        "-tp",
+        "--num_tp",
+        default=70,
+        type=int,
+        metavar="",
+        help="Number of timepoints",
+    )
+    parser.add_argument(
+        "-i",
+        "--input_type",
+        default="images",
+        type=str,
+        metavar="",
+        help="Font",
+    )
+    args = parser.parse_args()  # to get values for the arguments
+
+    config = load_config(args.config_dir, args.config)
+    workDir = config.get(args.config, "save_dir")
+    feature_names = parse_list(config.get(args.config, "feature_names"))
+
+    if args.config == "control_6_1" or args.config == "control_6_2":
+        feature_names = feature_names[:-1]  # remove the full feature set
+
+    n_perm = args.num_perm
+    timepoints = args.num_tp
+    input_type = args.input_type
+
+    # -----------------------------------------------------------------------------
+    # STEP 3: Run functions
+    # -----------------------------------------------------------------------------
+    if input_type == "miniclips":
+        list_sub = [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            17,
+            18,
+            20,
+            21,
+            23,
+            25,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            34,
+            36,
+        ]
+    elif input_type == "images":
+        list_sub = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+
+    bootstrapping_CI(
+        list_sub, n_perm, timepoints, input_type, workDir, feature_names
+    )

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-BOOTSTRAPPING ENCODING
+BOOTSTRAPPING ENCODING (DIFFERENCE)
 
 This script calculates Bootstrap 95%-CIs for the encoding accuracy for each
 timepoint (in ms) and each feature. These can be used for the encoding plot as
@@ -12,54 +12,32 @@ of the largest encoding peak for each feature.
 
 @author: Alexander Lenders, Agnessa Karapetian
 """
-if __name__ == "__main__":
-    import argparse
+import numpy as np
+from scipy.stats import rankdata
+import os
+import pickle
+from statsmodels.stats.multitest import fdrcorrection
+import sys
+from pathlib import Path
 
-    parser = argparse.ArgumentParser()
+project_root = Path(__file__).resolve().parents[2]
+sys.path.append(str(project_root))
 
-    # add arguments / inputs
-    parser.add_argument(
-        "-ls_v",
-        "--list_sub_vid",
-        default=[6],
-        type=int,
-        metavar="",
-        help="list of subjects for videos (see below)",
-    )
-    parser.add_argument(
-        "-ls_i",
-        "--list_sub_img",
-        default=[9],
-        type=int,
-        metavar="",
-        help="list of subjects for images (see below)",
-    )
-    parser.add_argument(
-        "-np",
-        "--num_perm",
-        default=10000,
-        type=int,
-        metavar="",
-        help="Number of permutations",
-    )
-    parser.add_argument(
-        "-tp",
-        "--num_tp",
-        default=70,
-        type=int,
-        metavar="",
-        help="Number of timepoints",
-    )
-
-    args = parser.parse_args()  # to get values for the arguments
-
-    list_sub_vid = args.list_sub_vid
-    list_sub_img = args.list_sub_img
-    n_perm = args.num_perm
-    timepoints = args.num_tp
+from EEG.Encoding.utils import (
+    load_config,
+    parse_list,
+)
+import argparse
 
 
-def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
+def bootstrapping_CI(
+    list_sub_vid: list,
+    list_sub_img: list,
+    n_perm: int,
+    timepoints: int,
+    workDir: str,
+    feature_names: list,
+):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and
     each feature.
@@ -78,8 +56,14 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
 
     Parameters
     ----------
-    list_sub : list
-          List of subjects for which encoding results exist
+    list_sub_vid : list
+          List of subjects for videos
+    list_sub_img : list
+          List of subjects for images
+    workDir : str
+          Working directory where the results are saved
+    feature_names : list
+          List of feature names to be analyzed
     n_perm : int
           Number of permutations for bootstrapping
     timepoints : int
@@ -88,30 +72,16 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
         Images or miniclips
     """
     # -------------------------------------------------------------------------
-    # STEP 2.1 Import Modules & Define Variables
+    # STEP 2.1 Define Variables
     # -------------------------------------------------------------------------
-    # Import modules
-    import numpy as np
-    from scipy.stats import rankdata
-    import os
-    import pickle
-    import statsmodels
+    workDir_img = os.path.join(workDir, "images")
+    workDir_vid = os.path.join(workDir, "miniclips")
+    saveDir = os.path.join(workDir, "difference", "stats")
 
-    workDir_img = "Z:/Unreal/images_results/encoding/"
-    workDir_vid = "Z:/Unreal/Results/Encoding/"
-    saveDir = "Z:/Unreal/images_results/encoding/redone/stats"
+    if os.path.exists(saveDir) == False:
+        os.makedirs(saveDir)
 
-    feature_names = (
-        "edges",
-        "world_normal",
-        "scene_depth",
-        "lighting",
-        "reflectance",
-        "skeleton",
-        "action",
-    )
-
-    identifierDir = "seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_7features_onehot.pkl"
+    identifierDir = f"seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_{len(feature_names)}_features_onehot.pkl"
 
     # set some vars
     n_sub_vid = len(list_sub_vid)
@@ -121,30 +91,26 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
     # set random seed (for reproduction)
     np.random.seed(42)
 
+    temp_list = [
+        f"{', '.join(f)}" if isinstance(f, (tuple, list)) else str(f)
+        for f in feature_names
+    ]
+    feature_names = temp_list
+
     # -------------------------------------------------------------------------
     # STEP 2.2 Load results
     # -------------------------------------------------------------------------
     results_vid = {}
     results_img = {}
     for subject in list_sub_vid:
-        fileDir_vid = (
-            workDir_vid
-            + "redone/7_features/{}_".format(subject)
-            + identifierDir
-        )
+        fileDir_vid = os.path.join(workDir_vid, f"{subject}_{identifierDir}")
         encoding_results_vid = np.load(fileDir_vid, allow_pickle=True)
         results_vid[str(subject)] = encoding_results_vid
 
     for subject in list_sub_img:
-        fileDir_img = (
-            workDir_img
-            + "redone/7_features/{}_".format(subject)
-            + identifierDir
-        )
+        fileDir_img = os.path.join(workDir_img, f"{subject}_{identifierDir}")
         encoding_results_img = np.load(fileDir_img, allow_pickle=True)
         results_img[str(subject)] = encoding_results_img
-
-    # Loop over all features
 
     feature_results = {}
 
@@ -202,13 +168,13 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
                 )
                 mean_p_tp_vid = np.mean(perm_tp_data_vid, axis=0)
                 mean_p_tp_img = np.mean(perm_tp_data_img, axis=0)
-                bt_data[tp, perm] = mean_p_tp_img - mean_p_tp_vid
+                bt_data[tp, perm] = mean_p_tp_img.item() - mean_p_tp_vid.item()
 
         # ---------------------------------------------------------------------
         # STEP 2.4 Calculate 95%-CI
         # ---------------------------------------------------------------------
-        upper = int(np.ceil(n_perm * 0.975))
-        lower = int(np.ceil(n_perm * 0.025))
+        upper = int(np.ceil(n_perm * 0.975)) - 1
+        lower = int(np.ceil(n_perm * 0.025)) - 1
 
         ci_dict = {}
 
@@ -228,7 +194,6 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
         # -------------------------------------------------------------------------
         # STEP 2.5 Bootstrapping: peak latency -> 1) PEAK OF DIFFERENCE CURVE 2) DIFFERENCE IN PEAK LATENCIES (SIG/NON-SIG)
         # -------------------------------------------------------------------------
-
         # Find ground truth peak latency (ms) of the difference curve
         peak_true = time_ms[np.argmax(results_diff_avg)]
 
@@ -272,8 +237,8 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
         # ---------------------------------------------------------------------
         # STEP 2.6 Calculate 95%-CI
         # ---------------------------------------------------------------------
-        upper = round(n_perm * 0.975)
-        lower = round(n_perm * 0.025)
+        upper = round(n_perm * 0.975) - 1
+        lower = round(n_perm * 0.025) - 1
 
         # 1) peak of the difference curve
         ci_dict = {}
@@ -308,7 +273,7 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
     # -------------------------------------------------------------------------
     # Save the dictionary
 
-    fileDir = "encoding_difference_CI95_accuracy.pkl"
+    fileDir = "encoding_CI95_accuracy.pkl"
 
     savefileDir = os.path.join(saveDir, fileDir)
 
@@ -320,7 +285,7 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
     # -------------------------------------------------------------------------
     # Save the dictionary
 
-    fileDir = "encoding_difference_CI95_peak.pkl"
+    fileDir = "encoding_CI95_peak.pkl"
 
     savefileDir = os.path.join(saveDir, fileDir)
 
@@ -443,8 +408,8 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
             # STEP 2.11 Compute p-Value and CI
             # -----------------------------------------------------------------
             # CI
-            upper = int(np.ceil(n_perm * 0.975))
-            lower = int(np.ceil(n_perm * 0.025))
+            upper = int(np.ceil(n_perm * 0.975)) - 1
+            lower = int(np.ceil(n_perm * 0.025)) - 1
 
             peak_data = bt_data_peaks
             ranks = rankdata(peak_data)
@@ -474,7 +439,7 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
     # Benjamini-Hochberg Correction
     p_values_vector = [pairwise_p[key]["p_value"] for key in pairwise_p]
 
-    _, p_values_corr = statsmodels.stats.multitest.fdrcorrection(
+    _, p_values_corr = fdrcorrection(
         p_values_vector, alpha=0.05, is_sorted=False
     )
 
@@ -490,29 +455,76 @@ def bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints):
 # -----------------------------------------------------------------------------
 # STEP 3: Run functions
 # -----------------------------------------------------------------------------
-list_sub_vid = [
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    17,
-    18,
-    20,
-    21,
-    23,
-    25,
-    27,
-    28,
-    29,
-    30,
-    31,
-    32,
-    34,
-    36,
-]
-list_sub_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser()
 
-bootstrapping_CI(list_sub_vid, list_sub_img, n_perm, timepoints)
+    # add arguments / inputs
+    parser.add_argument(
+        "--config_dir",
+        type=str,
+        help="Directory to the configuration file.",
+        required=True,
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Configuration.",
+        required=True,
+    )
+    parser.add_argument(
+        "-np",
+        "--num_perm",
+        default=10000,
+        type=int,
+        metavar="",
+        help="Number of permutations",
+    )
+    parser.add_argument(
+        "-tp",
+        "--num_tp",
+        default=70,
+        type=int,
+        metavar="",
+        help="Number of timepoints",
+    )
+
+    args = parser.parse_args()  # to get values for the arguments
+
+    config = load_config(args.config_dir, args.config)
+    workDir = config.get(args.config, "save_dir")
+    feature_names = parse_list(config.get(args.config, "feature_names"))
+
+    if args.config == "control_6_1" or args.config == "control_6_2":
+        feature_names = feature_names[:-1]  # remove the full feature set
+
+    n_perm = args.num_perm
+    timepoints = args.num_tp
+
+    list_sub_vid = [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        17,
+        18,
+        20,
+        21,
+        23,
+        25,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        34,
+        36,
+    ]
+    list_sub_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+
+    bootstrapping_CI(
+        list_sub_vid, list_sub_img, n_perm, timepoints, workDir, feature_names
+    )

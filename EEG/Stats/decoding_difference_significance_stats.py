@@ -12,116 +12,35 @@ Chance-level of pairwise decoding is 0.5.
 @author: Alexander Lenders, Agnessa Karapetian
 
 """
-# -----------------------------------------------------------------------------
-# STEP 1: Initialize variables
-# -----------------------------------------------------------------------------
+import argparse
+import os
+import numpy as np
+from scipy.stats import rankdata
+import pickle
+from statsmodels.stats.multitest import fdrcorrection
+import sys
+from pathlib import Path
+import argparse
 
-if __name__ == "__main__":
-    import argparse
+project_root = Path(__file__).resolve().parents[2]
+sys.path.append(str(project_root))
 
-    parser = argparse.ArgumentParser()
+from EEG.Encoding.utils import load_config
 
-    # add arguments / inputs
-    parser.add_argument(
-        "-ls_v",
-        "--list_sub_vid",
-        default=[6],
-        type=int,
-        metavar="",
-        help="list of subjects for videos (see below)",
-    )
-    parser.add_argument(
-        "-ls_i",
-        "--list_sub_img",
-        default=[9],
-        type=int,
-        metavar="",
-        help="list of subjects for images (see below)",
-    )
-    parser.add_argument(
-        "-d",
-        "--workdirvid",
-        default="Z:/Unreal/Results/Decoding/miniclips/Redone",
-        type=str,
-        metavar="",
-        help="Results of the decoding analysis with videos",
-    )
-    parser.add_argument(
-        "-id",
-        "--workdirimg",
-        default="Z:/Unreal/Results/Decoding/images/Redone",
-        type=str,
-        metavar="",
-        help="Results of the decoding analysis with images",
-    )
-    parser.add_argument(
-        "-sd",
-        "--savedir",
-        default="Z:/Unreal/Results/Decoding/miniclips/Redone/stats",
-        type=str,
-        metavar="",
-        help="Where to save results",
-    )
-    parser.add_argument(
-        "-np",
-        "--num_perm",
-        default=10000,
-        type=int,
-        metavar="",
-        help="Number of permutations",
-    )
-    parser.add_argument(
-        "-tp",
-        "--num_tp",
-        default=70,
-        type=int,
-        metavar="",
-        help="Number of timepoints",
-    )
-    parser.add_argument(
-        "-a",
-        "--alpha",
-        default=0.05,
-        type=int,
-        metavar="",
-        help="Significance level (alpha)",
-    )
-    parser.add_argument(
-        "-t",
-        "--tail",
-        default="both",
-        type=str,
-        metavar="",
-        help="One-sided: right, two-sided: both",
-    )
-
-    args = parser.parse_args()  # to get values for the arguments
-
-    list_sub_vid = args.list_sub_vid
-    list_sub_img = args.list_sub_img
-    workDir_img = args.workdirimg
-    workDir_vid = args.workdirvid
-    saveDir = args.savedir
-    timepoints = args.num_tp
-    n_perm = args.num_perm
-    alpha = args.alpha
-    tail = args.tail
 
 # -----------------------------------------------------------------------------
 # STEP 2: Define Permutation Test Function
 # -----------------------------------------------------------------------------
-
-
 def permutation_test(
-    list_sub_vid,
-    list_sub_img,
-    workDir_vid,
-    workDir_img,
-    saveDir,
-    n_perm,
-    tail,
-    alpha,
-    timepoints,
+    list_sub_vid: list[int],
+    list_sub_img: list[int],
+    workDir_vid: str,
+    workDir_img: str,
+    saveDir: str,
+    n_perm: int,
+    tail: str,
+    alpha: float,
+    timepoints: int,
 ):
     """
     Inputs:
@@ -166,13 +85,6 @@ def permutation_test(
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
     # -------------------------------------------------------------------------
-    # Import modules
-    import os
-    import numpy as np
-    from scipy.stats import rankdata
-    import statsmodels
-    import pickle
-
     n_sub_vid = len(list_sub_vid)
     n_sub_img = len(list_sub_img)
 
@@ -235,31 +147,22 @@ def permutation_test(
     mean_orig_vid = np.mean(decoding_mat_vid, axis=0)
     mean_orig_img = np.mean(decoding_mat_img, axis=0)
 
-    mean_diff = mean_orig_vid - mean_orig_img
+    mean_diff = mean_orig_img - mean_orig_vid
 
     stat_map[0, :] = mean_diff
 
+    all_results = np.vstack((decoding_mat_vid, decoding_mat_img))
+    labels = np.array([0] * n_sub_vid + [1] * n_sub_img)
+
     for permutation in range(1, n_perm):
-        # create array with -1 and 1 (randomization)
-        perm_vid = np.expand_dims(
-            np.random.choice([-1, 1], size=(n_sub_vid,), replace=True), 1
-        )
-        perm_img = np.expand_dims(
-            np.random.choice([-1, 1], size=(n_sub_img,), replace=True), 1
-        )
+        shuffled_labels = np.random.permutation(labels)
 
-        # create randomization matrix
-        rand_matrix_vid = np.broadcast_to(perm_vid, (n_sub_vid, timepoints))
-        rand_matrix_img = np.broadcast_to(perm_img, (n_sub_img, timepoints))
+        # Assign to new permuted groups
+        group_1 = all_results[shuffled_labels == 0, :]
+        group_2 = all_results[shuffled_labels == 1, :]
 
-        # elementwise multiplication
-        permutation_mat_vid = np.multiply(decoding_mat_vid, rand_matrix_vid)
-        permutation_mat_img = np.multiply(decoding_mat_img, rand_matrix_img)
-
-        mean_orig_vid = np.mean(permutation_mat_vid, axis=0)
-        mean_orig_img = np.mean(permutation_mat_img, axis=0)
-        std_orig_vid = np.std(permutation_mat_vid, axis=0)
-        std_orig_img = np.std(permutation_mat_img, axis=0)
+        mean_group_1 = np.mean(group_1, axis=0)
+        mean_group_2 = np.mean(group_2, axis=0)
 
         mean_diff = mean_orig_img - mean_orig_vid
 
@@ -287,11 +190,7 @@ def permutation_test(
     # -------------------------------------------------------------------------
     # STEP 2.5 Benjamini-Hochberg correction
     # -------------------------------------------------------------------------
-    """
-    Please note, that we assume a positive dependence between the different 
-    statistical tests. 
-    """
-    rejected, p_values_corr = statsmodels.stats.multitest.fdrcorrection(
+    rejected, p_values_corr = fdrcorrection(
         p_values, alpha=alpha, is_sorted=False
     )
 
@@ -316,41 +215,99 @@ def permutation_test(
         pickle.dump(stats_results, f)
 
 
-# -----------------------------------------------------------------------------
-# STEP 3: Run function
-# -----------------------------------------------------------------------------
-list_sub_vid = [
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    17,
-    18,
-    20,
-    21,
-    23,
-    25,
-    27,
-    28,
-    29,
-    30,
-    31,
-    32,
-    34,
-    36,
-]
-list_sub_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
 
-permutation_test(
-    list_sub_vid,
-    list_sub_img,
-    workDir_vid,
-    workDir_img,
-    saveDir,
-    n_perm,
-    tail,
-    alpha,
-    timepoints,
-)
+    parser.add_argument(
+        "--config_dir",
+        type=str,
+        help="Directory to the configuration file.",
+        required=True,
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Configuration.",
+        required=True,
+    )
+    parser.add_argument(
+        "-np",
+        "--num_perm",
+        default=10000,
+        type=int,
+        metavar="",
+        help="Number of permutations",
+    )
+    parser.add_argument(
+        "-tp",
+        "--num_tp",
+        default=70,
+        type=int,
+        metavar="",
+        help="Number of timepoints",
+    )
+    parser.add_argument(
+        "-a",
+        "--alpha",
+        default=0.05,
+        type=float,
+        metavar="",
+        help="Significance level (alpha)",
+    )
+    parser.add_argument(
+        "-t",
+        "--tail",
+        default="both",
+        type=str,
+        metavar="",
+        help="One-sided: right, two-sided: both",
+    )
+
+    args = parser.parse_args()  # to get values for the arguments
+
+    config = load_config(args.config_dir, args.config)
+    workDir = config.get(args.config, "save_dir")
+    timepoints = args.num_tp
+    n_perm = args.num_perm
+    alpha = args.alpha
+    tail = args.tail
+
+    list_sub_vid = [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        17,
+        18,
+        20,
+        21,
+        23,
+        25,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        34,
+        36,
+    ]
+    list_sub_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+
+    workDir_vid = os.path.join(workDir, "decoding", "miniclips")
+    workDir_img = os.path.join(workDir, "decoding", "images")
+    saveDir = os.path.join(workDir, "decoding", "difference", "stats")
+
+    permutation_test(
+        list_sub_vid,
+        list_sub_img,
+        workDir_vid,
+        workDir_img,
+        saveDir,
+        n_perm,
+        tail,
+        alpha,
+        timepoints,
+    )

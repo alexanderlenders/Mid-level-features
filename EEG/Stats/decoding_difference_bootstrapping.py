@@ -9,89 +9,28 @@ plot as they are more informative than (empirical) standard errors, i.e. point e
 
 @author: Alexander Lenders, Agnessa Karapetian
 """
-if __name__ == "__main__":
-    import argparse
+import numpy as np
+import os
+import pickle
+import sys
+from pathlib import Path
+import argparse
 
-    parser = argparse.ArgumentParser()
+project_root = Path(__file__).resolve().parents[2]
+sys.path.append(str(project_root))
 
-    # add arguments / inputs
-    parser.add_argument(
-        "-ls_v",
-        "--list_sub_vid",
-        default=[6],
-        type=int,
-        metavar="",
-        help="list of subjects: videos",
-    )
-    parser.add_argument(
-        "-ls_i",
-        "--list_sub_img",
-        default=[9],
-        type=int,
-        metavar="",
-        help="list of subjects: images",
-    )
-    parser.add_argument(
-        "-d",
-        "--workdirvid",
-        default="Z:/Unreal/Results/Decoding/miniclips/Redone",
-        type=str,
-        metavar="",
-        help="Results of the decoding analysis with videos",
-    )
-    parser.add_argument(
-        "-id",
-        "--workdirimg",
-        default="Z:/Unreal/Results/Decoding/images/Redone",
-        type=str,
-        metavar="",
-        help="Results of the decoding analysis with images",
-    )
-    parser.add_argument(
-        "-sd",
-        "--savedir",
-        default="Z:/Unreal/Results/Decoding/miniclips/Redone/stats",
-        type=str,
-        metavar="",
-        help="Where to save CIs",
-    )
-    parser.add_argument(
-        "-np",
-        "--num_perm",
-        default=10000,
-        type=int,
-        metavar="",
-        help="Number of permutations",
-    )
-    parser.add_argument(
-        "-tp",
-        "--num_tp",
-        default=70,
-        type=int,
-        metavar="",
-        help="Number of timepoints",
-    )
-
-    args = parser.parse_args()  # to get values for the arguments
-
-    list_sub_vid = args.list_sub_vid
-    list_sub_img = args.list_sub_img
-    workDir_img = args.workdirimg
-    workDir_vid = args.workdirvid
-    saveDir = args.savedir
-    n_perm = args.num_perm
-    timepoints = args.num_tp
+from EEG.Encoding.utils import load_config
 
 
 # -----------------------------------------------------------------------------------------------------------------
 def bootstrapping_CI(
-    list_sub_vid,
-    list_sub_img,
-    workDir_vid,
-    workDir_img,
-    saveDir,
-    n_perm,
-    timepoints,
+    list_sub_vid: list,
+    list_sub_img: list,
+    workDir_vid: str,
+    workDir_img: str,
+    saveDir: str,
+    n_perm: int,
+    timepoints: int,
 ):
     """
     Bootstrapped 95%-CIs for the decoding accuracy for each timepoint.
@@ -124,11 +63,6 @@ def bootstrapping_CI(
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
     # -------------------------------------------------------------------------
-    # Import modules
-    import numpy as np
-    import os
-    import pickle
-
     # Number of subjects
     n_sub_vid = len(list_sub_vid)
     n_sub_img = len(list_sub_img)
@@ -207,7 +141,7 @@ def bootstrapping_CI(
             mean_p_tp_img = np.mean(perm_tp_data_img, axis=0)
             mean_p_tp_vid = np.mean(perm_tp_data_vid, axis=0)
 
-            bt_data[tp, perm] = mean_p_tp_img - mean_p_tp_vid
+            bt_data[tp, perm] = mean_p_tp_img.item() - mean_p_tp_vid.item()
 
     # peaks
     for perm in range(n_perm):
@@ -231,8 +165,8 @@ def bootstrapping_CI(
     # -------------------------------------------------------------------------
     # STEP 2.6 Calculate 95%-CI
     # -------------------------------------------------------------------------
-    upper = int(n_perm * 0.975)
-    lower = int(n_perm * 0.025)
+    upper = int(np.ceil(n_perm * 0.975)) - 1
+    lower = int(np.ceil(n_perm * 0.025)) - 1
 
     ci_dict = {}
 
@@ -281,36 +215,81 @@ def bootstrapping_CI(
 # -----------------------------------------------------------------------------
 # STEP 3: Run function
 # -----------------------------------------------------------------------------
-list_sub_vid = [
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    17,
-    18,
-    20,
-    21,
-    23,
-    25,
-    27,
-    28,
-    29,
-    30,
-    31,
-    32,
-    34,
-    36,
-]
-list_sub_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
 
-bootstrapping_CI(
-    list_sub_vid,
-    list_sub_img,
-    workDir_vid,
-    workDir_img,
-    saveDir,
-    n_perm,
-    timepoints,
-)
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--config_dir",
+        type=str,
+        help="Directory to the configuration file.",
+        required=True,
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Configuration.",
+        required=True,
+    )
+    parser.add_argument(
+        "-np",
+        "--num_perm",
+        default=10000,
+        type=int,
+        metavar="",
+        help="Number of permutations",
+    )
+    parser.add_argument(
+        "-tp",
+        "--num_tp",
+        default=70,
+        type=int,
+        metavar="",
+        help="Number of timepoints",
+    )
+
+    args = parser.parse_args()  # to get values for the arguments
+
+    config = load_config(args.config_dir, args.config)
+    workDir = config.get(args.config, "save_dir")
+    n_perm = args.num_perm
+    timepoints = args.num_tp
+
+    list_sub_vid = [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        17,
+        18,
+        20,
+        21,
+        23,
+        25,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        34,
+        36,
+    ]
+    list_sub_img = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+
+    workDir_vid = os.path.join(workDir, "decoding", "miniclips")
+    workDir_img = os.path.join(workDir, "decoding", "images")
+    saveDir = os.path.join(workDir, "decoding", "difference", "stats")
+
+    bootstrapping_CI(
+        list_sub_vid,
+        list_sub_img,
+        workDir_vid,
+        workDir_img,
+        saveDir,
+        n_perm,
+        timepoints,
+    )

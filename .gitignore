@@ -2,6 +2,11 @@
 __pycache__/
 *.py[cod]
 *$py.class
+slurm*.out
+*.tar
+*.txt
+*.png
+*.ipynb
 
 # C extensions
 *.so
@@ -25,6 +30,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+start_notebook.sh
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
