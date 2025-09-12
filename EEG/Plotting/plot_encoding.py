@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import pickle
 import os
 import sys
+import pdb
 from pathlib import Path
 
 project_root = Path(__file__).resolve().parents[2]
@@ -33,13 +34,13 @@ parser.add_argument(
     "--config_dir",
     type=str,
     help="Directory to the configuration file.",
-    required=True,
+    required=True
 )
 parser.add_argument(
     "--config",
     type=str,
     help="Configuration.",
-    required=True,
+    required=True
 )
 parser.add_argument(
     "-f", "--font", default="Arial", type=str, metavar="", help="Font"
@@ -50,25 +51,37 @@ parser.add_argument(
     default="images",
     type=str,
     metavar="",
-    help="images, miniclips or difference",
+    help="images, miniclips or difference"
 )
 parser.add_argument(
     "--legend",
     action="store_true",
-    help="Show legend in plots",
+    help="Show legend in plots"
+)
+
+parser.add_argument(
+    '-un', 
+    "--upper_noise_ceiling",
+    default = False,
+    type = bool, 
+    metavar='',
+    help="plot upper noise ceiling or not"
 )
 
 args = parser.parse_args()  # to get values for the arguments
 
 config = load_config(args.config_dir, args.config)
+
 workDir = config.get(args.config, "save_dir")
 noise_ceiling_dir = config.get(args.config, "noise_ceiling_dir")
 feature_names = parse_list(config.get(args.config, "feature_names"))
 plot_legend = args.legend
+upper_noise_ceiling = args.upper_noise_ceiling
 
 feature_names_graph = parse_list(
     config.get(args.config, "feature_names_graph")
 )
+
 font = args.font
 input_type = args.input_type
 
@@ -340,10 +353,12 @@ x_tick_labels_curves = [
 ]
 
 # plot noise ceilings
-if input_type != "difference":
-    ax[0].fill_between(
-        timepoints, avg_lower_ceil, avg_upper_ceil, color="grey", alpha=0.3
-    )
+if upper_noise_ceiling:
+    if input_type != 'difference':
+        ax[0].fill_between(timepoints, avg_lower_ceil, avg_upper_ceil, color='grey', alpha=0.3) 
+else:
+    if input_type != 'difference':
+        ax[0].plot(timepoints,avg_lower_ceil,color='grey', linestyle='--', alpha=0.3)
 
 ### Load CIs and stats ###
 with open(peakDir, "rb") as file:
@@ -453,22 +468,21 @@ for i, feature in enumerate(sorted_features_mean):
 ax[0].set_xlabel("Time (ms)", fontdict={"family": font, "size": 11})
 ax[0].set_ylabel("Pearson's r", fontdict={"family": font, "size": 11})
 
-# yticks and labels
-if input_type == "miniclips" or input_type == "images":
-    ax[0].set_yticks(
-        ticks=[-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
-        labels=[-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
-        fontsize=9,
-        fontname=font,
-    )
-elif input_type == "difference":
-    ax[0].set_yticks(
-        ticks=[-0.15, -0.1, -0.05, 0, 0.05, 0.1, 0.15],
-        labels=[-0.15, -0.1, -0.05, 0, 0.05, 0.1, 0.15],
-        fontsize=9,
-        fontname=font,
-    )
-
+#yticks and labels
+if input_type == 'miniclips' or input_type == 'images':
+    if upper_noise_ceiling:
+        ax[0].set_yticks(ticks=[-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+                        labels = [-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8], 
+                        fontsize=9, fontname=font)
+    else:
+        ax[0].set_yticks(ticks=[-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4],
+                labels = [-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4], 
+                fontsize=9, fontname=font)
+elif input_type == 'difference':
+    ax[0].set_yticks(ticks=[-0.15, -0.1, -0.05, 0, 0.05, 0.1, 0.15],
+                     labels = [-0.15, -0.1, -0.05, 0, 0.05, 0.1, 0.15],
+                     fontsize=9, fontname=font) 
+    
 ax[0].set_xticks(
     ticks=x_tick_values_curves,
     labels=x_tick_labels_curves,
@@ -606,7 +620,7 @@ plt.tight_layout()
 if plot_legend:
     legend_font_props = {"family": font, "size": 9}
     ax[0].legend(
-        prop=legend_font_props, frameon=False, bbox_to_anchor=[0.6, 0.82]
+        prop=legend_font_props, frameon=False, bbox_to_anchor=[0.7,0.6]
     )
 
 ax[0].tick_params(axis="both", direction="inout")
@@ -615,13 +629,29 @@ ax[0].tick_params(axis="both", direction="inout")
 # STEP 6: Saving the plot
 # -----------------------------------------------------------------------------
 plt.show()
-plotDir = os.path.join(
-    saveDir,
-    f"plot_encoding_{len(feature_names)}_features_{input_type}_nonstd.svg",
-)
-plt.savefig(plotDir, dpi=300, format="svg", transparent=True)
-plotDir = os.path.join(
-    saveDir,
-    f"plot_encoding_full_{len(feature_names)}_features_{input_type}_nonstd.png",
-)
-plt.savefig(plotDir, dpi=300, format="png", transparent=True)
+if upper_noise_ceiling:
+    plotDir = os.path.join(
+        saveDir,
+        f"plot_encoding_{len(feature_names)}_features_{input_type}_nonstd_bothnc.svg",
+    )
+    plt.savefig(plotDir, dpi=300, format="svg", transparent=True)
+
+    plotDir = os.path.join(
+        saveDir,
+        f"plot_encoding_full_{len(feature_names)}_features_{input_type}_nonstd_bothnc.png",
+    )
+    plt.savefig(plotDir, dpi=300, format="png", transparent=True)
+
+else:
+    plotDir = os.path.join(
+        saveDir,
+        f"plot_encoding_{len(feature_names)}_features_{input_type}_nonstd_nouppernc.svg",
+    )
+    plt.savefig(plotDir, dpi=300, format="svg", transparent=True)
+
+    plotDir = os.path.join(
+        saveDir,
+        f"plot_encoding_full_{len(feature_names)}_features_{input_type}_nonstd_nouppernc.png",
+    )
+    plt.savefig(plotDir, dpi=300, format="png", transparent=True)
+
