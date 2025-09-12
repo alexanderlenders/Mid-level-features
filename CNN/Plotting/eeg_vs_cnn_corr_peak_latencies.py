@@ -21,6 +21,7 @@ if __name__ == "__main__":
     import os
     from scipy import stats
     from scipy.stats import rankdata
+    import itertools
 
     plt.rcParams["svg.fonttype"] = "none"
     np.random.seed(40)
@@ -96,27 +97,27 @@ if __name__ == "__main__":
     ]
 
     # Paths
-    statsDir_eeg_img = "Z:/Unreal/images_results/encoding/redone/stats/"
-    statsDir_eeg_mc = "Z:/Unreal/Results/Encoding/redone/stats/"
+    statsDir_eeg_img = "/scratch/alexandel91/mid_level_features/results/EEG/default/images/stats/"
+    statsDir_eeg_mc = "/scratch/alexandel91/mid_level_features/results/EEG/default/miniclips/stats/"
     statsDir_dnn_img = (
-        "Z:/Unreal/Results/Encoding/CNN_redone/2D_ResNet18/stats/"
+        "/scratch/alexandel91/mid_level_features/results/CNN/default/images/weighted/stats/"
     )
     statsDir_dnn_mc = (
-        "Z:/Unreal/Results/Encoding/CNN_redone/3D_ResNet18/stats/"
+        "/scratch/alexandel91/mid_level_features/results/CNN/default/miniclips/weighted/stats/"
     )
-    saveDir = "Z:/Unreal/Results/Encoding/plots_redone/"
+    saveDir = "/home/agnek95/"
 
     # Feature and filenames
     identifierDir = "seq_50hz_posterior_encoding_results_averaged_frame_before_mvnn_7features_onehot.pkl"
 
     # Filepaths for peak latencies
     # 1. EEG
-    peaks_filename_eeg_img = "encoding_unreal_before_pca_images_CI95_peak.pkl"
+    peaks_filename_eeg_img = "encoding_CI95_peak.pkl"
     peaks_filepath_eeg_img = os.path.join(
         statsDir_eeg_img, peaks_filename_eeg_img
     )
     peaks_filename_eeg_mc = (
-        "encoding_unreal_before_pca_miniclips_CI95_peak.pkl"
+        "encoding_CI95_peak.pkl"
     )
     peaks_filepath_eeg_mc = os.path.join(
         statsDir_eeg_mc, peaks_filename_eeg_mc
@@ -170,8 +171,8 @@ if __name__ == "__main__":
     peak_latencies_dnn_mc_midlevel = peak_latencies_dnn_mc[1:-1]
 
     # Load correlations for every unit
-    workDir_img_dnn = "Z:/Unreal/Results/Encoding/CNN_redone/2D_ResNet18/"
-    workDir_vid_dnn = "Z:/Unreal/Results/Encoding/CNN_redone/3D_ResNet18/"
+    workDir_img_dnn = "/scratch/alexandel91/mid_level_features/results/CNN/default/images/weighted/"
+    workDir_vid_dnn = "/scratch/alexandel91/mid_level_features/results/CNN/default/miniclips/weighted/"
 
     fileDir_img_dnn = os.path.join(
         workDir_img_dnn, "encoding_layers_resnet.pkl"
@@ -226,6 +227,51 @@ if __name__ == "__main__":
     ] = corr_res_mc_midlevel.pvalue
 
     # Stats
+    # method 1: permute the DNN latencies (across features), correlate with true EEG latencies
+
+    # compute correlations for all permutations of y
+    #IMGS
+    perms_img = itertools.permutations(peak_latencies_dnn_img)
+    perm_corrs_img = []
+    for perm in perms_img:
+        r, _ = stats.spearmanr(peak_latencies_eeg_img, np.array(perm))
+        perm_corrs_img.append(r)
+
+    perm_corrs_img = np.array(perm_corrs_img)
+
+    # p-value (two-sided)
+    p_value_img = np.mean(np.abs(perm_corrs_img) >= abs(correlation_results["images"]["Spearmans r"]))
+
+    print(f"Observed correlation: {correlation_results['images']['Spearmans r']:.4f}")
+    print(f"Permutation p-value: {p_value_img:.4f}")
+
+    #VIDS
+    perms_mc = itertools.permutations(peak_latencies_dnn_mc)
+    perm_corrs_mc = []
+    for perm in perms_mc:
+        r, _ = stats.spearmanr(peak_latencies_eeg_mc, np.array(perm))
+        perm_corrs_mc.append(r)
+
+    perm_corrs_mc = np.array(perm_corrs_mc)
+
+    # p-value (two-sided)
+    p_value_mc = np.mean(np.abs(perm_corrs_mc) >= abs(correlation_results["miniclips"]["Spearmans r"]))
+
+    print(f"Observed correlation: {correlation_results['miniclips']['Spearmans r']:.4f}")
+    print(f"Permutation p-value: {p_value_mc:.4f}")
+    
+    #save
+    correlation_results["images"]["pvalue_calculated_shuffled"] = p_value_img
+    correlation_results["miniclips"]["pvalue_calculated_shuffled"] = p_value_mc
+
+    correlation_results["images"]["significance_calculated_shuffled"] = (
+    p_value_img < 0.05
+    )
+
+    correlation_results["miniclips"]["significance_calculated_shuffled"] = (
+    p_value_mc < 0.05
+    )
+
     # method 2: permute the DNN unit-correlations, calculate perm DNN peak
     # latencies and correlate with true EEG peak latencies
     feat_peak_og_img_dnn = {}
@@ -247,10 +293,10 @@ if __name__ == "__main__":
 
         for l, layer in enumerate(layers_names):
             corr_img_dnn[layer] = encoding_results_img_dnn[feature][
-                "weighted_correlations"
+                "weighted_correlation"
             ][layer]
             corr_vid_dnn[layer] = encoding_results_vid_dnn[feature][
-                "weighted_correlations"
+                "weighted_correlation"
             ][layer]
 
             num_comp_layer_img_dnn[layer] = corr_img_dnn[layer].shape[0]
@@ -357,25 +403,44 @@ if __name__ == "__main__":
             peak_latencies_eeg_vid_true,
         )[0]
 
+    # remove any nans (there might be a few because the chance of getting the same peak layers for all features is non zero)
+    stat_map_img_final = stat_map_img[
+        ~np.isnan(stat_map_img)
+    ]
+    stat_map_vid_final = stat_map_vid[
+        ~np.isnan(stat_map_vid)
+    ]
+
     # get ranks
-    ranks_img = np.apply_along_axis(rankdata, 0, stat_map_img)
-    ranks_vid = np.apply_along_axis(rankdata, 0, stat_map_vid)
+    ranks_img = np.apply_along_axis(rankdata, 0, stat_map_img_final)
+    ranks_vid = np.apply_along_axis(rankdata, 0, stat_map_vid_final)
+
 
     # 3. calculate p-values
-    sub_matrix = np.full((n_perm,), (n_perm + 1))
-    p_map_img = (sub_matrix - ranks_img) / n_perm
+    new_num_perm_img = stat_map_img_final.shape[0]
+    sub_matrix_img = np.full((new_num_perm_img), (new_num_perm_img + 1))
+    p_map_img = (
+        sub_matrix_img - ranks_img
+    ) / new_num_perm_img
     p_value_img = p_map_img[0]
-    correlation_results["images"]["pvalue_calculated"] = p_value_img
+    correlation_results["images"][
+        "pvalue_calculated"
+    ] = p_value_img
     correlation_results["images"]["significance_calculated"] = (
         p_value_img < 0.05
     )
 
-    p_map_vid = (sub_matrix - ranks_vid) / n_perm
+    new_num_perm_vid = stat_map_vid_final.shape[0]
+    sub_matrix_vid = np.full((new_num_perm_vid), (new_num_perm_vid + 1))
+    p_map_vid = (sub_matrix_vid - ranks_vid) / n_perm
     p_value_vid = p_map_vid[0]
-    correlation_results["miniclips"]["pvalue_calculated"] = p_value_vid
+    correlation_results["miniclips"][
+        "pvalue_calculated"
+    ] = p_value_vid
     correlation_results["miniclips"]["significance_calculated"] = (
         p_value_vid < 0.05
     )
+
 
     # stats for MIDLEVEL features
     feat_peak_og_img_dnn_midlevel = {}
@@ -397,10 +462,10 @@ if __name__ == "__main__":
 
         for l, layer in enumerate(layers_names):
             corr_img_dnn_midlevel[layer] = encoding_results_img_dnn[feature][
-                "weighted_correlations"
+                "weighted_correlation"
             ][layer]
             corr_vid_dnn_midlevel[layer] = encoding_results_vid_dnn[feature][
-                "weighted_correlations"
+                "weighted_correlation"
             ][layer]
 
             num_comp_layer_img_dnn_midlevel[layer] = corr_img_dnn_midlevel[
@@ -571,11 +636,14 @@ if __name__ == "__main__":
     correlation_results_midlevel["miniclips"]["significance_calculated"] = (
         p_value_vid_midlevel < 0.05
     )
+    print(f'Corr results midlevel (images): {correlation_results_midlevel["images"]["Spearmans r"]} (pvalue: {correlation_results_midlevel["images"]["pvalue_calculated"]}) ')
+    print(f'Corr results midlevel (miniclips): {correlation_results_midlevel["miniclips"]["Spearmans r"]} (pvalue: {correlation_results_midlevel["miniclips"]["pvalue_calculated"]}) ')
 
     # save
+
     with open(
         os.path.join(
-            saveDir, "results_corr_eeg_dnn_images_miniclips_method2.pkl"
+            saveDir, "results_corr_eeg_dnn_images_miniclips_method2_redone.pkl"
         ),
         "wb",
     ) as f:
@@ -583,7 +651,7 @@ if __name__ == "__main__":
 
     with open(
         os.path.join(
-            saveDir, "results_corr_eeg_dnn_images_miniclips_midlevel.pkl"
+            saveDir, "results_corr_eeg_dnn_images_miniclips_midlevel_redone.pkl"
         ),
         "wb",
     ) as f:
@@ -657,33 +725,33 @@ if __name__ == "__main__":
     # Add correlation
     for e, i in enumerate(["images", "miniclips"]):
         corr_r = correlation_results[i]["Spearmans r"]
-        corr_p = correlation_results[i]["pvalue_calculated"]
-        if correlation_results[i]["significance_calculated"] == True:
+        corr_p = correlation_results[i]["pvalue_calculated_shuffled"]
+        if correlation_results[i]["significance_calculated_shuffled"] == True:
             ax[e].text(
                 180,
                 0.25,
-                f"Spearman's $p$ = {np.round(corr_r,2)}* (p = {corr_p})",
+                f"Spearman's $r_s$ = {np.round(corr_r,2)}* (p = {np.round(corr_p,2)})",
                 font="Arial",
-                fontsize=14,
+                fontsize=12,
             )
         else:
             ax[e].text(
                 180,
                 0.25,
-                f"Spearman's $p$ = {np.round(corr_r,2)} (p = {corr_p})",
+                f"Spearman's $r_s$ = {np.round(corr_r,2)} (p = {np.round(corr_p,2)})",
                 font="Arial",
-                fontsize=14,
+                fontsize=12,
             )
 
     # Save plot as png and svg
     plt.tight_layout
     plt.subplots_adjust(hspace=0.7)
     plotDir = os.path.join(
-        saveDir, "plot_eeg_vs_dnn_images_miniclips_noregression.svg"
+        saveDir, "plot_eeg_vs_dnn_images_miniclips_noregression_redone.svg"
     )
     plt.savefig(plotDir, dpi=300, format="svg", transparent=True)
 
     plotDir = os.path.join(
-        saveDir, "plot_eeg_vs_dnn_images_miniclips_noregression.png"
+        saveDir, "plot_eeg_vs_dnn_images_miniclips_noregression_redone.png"
     )
     plt.savefig(plotDir, dpi=300, format="png", transparent=True)
