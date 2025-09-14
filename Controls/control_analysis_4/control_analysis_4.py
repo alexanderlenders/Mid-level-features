@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 import sys
 from pathlib import Path
 import argparse
+from scipy.stats import rankdata
+from statsmodels.stats.multitest import fdrcorrection
 
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
@@ -97,6 +99,35 @@ def c4(
     # Average across electrodes
     corr = np.mean(corr, axis=1)
 
+    # Fourth step: Assess statistical significance using permutation testing
+    # Here, we shuffle the video data across trials and recompute the correlation
+    n_permutations = 1000
+    timepoints = full_eeg_data_img.shape[2]
+    stat_map = np.zeros((n_permutations+1, timepoints))
+    stat_map[0, :] = corr  # original correlation as first row
+
+    for i in range(1, n_permutations+1):
+        idx = np.random.permutation(full_eeg_data_vid.shape[0])
+        y_vid_permuted = full_eeg_data_vid[idx, :, :]
+        for tp in range(timepoints):
+            y_img = full_eeg_data_img[:, :, tp]
+            y_vid_perm = y_vid_permuted[:, :, tp]
+
+            stat_map[i, tp] = np.mean(
+                vectorized_correlation(y_img, y_vid_perm)
+            )
+    
+    abs_values = np.abs(stat_map)
+    ranks = np.apply_along_axis(rankdata, 0, abs_values)
+
+    # Calculate p-values
+    sub_matrix = np.full(stat_map.shape, n_permutations + 1)
+    p_map = (sub_matrix - ranks) / n_permutations
+    p_values = p_map[0, :]  # p-values for the observed correlations
+
+    # FDR correction
+    rejected, p_values_corr = fdrcorrection(p_values, alpha=0.05, is_sorted=False)
+    
     # Fifth step: Plot correlation across timepoints
     # To have consistent plots, we remove the first 10 timepoints (as in encoding results)
     corr = corr[10:]
@@ -132,6 +163,17 @@ def c4(
         corr,
         color="black",
         linewidth=2,
+    )
+
+    plot_significance = np.full(timepoints, np.nan)
+    plot_significance[rejected[10:]] = -0.05  # mark significant timepoints
+    ax.plot(
+        timepoints,
+        plot_significance,
+        "*",
+        color="red",
+        markersize=12,
+        markeredgewidth=2,
     )
 
     ax.set_xlabel("Time (ms)", fontdict={"family": font, "size": 11})
