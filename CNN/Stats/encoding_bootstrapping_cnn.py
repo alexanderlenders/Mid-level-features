@@ -32,6 +32,7 @@ def bootstrapping_CI(
     input_type: str,
     encoding_dir: str,
     weighted: bool,
+    cnn_dir: str
 ):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and
@@ -62,6 +63,8 @@ def bootstrapping_CI(
         Miniclips or images
     weighted : bool
         If True, uses weighted regression results.
+    cnn_dir: str 
+        Directory where the explained variance per PC is stored.
     """
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
@@ -96,6 +99,8 @@ def bootstrapping_CI(
         "skeleton",
     )
 
+    explained_var_dir = os.path.join(cnn_dir, "pca")
+
     # set random seed (for reproduction)
     np.random.seed(42)
 
@@ -110,7 +115,7 @@ def bootstrapping_CI(
 
     for feature in feature_names:
         regression_features[feature] = encoding_results[feature][
-            "weighted_correlation"
+            "correlation"
         ]
 
     features_results = {}
@@ -126,12 +131,28 @@ def bootstrapping_CI(
         for l, layer in enumerate(layers_names):
             layer_data = results[layer]
             num_comp_layer = layer_data.shape[0]
+            
+            # Load explained variance per PC
+            explained_var_dir_layer = os.path.join(
+                explained_var_dir, layer, "explained_variance.pkl"
+            )
+
+            with open(explained_var_dir_layer, "rb") as file:
+                explained_var = pickle.load(file)
+            
+            explained_var = np.array(explained_var["explained_variance"])
+
             for perm in range(n_perm):
-                perm_l_data = np.random.choice(
-                    layer_data, size=(num_comp_layer, 1), replace=True
-                )
-                layer_weighted_sum = np.sum(perm_l_data)
-                bt_data[l, perm] = layer_weighted_sum
+                idx = np.random.choice(num_comp_layer, size=num_comp_layer, replace=True)
+
+                # Resample correlations and weights (explained variance) together
+                sampled_corrs = layer_data[idx]
+                sampled_weights = explained_var[idx]
+
+                # Compute weighted mean for this bootstrap
+                weighted_sum = np.sum(sampled_corrs * sampled_weights) / np.sum(sampled_weights)
+
+                bt_data[l, perm] = weighted_sum
 
         # ---------------------------------------------------------------------
         # STEP 2.4 Calculate 95%-CI
@@ -165,7 +186,7 @@ def bootstrapping_CI(
 
 
 def bootstrapping_CI_peak_layer(
-    n_perm: int, input_type: str, encoding_dir: str, weighted: bool
+    n_perm: int, input_type: str, encoding_dir: str, weighted: bool, cnn_dir: str
 ):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and
@@ -194,6 +215,8 @@ def bootstrapping_CI_peak_layer(
         Miniclips or images
     weighted : bool
         If True, uses weighted regression results.
+    cnn_dir: str
+        Directory where the explained variance per PC is stored.
 
     """
     # -------------------------------------------------------------------------
@@ -230,6 +253,8 @@ def bootstrapping_CI_peak_layer(
         "skeleton",
     )
 
+    explained_var_dir = os.path.join(cnn_dir, "pca")
+
     # set random seed (for reproduction)
     np.random.seed(42)
 
@@ -257,7 +282,7 @@ def bootstrapping_CI_peak_layer(
     ### Bootstrapping peak layers ###
     for feature in feature_names:
         regression_features[feature] = encoding_results[feature][
-            "weighted_correlation"
+            "correlation"
         ]
 
     # features_results = {}
@@ -267,16 +292,30 @@ def bootstrapping_CI_peak_layer(
         # bt_data_cis = np.zeros((n_perm))
         layer_data_all = np.zeros((n_layers, n_perm))
         for l, layer in enumerate(layers_names):
+            
+            # Load explained variance per PC
+            explained_var_dir_layer = os.path.join(
+                explained_var_dir, layer, "explained_variance.pkl"
+            )
+
+            with open(explained_var_dir_layer, "rb") as f:
+                explained_var_data = pickle.load(f)
+            
+            explained_var = np.array(explained_var_data["explained_variance"])
+
             layer_data = results[layer]
             num_comp_layer = layer_data.shape[0]
             for perm in range(n_perm):
-                perm_l_data = np.random.choice(
-                    layer_data, size=(num_comp_layer, 1), replace=True
-                )
-                layer_weighted_sum = np.sum(perm_l_data)
-                layer_data_all[l, perm] = (
-                    layer_weighted_sum  # correlation average for every layer
-                )
+                idx = np.random.choice(num_comp_layer, size=num_comp_layer, replace=True)
+
+                # Resample correlations and weights (explained variance) together
+                sampled_corrs = layer_data[idx]
+                sampled_weights = explained_var[idx]
+
+                # Compute weighted mean for this bootstrap
+                weighted_sum = np.sum(sampled_corrs * sampled_weights) / np.sum(sampled_weights)
+
+                layer_data_all[l, perm] = weighted_sum
 
         bt_data_peaks = np.argmax(layer_data_all, axis=0)
 
@@ -316,6 +355,7 @@ def bootstrapping_stats_diff_btw_features(
     input_type: str,
     encoding_dir: str,
     weighted: bool,
+    cnn_dir: str,
 ):
     """
     Bootstrapped 95%-CIs for the timepoint (in ms) of the largest encoding peak
@@ -345,6 +385,8 @@ def bootstrapping_stats_diff_btw_features(
         Miniclips or images
     weighted : bool
         If True, uses weighted regression results.
+    cnn_dir: str
+        Directory where the explained variance per PC is stored.
     """
 
     # -------------------------------------------------------------------------
@@ -381,6 +423,8 @@ def bootstrapping_stats_diff_btw_features(
         "skeleton",
     )
 
+    explained_var_dir = os.path.join(cnn_dir, "pca")
+
     # set random seed (for reproduction)
     np.random.seed(42)
 
@@ -396,7 +440,7 @@ def bootstrapping_stats_diff_btw_features(
 
     for feature in feature_names:
         regression_features[feature] = encoding_results[feature][
-            "weighted_correlation"
+            "correlation"
         ]
         correlation_avg[feature] = encoding_results[feature][
             "correlation_average"
@@ -434,18 +478,30 @@ def bootstrapping_stats_diff_btw_features(
             for l, layer in enumerate(layers_names):
                 layer_data_A = regression_features[feature_A][layer]
                 layer_data_B = regression_features[feature_B][layer]
+
+                # Load explained variance per PC
+                explained_var_dir_layer = os.path.join(
+                    explained_var_dir, layer, "explained_variance.pkl"
+                )
+
+                with open(explained_var_dir_layer, "rb") as f:
+                    explained_var = pickle.load(f)
+                
+                explained_var = np.array(explained_var["explained_variance"])
+
                 num_comp = layer_data_A.shape[0]
 
                 for perm in range(n_perm):
-                    perm_peak_data_idx = np.random.choice(
-                        layer_data_A.shape[0], size=(num_comp, 1), replace=True
-                    )
+                    idx = np.random.choice(num_comp, size=num_comp, replace=True)
 
-                    perm_peak_data_A = layer_data_A[perm_peak_data_idx]
-                    perm_peak_data_B = layer_data_B[perm_peak_data_idx]
+                    # Resample correlations and weights (explained variance) together
+                    sampled_corrs_A = layer_data_A[idx]
+                    sampled_corrs_B = layer_data_B[idx]
+                    sampled_weights = explained_var[idx]
 
-                    perm_sum_data_A[l, perm] = np.sum(perm_peak_data_A)
-                    perm_sum_data_B[l, perm] = np.sum(perm_peak_data_B)
+                    # Compute weighted mean for this bootstrap
+                    perm_sum_data_A = np.sum(sampled_corrs_A * sampled_weights) / np.sum(sampled_weights)
+                    perm_sum_data_B = np.sum(sampled_corrs_B * sampled_weights) / np.sum(sampled_weights)
 
             peak_A_perm = np.argmax(perm_sum_data_A, axis=0)
             peak_B_perm = np.argmax(perm_sum_data_B, axis=0)
@@ -555,13 +611,18 @@ if __name__ == "__main__":
     n_layers = args.num_layers
     input_type = args.input_type
 
+    if input_type == "images":
+        cnn_dir = config.get(args.config, "save_dir_cnn_img")
+    else:
+        cnn_dir = config.get(args.config, "save_dir_cnn_video")
+
     if args.weighted:
         weighted = True
     else:
         weighted = False
 
-    bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, weighted)
-    bootstrapping_CI_peak_layer(n_perm, input_type, encoding_dir, weighted)
+    bootstrapping_CI(n_perm, n_layers, input_type, encoding_dir, weighted,  cnn_dir)
+    bootstrapping_CI_peak_layer(n_perm, input_type, encoding_dir, weighted, cnn_dir)
     bootstrapping_stats_diff_btw_features(
-        n_perm, n_layers, input_type, encoding_dir, weighted
+        n_perm, n_layers, input_type, encoding_dir, weighted, cnn_dir
     )
