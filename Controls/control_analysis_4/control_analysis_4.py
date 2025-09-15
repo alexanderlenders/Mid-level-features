@@ -165,23 +165,22 @@ def c4(
         linewidth=2,
     )
 
-    plot_significance = np.full(timepoints, np.nan)
+    plot_significance = np.full(len(timepoints), np.nan)
     plot_significance[rejected[10:]] = -0.05  # mark significant timepoints
     ax.plot(
         timepoints,
         plot_significance,
         "*",
         color="red",
-        markersize=12,
-        markeredgewidth=2,
+        markersize=4,
     )
 
     ax.set_xlabel("Time (ms)", fontdict={"family": font, "size": 11})
     ax.set_ylabel("Pearson's r", fontdict={"family": font, "size": 11})
 
     ax.set_yticks(
-        ticks=[-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
-        labels=[-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+        ticks=[-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
+        labels=[-0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
         fontsize=9,
         fontname=font,
     )
