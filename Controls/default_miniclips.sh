@@ -33,11 +33,11 @@ conda activate encoding
 #     --config default \
 #     --input_type "miniclips"
 
-# Sixth step: Stats
-python ../EEG/Stats/encoding_significance_stats.py \
-    --config_dir ./config.ini \
-    --config default \
-    --input_type "miniclips"
+# # Sixth step: Stats
+# python ../EEG/Stats/encoding_significance_stats.py \
+#     --config_dir ./config.ini \
+#     --config default \
+#     --input_type "miniclips"
 
 # Seventh step: Plotting 
 python ../EEG/Plotting/plot_encoding.py \

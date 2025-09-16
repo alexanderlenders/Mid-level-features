@@ -26,11 +26,11 @@ export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
 #     --config control_9 \
 #     --input_type "images"
 
-# Sixth step: Stats
-python ../../EEG/Stats/encoding_significance_stats.py \
-    --config_dir ../config.ini \
-    --config control_9 \
-    --input_type "images"
+# # Sixth step: Stats
+# python ../../EEG/Stats/encoding_significance_stats.py \
+#     --config_dir ../config.ini \
+#     --config control_9 \
+#     --input_type "images"
 
 # Seventh step: Plotting 
 python ../../EEG/Plotting/plot_encoding.py \

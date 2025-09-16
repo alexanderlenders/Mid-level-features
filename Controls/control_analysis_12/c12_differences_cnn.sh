@@ -6,17 +6,17 @@ conda activate encoding
 
 export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
 
-# First step: Bootstrapping
-python ../../CNN/Stats/encoding_difference_bootstrapping_cnn.py \
-    --config_dir ../config.ini \
-    --config control_12 \
-    --weighted
+# # First step: Bootstrapping
+# python ../../CNN/Stats/encoding_difference_bootstrapping_cnn.py \
+#     --config_dir ../config.ini \
+#     --config control_12 \
+#     --weighted
         
-# Second step: Stats
-python ../../CNN/Stats/encoding_difference_significance_stats_cnn.py \
-    --config_dir ../config.ini \
-    --config control_12 \
-    --weighted
+# # Second step: Stats
+# python ../../CNN/Stats/encoding_difference_significance_stats_cnn.py \
+#     --config_dir ../config.ini \
+#     --config control_12 \
+#     --weighted
 
 echo "Plotting results..."
 python ../../CNN/Plotting/encoding_plot_cnn.py \

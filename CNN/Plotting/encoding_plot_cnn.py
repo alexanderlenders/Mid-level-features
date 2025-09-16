@@ -248,7 +248,7 @@ for i, feature in enumerate(sorted_features_mean):
     high_CI = np.array([ci_feature[key][1] for key in (ci_feature)])
     high_ins = high_CI - accuracy
 
-    # Plot the accuracy curve for the current featureolors
+    # Plot the accuracy curve for the current feature
     ax[0].plot(
         layers,
         accuracy,

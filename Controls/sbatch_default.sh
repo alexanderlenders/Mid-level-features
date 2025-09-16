@@ -15,6 +15,6 @@ cd ./
 source /home/alexandel91/.bashrc
 conda activate encoding
 
-./default_miniclips_cnn.sh > default_miniclips_cnn.txt 2>&1
+./default_differences_cnn.sh > default_differences_cnn.txt 2>&1
 
 
