@@ -15,4 +15,4 @@ cd ./
 source /home/alexandel91/.bashrc
 conda activate encoding
 
-./c12_differences_cnn.sh > c12_differences_cnn.txt 2>&1
+./c12_images_cnn.sh > c12_images_cnn.txt 2>&1
