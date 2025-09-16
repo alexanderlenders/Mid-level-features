@@ -500,8 +500,8 @@ def bootstrapping_stats_diff_btw_features(
                     sampled_weights = explained_var[idx]
 
                     # Compute weighted mean for this bootstrap
-                    perm_sum_data_A = np.sum(sampled_corrs_A * sampled_weights) / np.sum(sampled_weights)
-                    perm_sum_data_B = np.sum(sampled_corrs_B * sampled_weights) / np.sum(sampled_weights)
+                    perm_sum_data_A[l, perm] = np.sum(sampled_corrs_A * sampled_weights) / np.sum(sampled_weights)
+                    perm_sum_data_B[l, perm] = np.sum(sampled_corrs_B * sampled_weights) / np.sum(sampled_weights)
 
             peak_A_perm = np.argmax(perm_sum_data_A, axis=0)
             peak_B_perm = np.argmax(perm_sum_data_B, axis=0)

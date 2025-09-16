@@ -27,7 +27,7 @@ from EEG.Encoding.utils import (
 )
 
 
-def bootstrapping_CI(n_perm: int, encoding_dir: str, weighted: bool, cnn_dir_img: str, cnn_dir_vid: str):
+def bootstrapping_CI(n_perm: int, encoding_dir: str, weighted: bool):
     """
     Bootstrapped 95%-CIs for the encoding accuracy for each timepoint and
     each feature.
@@ -53,10 +53,6 @@ def bootstrapping_CI(n_perm: int, encoding_dir: str, weighted: bool, cnn_dir_img
         Where encoding results are saved
     weighted : bool
         If True, uses weighted regression results.
-    cnn_dir_img : str
-        Directory where the explained variance per PC for images is stored.
-    cnn_dir_vid : str
-        Directory where the explained variance per PC for videos is stored.
     """
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
@@ -94,9 +90,6 @@ def bootstrapping_CI(n_perm: int, encoding_dir: str, weighted: bool, cnn_dir_img
         "skeleton",
     )
 
-    explained_var_dir_img = os.path.join(cnn_dir_img, "pca")
-    explained_var_dir_vid = os.path.join(cnn_dir_vid, "pca")
-
     # set random seed (for reproduction)
     np.random.seed(42)
 
@@ -114,10 +107,10 @@ def bootstrapping_CI(n_perm: int, encoding_dir: str, weighted: bool, cnn_dir_img
 
     for feature in feature_names:
         regression_features_img[feature] = encoding_results_img[feature][
-            "correlation"
+            "weighted_correlation"
         ]
         regression_features_vid[feature] = encoding_results_vid[feature][
-            "correlation"
+            "weighted_correlation"
         ]
 
     features_results = {}
@@ -137,44 +130,23 @@ def bootstrapping_CI(n_perm: int, encoding_dir: str, weighted: bool, cnn_dir_img
             num_comp_layer_img = layer_data_img.shape[0]
             num_comp_layer_vid = layer_data_vid.shape[0]
 
-            # Load explained variance per PC
-            explained_var_dir_layer_img = os.path.join(
-                explained_var_dir_img, layer, "explained_variance.pkl"
-            )
-            explained_var_dir_layer_vid = os.path.join(
-                explained_var_dir_vid, layer, "explained_variance.pkl"
-            )
-            with open(explained_var_dir_layer_vid, "rb") as f:
-                explained_var_vid = pickle.load(f)
-            with open(explained_var_dir_layer_img, "rb") as f:
-                explained_var_img = pickle.load(f)
-
-            explained_var_img = np.array(explained_var_img["explained_variance"])
-            explained_var_vid = np.array(explained_var_vid["explained_variance"])
-
             for perm in range(n_perm):
-                idx_img = np.random.choice(
+                units_drawn_img = np.random.choice(
                     range(num_comp_layer_img),
                     size=num_comp_layer_img,
-                    replace=True)
-                idx_vid = np.random.choice(
+                    replace=True,
+                )
+                units_drawn_vid = np.random.choice(
                     range(num_comp_layer_vid),
                     size=num_comp_layer_vid,
-                    replace=True)
-                
-                # Resample correlations and weights
-                layer_data_img = layer_data_img[idx_img]
-                layer_data_vid = layer_data_vid[idx_vid]
-                explained_var_img = explained_var_img[idx_img]
-                explained_var_vid = explained_var_vid[idx_vid]
+                    replace=True,
+                )
 
-                # Get weighted sum across units
-                mean_p_layer_img = np.sum(
-                    layer_data_img * explained_var_img
-                ) / np.sum(explained_var_img)
-                mean_p_layer_vid = np.sum(
-                    layer_data_vid * explained_var_vid
-                ) / np.sum(explained_var_vid)
+                perm_l_data_img = layer_data_img[units_drawn_img]
+                perm_l_data_vid = layer_data_vid[units_drawn_vid]
+
+                mean_p_layer_img = np.sum(perm_l_data_img)
+                mean_p_layer_vid = np.sum(perm_l_data_vid)
 
                 bt_data[l, perm] = mean_p_layer_img - mean_p_layer_vid
 
@@ -210,7 +182,7 @@ def bootstrapping_CI(n_perm: int, encoding_dir: str, weighted: bool, cnn_dir_img
 
 
 def bootstrapping_CI_peak_layer(
-    n_perm: int, encoding_dir: str, weighted: bool, cnn_dir_img: str, cnn_dir_vid: str
+    n_perm: int, encoding_dir: str, weighted: bool
 ):
     """
     Bootstrapped 95%-CIs for the layer of the largest encoding peak
@@ -236,10 +208,6 @@ def bootstrapping_CI_peak_layer(
         Where encoding results are saved
     weighted : bool
         If True, uses weighted regression results.
-    cnn_dir_img : str
-        Directory where the explained variance per PC for images is stored.
-    cnn_dir_vid : str
-        Directory where the explained variance per PC for videos is stored.
     """
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
@@ -278,9 +246,6 @@ def bootstrapping_CI_peak_layer(
         "skeleton",
     )
 
-    explained_var_dir_img = os.path.join(cnn_dir_img, "pca")
-    explained_var_dir_vid = os.path.join(cnn_dir_vid, "pca")
-
     # set random seed (for reproduction)
     np.random.seed(42)
 
@@ -298,10 +263,10 @@ def bootstrapping_CI_peak_layer(
 
     for feature in feature_names:
         corr_img[feature] = encoding_results_img[feature][
-            "correlation"
+            "weighted_correlation"
         ]
         corr_vid[feature] = encoding_results_vid[feature][
-            "correlation"
+            "weighted_correlation"
         ]
 
     ci_diff_peaks_all = {}
@@ -322,7 +287,6 @@ def bootstrapping_CI_peak_layer(
         for l, layer in enumerate(layers_names):
             layer_data_img = results_img[layer]
             layer_data_vid = results_vid[layer]
-
             num_comp_layer_img[layer] = layer_data_img.shape[0]
             num_comp_layer_vid[layer] = layer_data_vid.shape[0]
 
@@ -343,44 +307,23 @@ def bootstrapping_CI_peak_layer(
                 layer_data_img = results_img[layer]
                 layer_data_vid = results_vid[layer]
 
-                # Load explained variance per PC
-                explained_var_dir_layer_img = os.path.join(
-                    explained_var_dir_img, layer, "explained_variance.pkl"
+                # permute units & get weighted sum across units
+                units_drawn_vid = np.random.choice(
+                    range(num_comp_layer_vid[layer]),
+                    size=num_comp_layer_vid[layer],
+                    replace=True,
                 )
-                explained_var_dir_layer_vid = os.path.join(
-                    explained_var_dir_vid, layer, "explained_variance.pkl"
-                )
-                with open(explained_var_dir_layer_vid, "rb") as f:
-                    explained_var_vid = pickle.load(f)
-                with open(explained_var_dir_layer_img, "rb") as f:
-                    explained_var_img = pickle.load(f)
-
-                explained_var_img = np.array(explained_var_img["explained_variance"])
-                explained_var_vid = np.array(explained_var_vid["explained_variance"])
-
-                idx_img = np.random.choice(
+                units_drawn_img = np.random.choice(
                     range(num_comp_layer_img[layer]),
                     size=num_comp_layer_img[layer],
                     replace=True,
                 )
-                idx_vid = np.random.choice(
-                    range(num_comp_layer_vid[layer]),
-                    size=num_comp_layer_vid[layer], 
-                    replace=True,
-                )
 
-                # Resample correlations and weights
-                layer_data_img = layer_data_img[idx_img]
-                layer_data_vid = layer_data_vid[idx_vid]
-                explained_var_img = explained_var_img[idx_img]
-                explained_var_vid = explained_var_vid[idx_vid]
+                perm_peak_data_vid = layer_data_vid[units_drawn_vid]
+                perm_peak_data_img = layer_data_img[units_drawn_img]
 
-                perm_mean_vid[l] = np.sum(layer_data_vid * explained_var_vid) / np.sum(
-                    explained_var_vid
-                )
-                perm_mean_img[l] = np.sum(layer_data_img * explained_var_img) / np.sum(
-                    explained_var_img
-                )
+                perm_mean_vid[l] = np.sum(perm_peak_data_vid)
+                perm_mean_img[l] = np.sum(perm_peak_data_img)
 
             # difference in the peaks
             peak_lat_vid = np.argmax(perm_mean_vid)
@@ -463,8 +406,5 @@ if __name__ == "__main__":
     else:
         weighted = False
 
-    cnn_dir_img = config.get(args.config, "save_dir_cnn_img")
-    cnn_dir_vid = config.get(args.config, "save_dir_cnn_vid")
-
-    bootstrapping_CI(n_perm, encoding_dir, weighted, cnn_dir_img, cnn_dir_vid)
-    bootstrapping_CI_peak_layer(n_perm, encoding_dir, weighted, cnn_dir_img, cnn_dir_vid)
+    bootstrapping_CI(n_perm, encoding_dir, weighted)
+    bootstrapping_CI_peak_layer(n_perm, encoding_dir, weighted)

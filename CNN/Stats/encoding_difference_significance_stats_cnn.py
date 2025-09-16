@@ -32,8 +32,6 @@ def encoding_stats(
     tail: str,
     weighted: bool,
     encoding_dir: str,
-    cnn_dir_img: str,
-    cnn_dir_vid: str
 ):
     """
     Input:
@@ -67,10 +65,6 @@ def encoding_stats(
         One-sided or two-sided test
     encoding_dir : str
         Directory containing the encoding results.
-    cnn_dir_img : str
-        Directory where the explained variance per PC for images is stored.
-    cnn_dir_vid : str
-        Directory where the explained variance per PC for videos is stored.
     """
     # -------------------------------------------------------------------------
     # STEP 2.1 Import Modules & Define Variables
@@ -112,9 +106,6 @@ def encoding_stats(
     if not os.path.exists(saveDir):
         os.makedirs(saveDir)
 
-    explained_var_dir_img = os.path.join(cnn_dir_img, "pca")
-    explained_var_dir_vid = os.path.join(cnn_dir_vid, "pca")
-
     np.random.seed(42)
 
     # -------------------------------------------------------------------------
@@ -133,52 +124,30 @@ def encoding_stats(
         # create statistical map
         stat_map = np.zeros((n_perm, num_layers))
         for l, layer in enumerate(layers_names):
-            corr_img = encoding_results_img[feature]["correlation"][
+            corr_img = encoding_results_img[feature]["weighted_correlation"][
                 layer
             ]
-            corr_vid = encoding_results_vid[feature]["correlation"][
+            corr_vid = encoding_results_vid[feature]["weighted_correlation"][
                 layer
             ]
-
-            # Load explained variance
-            explained_var_dir_layer_img = os.path.join(
-                explained_var_dir_img, layer, "explained_variance.npy"
-            )
-            explained_var_dir_layer_vid = os.path.join(
-                explained_var_dir_vid, layer, "explained_variance.npy"
-            )
-
-            with open(explained_var_dir_layer_vid, "rb") as f:
-                explained_var_vid = pickle.load(f)
-            with open(explained_var_dir_layer_img, "rb") as f:
-                explained_var_img = pickle.load(f)
-
-            explained_var_img = np.array(explained_var_img["explained_variance"])
-            explained_var_vid = np.array(explained_var_vid["explained_variance"])
 
             # Add a new axis (such that v_stack later on works)
             corr_img = corr_img[:, np.newaxis]
             corr_vid = corr_vid[:, np.newaxis]
-            explained_var_img = explained_var_img[:, np.newaxis]
-            explained_var_vid = explained_var_vid[:, np.newaxis]
 
             num_comp_layer_img = corr_img.shape[0]
             num_comp_layer_vid = corr_vid.shape[0]
 
             all_results = np.vstack((corr_vid, corr_img))
-            all_explained_var = np.vstack((explained_var_vid, explained_var_img))
             labels = np.array(
                 [0] * num_comp_layer_vid + [1] * num_comp_layer_img
             )
             # 0 for video, 1 for image
 
+            # create sum for each layer (this is equivalent to the mean for weighted corrs)
             # this is our "original data" and permutation 1 in the stat_map
-            mean_orig_img = np.sum(corr_img * explained_var_img) / np.sum(
-                explained_var_img
-            )
-            mean_orig_vid = np.sum(corr_vid * explained_var_vid) / np.sum(
-                explained_var_vid
-            )
+            mean_orig_img = np.sum(corr_img)
+            mean_orig_vid = np.sum(corr_vid)
             # Order does not matter, as we are using a two-tailed test
             mean_orig_diff = mean_orig_img - mean_orig_vid
 
@@ -191,11 +160,9 @@ def encoding_stats(
                 # Assign to new permuted groups
                 group_1 = all_results[shuffled_labels == 0, :]
                 group_2 = all_results[shuffled_labels == 1, :]
-                explained_var_1 = all_explained_var[shuffled_labels == 0, :]
-                explained_var_2 = all_explained_var[shuffled_labels == 1, :]
 
-                mean_group_1 = np.sum(group_1 * explained_var_1) / np.sum(explained_var_1)
-                mean_group_2 = np.sum(group_2 * explained_var_2) / np.sum(explained_var_2)
+                mean_group_1 = np.sum(group_1)
+                mean_group_2 = np.sum(group_2)
 
                 stat = mean_group_2 - mean_group_1
 
@@ -304,10 +271,8 @@ if __name__ == "__main__":
         weighted = True
     else:
         weighted = False
-    cnn_dir_img = config.get(args.config, "save_dir_cnn_img")
-    cnn_dir_vid = config.get(args.config, "save_dir_cnn_vid")
 
     # -----------------------------------------------------------------------------
     # STEP 3 Run function
     # -----------------------------------------------------------------------------
-    encoding_stats(n_perm, alpha_value, tail, weighted, encoding_dir, cnn_dir_img, cnn_dir_vid)
+    encoding_stats(n_perm, alpha_value, tail, weighted, encoding_dir)
