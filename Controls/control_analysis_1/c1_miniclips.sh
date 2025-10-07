@@ -44,13 +44,13 @@ export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
 #     --config control_1 \
 #     --input_type "miniclips"
 
-# echo "Bootstrapping for miniclips completed"
-echo "Starting stats for miniclips"
-# Sixth step: Stats
-python ../../EEG/Stats/encoding_significance_stats.py \
-    --config_dir ../config.ini \
-    --config control_1 \
-    --input_type "miniclips"
+# # echo "Bootstrapping for miniclips completed"
+# echo "Starting stats for miniclips"
+# # Sixth step: Stats
+# python ../../EEG/Stats/encoding_significance_stats.py \
+#     --config_dir ../config.ini \
+#     --config control_1 \
+#     --input_type "miniclips"
 
 # echo "Stats for miniclips completed"
 echo "Starting plotting for miniclips"

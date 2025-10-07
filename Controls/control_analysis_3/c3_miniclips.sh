@@ -31,11 +31,11 @@ export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
 #     --config control_3 \
 #     --input_type "miniclips"
 
-# Fourth step: Stats
-python ../../EEG/Stats/encoding_significance_stats.py \
-    --config_dir ../config.ini \
-    --config control_3 \
-    --input_type "miniclips"
+# # Fourth step: Stats
+# python ../../EEG/Stats/encoding_significance_stats.py \
+#     --config_dir ../config.ini \
+#     --config control_3 \
+#     --input_type "miniclips"
 
 # Fifth step: Plotting 
 python ../../EEG/Plotting/plot_encoding.py \
