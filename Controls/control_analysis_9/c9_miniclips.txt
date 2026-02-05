@@ -1,35 +1,54 @@
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
-findfont: Font family 'Arial' not found.
+./c9_miniclips.sh: line 9: Third: command not found
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Using device: cpu
+Excluding guitar trials from the analysis (control analysis 9).
+Traceback (most recent call last):
+  File "/home/alexandel91/Mid-level-features/Controls/control_analysis_9/../../EEG/Encoding/encoding.py", line 389, in <module>
+    result = encoding(
+             ^^^^^^^^^
+  File "/home/alexandel91/Mid-level-features/Controls/control_analysis_9/../../EEG/Encoding/encoding.py", line 228, in encoding
+    residuals[tp, :] = y_test_tp - prediction
+    ~~~~~~~~~^^^^^^^
+ValueError: could not broadcast input array from shape (147,19) into shape (180,19)
 findfont: Font family 'Arial' not found.
 findfont: Font family 'Arial' not found.
 findfont: Font family 'Arial' not found.

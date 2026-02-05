@@ -1,6 +1,4 @@
 #!/bin/bash
-# Standard encoding analysis with all features for miniclips
-
 source /home/alexandel91/.bashrc
 conda activate encoding
 
@@ -17,7 +15,7 @@ python ../EEG/Encoding/annotation_prep_images.py \
     --config_dir ./config.ini \
     --config default 
     
-Third step: Hyperparameter optimization
+# Third step: Hyperparameter optimization
 python ../EEG/Encoding/hyperparameter_optimization.py \
     --config_dir ./config.ini \
     --config default \

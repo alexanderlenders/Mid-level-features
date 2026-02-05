@@ -10,12 +10,11 @@ python ../EEG/Encoding/mvnn_encoding.py \
     --config default \
     --input_type "miniclips"
 
-# Second step: Preprocess the features of the first frame in each video
 python ../EEG/Encoding/annotation_prep_videos.py \
     --config_dir ./config.ini \
     --config default 
     
-Third step: Hyperparameter optimization
+# Third step: Hyperparameter optimization
 python ../EEG/Encoding/hyperparameter_optimization.py \
     --config_dir ./config.ini \
     --config default \
