@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --mail-user=alexandel91@zedat.fu-berlin.de   
-#SBATCH --job-name=c9_img
+#SBATCH --job-name=c9_mini
 #SBATCH --mail-type=ALL                              
 #SBATCH --nodes=1                                    
 #SBATCH --ntasks=1                                   
@@ -15,6 +15,6 @@ cd ./
 source /home/alexandel91/.bashrc
 conda activate encoding
 
-./c9_images.sh > c9_images.txt 2>&1
+./c9_miniclips.sh > c9_miniclips.txt 2>&1
 
 
