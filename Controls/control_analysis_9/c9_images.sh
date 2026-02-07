@@ -6,7 +6,6 @@ conda activate encoding
 
 export LD_PRELOAD=$CONDA_PREFIX/lib/libstdc++.so.6
     
-Third step: Hyperparameter optimization
 python ../../EEG/Encoding/hyperparameter_optimization.py \
     --config_dir ../config.ini \
     --config control_9 \
